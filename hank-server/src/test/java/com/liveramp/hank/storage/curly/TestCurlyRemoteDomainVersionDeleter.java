@@ -16,6 +16,11 @@
 
 package com.liveramp.hank.storage.curly;
 
+import java.io.File;
+import java.nio.ByteBuffer;
+
+import org.junit.Test;
+
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
@@ -25,10 +30,6 @@ import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.ZkTestCase;
-import org.junit.Test;
-
-import java.io.File;
-import java.nio.ByteBuffer;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -43,7 +44,7 @@ public class TestCurlyRemoteDomainVersionDeleter extends ZkTestCase {
     final Curly storageEngine = new Curly(1, new Murmur64Hasher(), 100000, 1, 1000, localDiskRoot,
         new LocalPartitionRemoteFileOps.Factory(), NoCueballCompressionCodec.class,
         new MockDomain("domain", 0, 1, null, null, null, null),
-        0, -1, -1, -1, -1, null, -1, -1);
+        0, -1, null, -1, -1);
     Writer writer = storageEngine.getWriter(new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base()),
         new LocalPartitionRemoteFileOps(localDiskRoot, 0), 0);
     writer.write(key, value);

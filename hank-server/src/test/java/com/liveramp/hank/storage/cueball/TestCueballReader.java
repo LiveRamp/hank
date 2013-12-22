@@ -15,14 +15,15 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
-import com.liveramp.hank.storage.ReaderResult;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+
+import org.junit.Test;
+
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
+import com.liveramp.hank.storage.ReaderResult;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,7 +40,7 @@ public class TestCueballReader extends AbstractCueballTest {
     os.flush();
     os.close();
 
-    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 1, new NoCueballCompressionCodec(), 1);
+    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 1, new NoCueballCompressionCodec(), 1 << 20, 1);
 
     // test version number
     assertEquals(Integer.valueOf(0), reader.getVersionNumber());
@@ -52,7 +53,7 @@ public class TestCueballReader extends AbstractCueballTest {
 
     reader.get(ByteBuffer.wrap(KEY3), result);
     assertTrue(result.isFound());
-    assertEquals(ByteBuffer.wrap(new byte[]{(byte) 0x8f, 1, 2, 1, 2}), result.getBuffer());
+    assertEquals(ByteBuffer.wrap(new byte[]{(byte)0x8f, 1, 2, 1, 2}), result.getBuffer());
     result.clear();
 
     reader.get(ByteBuffer.wrap(KEY1), result);

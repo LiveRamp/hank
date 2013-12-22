@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 LiveRamp
+ *  Copyright 2013 LiveRamp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,23 +16,9 @@
 
 package com.liveramp.hank.config;
 
-public interface PartitionServerConfigurator extends CoordinatorConfigurator, ReaderConfigurator {
+public interface ReaderConfigurator extends DataDirectoriesConfigurator {
 
-  public int getServicePort();
+  public long getCacheNumBytesCapacity();
 
-  public String getRingGroupName();
-
-  public int getNumConcurrentUpdates();
-
-  public int getMaxConcurrentUpdatesPerDataDirectory();
-
-  public int getNumConcurrentQueries();
-
-  public int getNumConcurrentGetBulkTasks();
-
-  public int getGetBulkTaskSize();
-
-  public int getGetTimerAggregatorWindow();
-
-  public ReaderConfigurator getReaderConfigurator(int numTotalPartitions);
+  public int getCacheNumItemsCapacity();
 }

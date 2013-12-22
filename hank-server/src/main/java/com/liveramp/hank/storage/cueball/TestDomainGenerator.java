@@ -1,14 +1,20 @@
 package com.liveramp.hank.storage.cueball;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.util.Bytes;
-
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class TestDomainGenerator {
 
@@ -30,10 +36,10 @@ public class TestDomainGenerator {
     int numPartitions = Integer.parseInt(args[8]);
     String partitionerClass = args[9];
 
-    final Class<? extends CueballCompressionCodec> codecClass = (Class<? extends CueballCompressionCodec>) Class.forName(compressionCodecClassName);
+    final Class<? extends CueballCompressionCodec> codecClass = (Class<? extends CueballCompressionCodec>)Class.forName(compressionCodecClassName);
 
-    Partitioner p = (Partitioner) Class.forName(partitionerClass).newInstance();
-    Hasher h = (Hasher) Class.forName(hasherClassName).newInstance();
+    Partitioner p = (Partitioner)Class.forName(partitionerClass).newInstance();
+    Hasher h = (Hasher)Class.forName(hasherClassName).newInstance();
 
     Map<Integer, List<byte[]>> partitionedKeys = new HashMap<Integer, List<byte[]>>();
     for (int i = 0; i < numPartitions; i++) {
@@ -50,7 +56,7 @@ public class TestDomainGenerator {
       partitionedKeys.get(partitionNumber).add(hash);
     }
 
-    final Cueball cueball = new Cueball(hashLength, h, valueLength, indexBits, "", null, codecClass, null, 0, -1);
+    final Cueball cueball = new Cueball(hashLength, h, valueLength, indexBits, "", null, codecClass, null, 0);
 
     byte[] valueBytes = new byte[valueLength];
     for (Map.Entry<Integer, List<byte[]>> part : partitionedKeys.entrySet()) {
@@ -60,7 +66,7 @@ public class TestDomainGenerator {
           return Bytes.compareBytesUnsigned(ByteBuffer.wrap(arg0), ByteBuffer.wrap(arg1));
         }
       });
-      final CueballWriter writer = (CueballWriter) cueball.getWriter(new MockDomainVersion(0, 0L),
+      final CueballWriter writer = (CueballWriter)cueball.getWriter(new MockDomainVersion(0, 0L),
           new LocalPartitionRemoteFileOps(outputPath, part.getKey()), part.getKey());
       for (int i = 0; i < part.getValue().size(); i++) {
         r.nextBytes(valueBytes);

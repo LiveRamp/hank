@@ -28,9 +28,10 @@ import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.compression.Decompressor;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
+import com.liveramp.hank.util.ByteBufferManagedBytes;
 import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.EncodingHelper;
-import com.liveramp.hank.util.SynchronizedCache;
+import com.liveramp.hank.util.SynchronizedMemoryBoundCache;
 import com.liveramp.hank.util.UnsafeByteArrayOutputStream;
 
 public class CurlyReader implements Reader, ICurlyReader {
@@ -39,7 +40,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
-  private SynchronizedCache<ByteBuffer, ByteBuffer> cache;
+  private SynchronizedMemoryBoundCache<ByteBufferManagedBytes, ByteBufferManagedBytes> cache;
   private final CompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
@@ -95,14 +96,16 @@ public class CurlyReader implements Reader, ICurlyReader {
   public CurlyReader(CurlyFilePath curlyFile,
                      int recordFileReadBufferBytes,
                      Reader keyFileReader,
-                     int cacheCapacity) throws IOException {
-    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheCapacity, null, -1, -1, false);
+                     long cacheNumBytesCapacity,
+                     int cacheNumItemsCapacity) throws IOException {
+    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheNumBytesCapacity, cacheNumItemsCapacity, null, -1, -1, false);
   }
 
   public CurlyReader(CurlyFilePath curlyFile,
                      int recordFileReadBufferBytes,
                      Reader keyFileReader,
-                     int cacheCapacity,
+                     long cacheNumBytesCapacity,
+                     int cacheNumItemsCapacity,
                      CompressionCodec blockCompressionCodec,
                      int offsetNumBytes,
                      int offsetInBlockNumBytes,
@@ -115,7 +118,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     this.offsetNumBytes = offsetNumBytes;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
     this.cacheLastDecompressedBlock = cacheLastDecompressedBlock;
-    this.cache = new SynchronizedCache<ByteBuffer, ByteBuffer>(cacheCapacity > 0, cacheCapacity);
+    this.cache = new SynchronizedMemoryBoundCache<ByteBufferManagedBytes, ByteBufferManagedBytes>(cacheNumBytesCapacity > 0 || cacheNumItemsCapacity > 0, cacheNumBytesCapacity, cacheNumItemsCapacity);
     // Check that key file is at the same version
     if (keyFileReader != null &&
         keyFileReader.getVersionNumber() != null &&
@@ -166,7 +169,7 @@ public class CurlyReader implements Reader, ICurlyReader {
       }
 
       // Position ourselves at the beginning of the actual value
-      decompressedBlockByteBuffer.position((int) offsetInBlock);
+      decompressedBlockByteBuffer.position((int)offsetInBlock);
       // Determine result value size
       int valueSize = EncodingHelper.decodeLittleEndianVarInt(decompressedBlockByteBuffer);
 
@@ -273,14 +276,14 @@ public class CurlyReader implements Reader, ICurlyReader {
 
   // Note: location should already be a deep copy that won't get modified
   private void addValueToCache(ByteBuffer location, ByteBuffer value) {
-    cache.put(location, Bytes.byteBufferDeepCopy(value));
+    cache.put(new ByteBufferManagedBytes(location), new ByteBufferManagedBytes(Bytes.byteBufferDeepCopy(value)));
   }
 
   // Return true if managed to read the corresponding value from the cache and into result
   private boolean loadValueFromCache(ByteBuffer location, ReaderResult result) {
-    ByteBuffer value = cache.get(location);
+    ByteBufferManagedBytes value = cache.get(new ByteBufferManagedBytes(location));
     if (value != null) {
-      result.deepCopyIntoResultBuffer(value);
+      result.deepCopyIntoResultBuffer(value.getBuffer());
       result.found();
       result.setL2CacheHit(true);
       return true;

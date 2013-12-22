@@ -15,15 +15,15 @@
  */
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.compression.CompressionCodec;
-import com.liveramp.hank.storage.ReaderResult;
-import com.liveramp.hank.storage.map.MapReader;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+
+import com.liveramp.hank.compression.CompressionCodec;
+import com.liveramp.hank.storage.ReaderResult;
+import com.liveramp.hank.storage.map.MapReader;
 
 public class TestCurlyReader extends AbstractCurlyTestBase {
   private static final String TMP_TEST_CURLY_READER = "/tmp/TestCurlyReader";
@@ -34,7 +34,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
   static {
     TWENTYK_BLOB = new byte[20 * 1024];
     for (int i = 0; i < TWENTYK_BLOB.length; i++) {
-      TWENTYK_BLOB[i] = (byte) i;
+      TWENTYK_BLOB[i] = (byte)i;
     }
   }
 
@@ -42,7 +42,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     new File(TMP_TEST_CURLY_READER).mkdirs();
     OutputStream s = new FileOutputStream(TMP_TEST_CURLY_READER + "/00000.base.curly");
     s.write(EXPECTED_RECORD_FILE);
-    s.write(new byte[]{(byte) 0x80, (byte) 0xa0, 1});
+    s.write(new byte[]{(byte)0x80, (byte)0xa0, 1});
     s.write(TWENTYK_BLOB);
     s.flush();
     s.close();
@@ -54,7 +54,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
         KEY5.array(), new byte[]{15, 0, 0}
     );
 
-    CurlyReader reader = new CurlyReader(CurlyReader.getLatestBase(TMP_TEST_CURLY_READER), 1024, keyfileReader, 1);
+    CurlyReader reader = new CurlyReader(CurlyReader.getLatestBase(TMP_TEST_CURLY_READER), 1024, keyfileReader, -1, 1);
 
     // test version number
     assertEquals(Integer.valueOf(0), reader.getVersionNumber());
@@ -120,7 +120,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
         KEY3.array(), new byte[]{0, 0, 0, 10, 0}
     );
 
-    CurlyReader reader = new CurlyReader(CurlyReader.getLatestBase(TMP_TEST_CURLY_READER), 1024, keyfileReader, -1,
+    CurlyReader reader = new CurlyReader(CurlyReader.getLatestBase(TMP_TEST_CURLY_READER), 1024, keyfileReader, -1, -1,
         blockCompressionCodec, 3, 2, true);
 
     ReaderResult result = new ReaderResult();

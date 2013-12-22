@@ -16,15 +16,21 @@
 
 package com.liveramp.hank.storage.curly;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.util.Bytes;
-
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class TestDomainGenerator {
 
@@ -46,10 +52,10 @@ public class TestDomainGenerator {
     int numPartitions = Integer.parseInt(args[8]);
     String partitionerClass = args[9];
 
-    final Class<? extends CueballCompressionCodec> codecClass = (Class<? extends CueballCompressionCodec>) Class.forName(compressionCodecClassName);
+    final Class<? extends CueballCompressionCodec> codecClass = (Class<? extends CueballCompressionCodec>)Class.forName(compressionCodecClassName);
 
-    Partitioner p = (Partitioner) Class.forName(partitionerClass).newInstance();
-    Hasher h = (Hasher) Class.forName(hasherClassName).newInstance();
+    Partitioner p = (Partitioner)Class.forName(partitionerClass).newInstance();
+    Hasher h = (Hasher)Class.forName(hasherClassName).newInstance();
 
     Map<Integer, List<byte[]>> partitionedKeys = new HashMap<Integer, List<byte[]>>();
     for (int i = 0; i < numPartitions; i++) {
@@ -75,7 +81,7 @@ public class TestDomainGenerator {
     }
 
     final Curly curly = new Curly(hashLength, h, 10L * 1024 * 1024 * 1024,
-        indexBits, 32 * 1024, "", null, codecClass, null, 0, -1, -1, -1, -1, null, -1, -1);
+        indexBits, 32 * 1024, "", null, codecClass, null, 0, -1, null, -1, -1);
 
     for (Map.Entry<Integer, List<byte[]>> part : partitionedKeys.entrySet()) {
       Collections.sort(part.getValue(), new Comparator<byte[]>() {
@@ -88,7 +94,7 @@ public class TestDomainGenerator {
 
     long start = System.currentTimeMillis();
     for (Map.Entry<Integer, List<byte[]>> part : partitionedKeys.entrySet()) {
-      final CurlyWriter writer = (CurlyWriter) curly.getWriter(new MockDomainVersion(0, 0L),
+      final CurlyWriter writer = (CurlyWriter)curly.getWriter(new MockDomainVersion(0, 0L),
           new LocalPartitionRemoteFileOps(outputPath, part.getKey()), part.getKey());
       for (int i = 0; i < part.getValue().size(); i++) {
         final byte[] keyHash = part.getValue().get(i);

@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.liveramp.hank.config.PartitionServerConfigurator;
+import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 
 public class MockPartitionServerConfigurator implements PartitionServerConfigurator {
@@ -77,6 +78,21 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   @Override
   public int getGetTimerAggregatorWindow() {
     return 10;
+  }
+
+  @Override
+  public long getCacheNumBytesCapacity() {
+    return 0;
+  }
+
+  @Override
+  public int getCacheNumItemsCapacity() {
+    return 0;
+  }
+
+  @Override
+  public ReaderConfigurator getReaderConfigurator(int numTotalPartitions) {
+    return null;
   }
 
   @Override

@@ -25,13 +25,14 @@ import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
+import com.liveramp.hank.util.ByteBufferManagedBytes;
 import com.liveramp.hank.util.Bytes;
-import com.liveramp.hank.util.SynchronizedCache;
+import com.liveramp.hank.util.SynchronizedMemoryBoundCache;
 
 public class CueballReader implements Reader {
 
   private static final KeyHashBufferThreadLocal keyHashBufferThreadLocal = new KeyHashBufferThreadLocal();
-  private static final ByteBuffer NOT_FOUND_MARKER = ByteBuffer.wrap(new byte[]{});
+  private static final ByteBufferManagedBytes NOT_FOUND_MARKER = new ByteBufferManagedBytes(ByteBuffer.wrap(new byte[]{}));
 
   private final Hasher hasher;
   private final int valueSize;
@@ -44,7 +45,7 @@ public class CueballReader implements Reader {
   private int maxCompressedBufferSize;
   private final HashPrefixCalculator prefixer;
   private final int versionNumber;
-  private SynchronizedCache<ByteBuffer, ByteBuffer> cache;
+  private SynchronizedMemoryBoundCache<ByteBufferManagedBytes, ByteBufferManagedBytes> cache;
 
   public CueballReader(String partitionRoot,
                        int keyHashSize,
@@ -52,7 +53,8 @@ public class CueballReader implements Reader {
                        int valueSize,
                        int hashIndexBits,
                        CueballCompressionCodec compressionCodec,
-                       int cacheCapacity) throws IOException {
+                       long cacheNumBytesCapacity,
+                       int cacheNumItemsCapacity) throws IOException {
     SortedSet<CueballFilePath> bases = Cueball.getBases(partitionRoot);
     if (bases == null || bases.size() == 0) {
       throw new IOException("Could not detect any Cueball base in " + partitionRoot);
@@ -71,7 +73,7 @@ public class CueballReader implements Reader {
     hashIndex = footer.getHashIndex();
     maxUncompressedBufferSize = footer.getMaxUncompressedBufferSize();
     maxCompressedBufferSize = footer.getMaxCompressedBufferSize();
-    cache = new SynchronizedCache<ByteBuffer, ByteBuffer>(cacheCapacity > 0, cacheCapacity);
+    cache = new SynchronizedMemoryBoundCache<ByteBufferManagedBytes, ByteBufferManagedBytes>(cacheNumBytesCapacity > 0 || cacheNumItemsCapacity > 0, cacheNumBytesCapacity, cacheNumItemsCapacity);
   }
 
   @Override
@@ -185,23 +187,23 @@ public class CueballReader implements Reader {
   }
 
   private void addValueToCache(ByteBuffer keyHash, ByteBuffer value) {
-    cache.put(Bytes.byteBufferDeepCopy(keyHash), Bytes.byteBufferDeepCopy(value));
+    cache.put(new ByteBufferManagedBytes(Bytes.byteBufferDeepCopy(keyHash)), new ByteBufferManagedBytes(Bytes.byteBufferDeepCopy(value)));
   }
 
   private void addNotFoundToCache(ByteBuffer keyHash) {
-    cache.put(Bytes.byteBufferDeepCopy(keyHash), NOT_FOUND_MARKER);
+    cache.put(new ByteBufferManagedBytes(Bytes.byteBufferDeepCopy(keyHash)), NOT_FOUND_MARKER);
   }
 
   // Return true if managed to read the corresponding value from the cache and into result
   private boolean loadValueFromCache(ByteBuffer keyHash, ReaderResult result) {
-    ByteBuffer value;
-    value = cache.get(keyHash);
+    ByteBufferManagedBytes value;
+    value = cache.get(new ByteBufferManagedBytes(keyHash));
     if (value != null) {
       // Compare against the not found marker (note that this is an address equality
       // and not an object equality on purpose)
       if (value != NOT_FOUND_MARKER) {
         // Load cached value into result
-        result.deepCopyIntoResultBuffer(value);
+        result.deepCopyIntoResultBuffer(value.getBuffer());
         result.found();
       } else {
         result.notFound();

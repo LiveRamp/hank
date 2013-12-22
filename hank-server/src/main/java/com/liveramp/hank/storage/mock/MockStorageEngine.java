@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
+import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.liveramp.hank.storage.Compactor;
@@ -38,7 +39,7 @@ public class MockStorageEngine implements StorageEngine {
   public boolean getReaderCalled;
 
   @Override
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber)
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber)
       throws IOException {
     getReaderCalled = true;
     return null;

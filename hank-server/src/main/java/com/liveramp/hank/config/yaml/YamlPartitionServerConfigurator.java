@@ -20,8 +20,10 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.liveramp.hank.config.BaseReaderConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.PartitionServerConfigurator;
+import com.liveramp.hank.config.ReaderConfigurator;
 
 public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator implements PartitionServerConfigurator {
 
@@ -37,6 +39,8 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   public static final String NUM_CONCURRENT_GET_BULK_TASKS = "num_concurrent_get_bulk_tasks";
   public static final String GET_BULK_TASK_SIZE = "get_bulk_task_size";
   public static final String GET_TIMER_AGGREGATOR_WINDOW_KEY = "get_timer_aggregator_window";
+  public static final String CACHE_NUM_BYTES_CAPACITY = "cache_num_bytes_capacity";
+  public static final String CACHE_NUM_ITEMS_CAPACITY = "cache_num_items_capacity";
 
   public YamlPartitionServerConfigurator(String path) throws IOException,
       InvalidConfigurationException {
@@ -61,6 +65,10 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
         GET_BULK_TASK_SIZE);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         GET_TIMER_AGGREGATOR_WINDOW_KEY);
+    getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
+        CACHE_NUM_BYTES_CAPACITY);
+    getRequiredLong(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
+        CACHE_NUM_ITEMS_CAPACITY);
 
     getRequiredSection(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, NUM_CONCURRENT_UPDATES_KEY);
@@ -105,6 +113,21 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   public int getGetTimerAggregatorWindow() {
     return getInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         GET_TIMER_AGGREGATOR_WINDOW_KEY);
+  }
+
+  @Override
+  public ReaderConfigurator getReaderConfigurator(int numTotalPartitions) {
+    return new BaseReaderConfigurator(this, getCacheNumBytesCapacity(), getCacheNumItemsCapacity(), numTotalPartitions);
+  }
+
+  @Override
+  public long getCacheNumBytesCapacity() {
+    return getLong(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY, CACHE_NUM_BYTES_CAPACITY);
+  }
+
+  @Override
+  public int getCacheNumItemsCapacity() {
+    return getInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY, CACHE_NUM_ITEMS_CAPACITY);
   }
 
   @Override

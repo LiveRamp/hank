@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
+import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
@@ -72,7 +73,6 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     public static final String HASHER_KEY = "hasher";
     public static final String COMPRESSION_CODEC = "compression_codec";
     public static final String NUM_REMOTE_LEAF_VERSIONS_TO_KEEP = "num_remote_leaf_versions_to_keep";
-    public static final String PARTITION_CACHE_CAPACITY = "partition_cache_capacity";
 
     private static final Set<String> REQUIRED_KEYS =
         new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
@@ -117,12 +117,6 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
       // Num remote bases to keep
       Integer numRemoteLeafVersionsToKeep = (Integer)options.get(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP);
 
-      // Cache capacity
-      Integer partitionCacheCapacity = (Integer)options.get(PARTITION_CACHE_CAPACITY);
-      if (partitionCacheCapacity == null) {
-        partitionCacheCapacity = -1;
-      }
-
       return new Cueball((Integer)options.get(KEY_HASH_SIZE_KEY),
           hasher,
           (Integer)options.get(VALUE_SIZE_KEY),
@@ -131,8 +125,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
           fileOpsFactory,
           compressionCodecClass,
           domain,
-          numRemoteLeafVersionsToKeep,
-          partitionCacheCapacity);
+          numRemoteLeafVersionsToKeep);
     }
 
     @Override
@@ -156,7 +149,6 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   private final PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory;
   private final ByteBuffer keyHashBuffer;
   private final int numRemoteLeafVersionsToKeep;
-  private final int partitionCacheCapacity;
 
   private final Class<? extends CueballCompressionCodec> compressionCodecClass;
 
@@ -168,8 +160,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
                  PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                  Class<? extends CueballCompressionCodec> compressionCodecClass,
                  Domain domain,
-                 int numRemoteLeafVersionsToKeep,
-                 int partitionCacheCapacity) {
+                 int numRemoteLeafVersionsToKeep) {
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
@@ -180,7 +171,6 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     this.compressionCodecClass = compressionCodecClass;
     this.domain = domain;
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
-    this.partitionCacheCapacity = partitionCacheCapacity;
     // Sanity check
     if (hashIndexBits > 32) {
       throw new RuntimeException("hashIndexBits is much too large (" + hashIndexBits + ")");
@@ -188,9 +178,16 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return new CueballReader(getTargetDirectory(configurator, partitionNumber),
-        keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec(), partitionCacheCapacity);
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException {
+    return new CueballReader(
+        getTargetDirectory(configurator, partitionNumber),
+        keyHashSize,
+        hasher,
+        valueSize,
+        hashIndexBits,
+        getCompressionCodec(),
+        configurator.getCacheNumBytesCapacity(),
+        configurator.getCacheNumItemsCapacity());
   }
 
   private CueballCompressionCodec getCompressionCodec() throws IOException {

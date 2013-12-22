@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
+import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 
@@ -29,7 +30,7 @@ import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
  */
 public interface StorageEngine {
 
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException;
 
   public Writer getWriter(DomainVersion domainVersion,
                           PartitionRemoteFileOps partitionRemoteFileOps,

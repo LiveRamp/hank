@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
+import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
@@ -55,7 +56,7 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException {
     return new EchoReader(partitionNumber);
   }
 

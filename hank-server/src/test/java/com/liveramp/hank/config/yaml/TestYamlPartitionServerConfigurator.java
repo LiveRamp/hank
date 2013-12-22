@@ -15,13 +15,14 @@
  */
 package com.liveramp.hank.config.yaml;
 
-import com.liveramp.hank.coordinator.mock.MockCoordinator;
-import com.liveramp.hank.test.BaseTestCase;
-import org.junit.Test;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Collections;
+
+import org.junit.Test;
+
+import com.liveramp.hank.coordinator.mock.MockCoordinator;
+import com.liveramp.hank.test.BaseTestCase;
 
 import static org.junit.Assert.assertEquals;
 
@@ -41,6 +42,8 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     pw.println("    num_concurrent_get_bulk_tasks: 1");
     pw.println("    get_bulk_task_size: 2");
     pw.println("    get_timer_aggregator_window: 1000");
+    pw.println("    cache_num_bytes_capacity: 1000000");
+    pw.println("    cache_num_items_capacity: 2000");
     pw.println("  update_daemon:");
     pw.println("    num_concurrent_updates: 5");
     pw.println("    max_concurrent_updates_per_data_directory: 2");
@@ -57,5 +60,7 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     assertEquals(5, conf.getNumConcurrentUpdates());
     assertEquals(2, conf.getMaxConcurrentUpdatesPerDataDirectory());
     assertEquals(5, conf.getNumConcurrentQueries());
+    assertEquals(1000000, conf.getCacheNumBytesCapacity());
+    assertEquals(2000, conf.getCacheNumItemsCapacity());
   }
 }

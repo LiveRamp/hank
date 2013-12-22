@@ -15,8 +15,33 @@
  */
 package com.liveramp.hank.partition_server;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.Logger;
+
 import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
@@ -25,12 +50,6 @@ import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * Implements the actual data serving logic of the PartitionServer
@@ -94,6 +113,12 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       throw new IOException(String.format("Could not get Host at address %s of Ring %s", address, ring));
     }
 
+    // Compute the total number of partitions
+    int numTotalPartitions = 0;
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      numTotalPartitions += hostDomain.getPartitions().size();
+    }
+
     // Determine the max domain id so we can bound the arrays
     int maxDomainId = 0;
     for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
@@ -138,7 +163,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
         Reader reader;
         try {
-          reader = engine.getReader(configurator, partition.getPartitionNumber());
+          reader = engine.getReader(configurator.getReaderConfigurator(numTotalPartitions), partition.getPartitionNumber());
         } catch (IOException e) {
           // Something went wrong when loading this partition's Reader. Set it deletable and signal failure.
           if (!partition.isDeletable()) {
@@ -307,7 +332,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
         if (response.is_set_value()) {
           ByteBuffer valueBuffer = response.buffer_for_value();
           // If buffer used space is less than a threshold times its capacity, do a deep copy.
-          if (((double) valueBuffer.limit())
+          if (((double)valueBuffer.limit())
               < (USED_SIZE_THRESHOLD_FOR_VALUE_BUFFER_DEEP_COPY * valueBuffer.capacity())) {
             // Deep copy the value. Hence we can reuse the result buffer.
             response.set_value(Bytes.byteBufferDeepCopy(valueBuffer));

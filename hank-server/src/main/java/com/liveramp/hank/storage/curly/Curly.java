@@ -31,7 +31,9 @@ import java.util.regex.Pattern;
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
+import com.liveramp.hank.config.BaseReaderConfigurator;
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
+import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
@@ -77,9 +79,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     private static final String COMPRESSION_CODEC = "compression_codec";
     public static final String NUM_REMOTE_LEAF_VERSIONS_TO_KEEP = "num_remote_leaf_versions_to_keep";
     public static final String VALUE_FOLDING_CACHE_CAPACITY = "value_folding_cache_capacity";
-    public static final String KEY_FILE_PARTITION_CACHE_CAPACITY = "key_file_partition_cache_capacity";
-    public static final String RECORD_FILE_PARTITION_CACHE_CAPACITY = "record_file_partition_cache_capacity";
-    public static final String RECORD_FILE_PARTITION_COMPACTOR_CACHE_CAPACITY = "record_file_partition_compactor_cache_capacity";
     private static final String BLOCK_COMPRESSION_CODEC = "block_compression_codec";
     private static final String COMPRESSED_BLOCK_SIZE_THRESHOLD = "compressed_block_size_threshold";
     private static final String OFFSET_IN_BLOCK_NUM_BYTES = "offset_in_block_num_bytes";
@@ -125,20 +124,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         valueFoldingCacheCapacity = -1;
       }
 
-      // Cache capacity
-      Integer keyFilePartitionCacheCapacity = (Integer)options.get(KEY_FILE_PARTITION_CACHE_CAPACITY);
-      if (keyFilePartitionCacheCapacity == null) {
-        keyFilePartitionCacheCapacity = -1;
-      }
-      Integer recordFilePartitionCacheCapacity = (Integer)options.get(RECORD_FILE_PARTITION_CACHE_CAPACITY);
-      if (recordFilePartitionCacheCapacity == null) {
-        recordFilePartitionCacheCapacity = -1;
-      }
-      Integer recordFilePartitionCompactorCacheCapacity = (Integer)options.get(RECORD_FILE_PARTITION_COMPACTOR_CACHE_CAPACITY);
-      if (recordFilePartitionCompactorCacheCapacity == null) {
-        recordFilePartitionCompactorCacheCapacity = recordFilePartitionCacheCapacity;
-      }
-
       // Block compression
       CompressionCodec blockCompressionCodec = null;
       String blockCompressionCodecStr = (String)options.get(BLOCK_COMPRESSION_CODEC);
@@ -165,9 +150,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
           domain,
           numRemoteLeafVersionsToKeep,
           valueFoldingCacheCapacity,
-          keyFilePartitionCacheCapacity,
-          recordFilePartitionCacheCapacity,
-          recordFilePartitionCompactorCacheCapacity,
           blockCompressionCodec,
           compressedBlockSizeThreshold,
           offsetInBlockNumBytes);
@@ -185,8 +167,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   }
 
   private final Domain domain;
-  private final int recordFilePartitionCacheCapacity;
-  private final int recordFilePartitionCompactorCacheCapacity;
 
   private final int offsetNumBytes;
   private final int recordFileReadBufferBytes;
@@ -215,9 +195,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
                Domain domain,
                int numRemoteLeafVersionsToKeep,
                int valueFoldingCacheCapacity,
-               int keyFilePartitionCacheCapacity,
-               int recordFilePartitionCacheCapacity,
-               int recordFilePartitionCompactorCacheCapacity,
                CompressionCodec blockCompressionCodec,
                int compressedBlockSizeThreshold,
                int offsetInBlockNumBytes) {
@@ -230,8 +207,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     this.domain = domain;
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
     this.valueFoldingCacheCapacity = valueFoldingCacheCapacity;
-    this.recordFilePartitionCacheCapacity = recordFilePartitionCacheCapacity;
-    this.recordFilePartitionCompactorCacheCapacity = recordFilePartitionCompactorCacheCapacity;
     this.blockCompressionCodec = blockCompressionCodec;
     this.compressedBlockSizeThreshold = compressedBlockSizeThreshold;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
@@ -254,16 +229,24 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         partitionRemoteFileOpsFactory,
         keyFileCompressionCodecClass,
         domain,
-        numRemoteLeafVersionsToKeep,
-        keyFilePartitionCacheCapacity);
+        numRemoteLeafVersionsToKeep);
   }
 
   @Override
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException {
+
+    // This configurator is used because this reader is composed of 2 underlying readers
+    ReaderConfigurator subConfigurator = new BaseReaderConfigurator(
+        configurator,
+        configurator.getCacheNumBytesCapacity(),
+        configurator.getCacheNumItemsCapacity(),
+        2);
+
     return new CurlyReader(CurlyReader.getLatestBase(getTargetDirectory(configurator, partitionNumber)),
         recordFileReadBufferBytes,
-        cueballStorageEngine.getReader(configurator, partitionNumber),
-        recordFilePartitionCacheCapacity,
+        cueballStorageEngine.getReader(subConfigurator, partitionNumber),
+        subConfigurator.getCacheNumBytesCapacity(),
+        subConfigurator.getCacheNumItemsCapacity(),
         blockCompressionCodec,
         offsetNumBytes,
         offsetInBlockNumBytes,
@@ -355,7 +338,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException {
             // Note: key file reader is null as it will *not* be used
             return new CurlyReader(curlyFilePath, recordFileReadBufferBytes,
-                null, recordFilePartitionCompactorCacheCapacity, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
+                null, 10 << 20, 1 << 10, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
           }
         }
     );

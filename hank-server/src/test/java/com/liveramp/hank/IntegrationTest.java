@@ -15,6 +15,29 @@
  */
 package com.liveramp.hank;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.junit.Test;
+
 import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.PartitionServerConfigurator;
@@ -56,28 +79,6 @@ import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import static org.junit.Assert.assertEquals;
 
@@ -165,6 +166,8 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_GET_BULK_TASKS + ": 1");
       pw.println("    " + YamlPartitionServerConfigurator.GET_BULK_TASK_SIZE + ": 2");
       pw.println("    " + YamlPartitionServerConfigurator.GET_TIMER_AGGREGATOR_WINDOW_KEY + ": 1000");
+      pw.println("    " + YamlPartitionServerConfigurator.CACHE_NUM_BYTES_CAPACITY + ": 1000000");
+      pw.println("    " + YamlPartitionServerConfigurator.CACHE_NUM_ITEMS_CAPACITY + ": 1000000");
       pw.println("  " + YamlPartitionServerConfigurator.UPDATE_DAEMON_SECTION_KEY + ":");
       pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_UPDATES_KEY + ": 1");
       pw.println("    " + YamlPartitionServerConfigurator.MAX_CONCURRENT_UPDATES_PER_DATA_DIRECTORY_KEY + ": 1");

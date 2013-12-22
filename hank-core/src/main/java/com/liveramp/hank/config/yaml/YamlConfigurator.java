@@ -16,9 +16,6 @@
 
 package com.liveramp.hank.config.yaml;
 
-import com.liveramp.hank.config.InvalidConfigurationException;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,6 +23,10 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import org.yaml.snakeyaml.Yaml;
+
+import com.liveramp.hank.config.InvalidConfigurationException;
 
 public abstract class YamlConfigurator implements Serializable {
 
@@ -46,7 +47,7 @@ public abstract class YamlConfigurator implements Serializable {
   public void loadFromFile(String path) throws InvalidConfigurationException, FileNotFoundException {
     try {
       contentSource = path;
-      config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
+      config = (Map<String, Object>)new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
     } catch (Exception e) {
       throw new RuntimeException("Invalid configuration in file " + path, e);
     }
@@ -56,7 +57,7 @@ public abstract class YamlConfigurator implements Serializable {
   public void loadFromYaml(String yaml) throws InvalidConfigurationException {
     try {
       contentSource = yaml;
-      config = (Map<String, Object>) new Yaml().load(yaml);
+      config = (Map<String, Object>)new Yaml().load(yaml);
     } catch (Exception e) {
       throw new RuntimeException("Invalid configuration: " + yaml, e);
     }
@@ -93,7 +94,7 @@ public abstract class YamlConfigurator implements Serializable {
             + "' is required in configuration section '" + path + "' of configuration '" + contentSource + "'");
       }
       path = path + ":" + optionPath[i];
-      currentSection = (Map<String, Object>) currentSection.get(optionPath[i]);
+      currentSection = (Map<String, Object>)currentSection.get(optionPath[i]);
     }
     if (!currentSection.containsKey(optionPath[i])) {
       throw new InvalidConfigurationException("Option '" + optionPath[i]
@@ -107,7 +108,7 @@ public abstract class YamlConfigurator implements Serializable {
     if (!(option instanceof Map)) {
       throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type Map in configuration '" + contentSource + "'");
     }
-    return (Map<String, Object>) option;
+    return (Map<String, Object>)option;
   }
 
   protected Map<String, Object> getSection(String... optionPath) {
@@ -123,7 +124,7 @@ public abstract class YamlConfigurator implements Serializable {
     if (option != null && !(option instanceof String)) {
       throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type String in configuration '" + contentSource + "'");
     }
-    return (String) option;
+    return (String)option;
   }
 
   protected String getString(String... optionPath) {
@@ -147,7 +148,7 @@ public abstract class YamlConfigurator implements Serializable {
     if (option != null && !(option instanceof Integer)) {
       throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type Integer in configuration '" + contentSource + "'");
     }
-    return (Integer) option;
+    return (Integer)option;
   }
 
   protected Integer getInteger(String... optionPath) {
@@ -166,13 +167,41 @@ public abstract class YamlConfigurator implements Serializable {
     }
   }
 
+  protected Long getRequiredLong(String... optionPath) throws InvalidConfigurationException {
+    Object option = getRequiredOption(optionPath);
+    // Translate integers to longs
+    if (option instanceof Integer) {
+      option = Long.valueOf((Integer)option);
+    }
+    if (option != null && !(option instanceof Long)) {
+      throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type Long in configuration '" + contentSource + "'");
+    }
+    return (Long)option;
+  }
+
+  protected Long getLong(String... optionPath) {
+    try {
+      return getRequiredLong(optionPath);
+    } catch (InvalidConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected Long getOptionalLong(String... optionPath) {
+    try {
+      return getRequiredLong(optionPath);
+    } catch (InvalidConfigurationException e) {
+      return null;
+    }
+  }
+
   protected List<String> getRequiredStringList(String... optionPath) throws InvalidConfigurationException {
     Object option = getRequiredOption(optionPath);
     if (option != null && !(option instanceof List)) {
       throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type List of strings in configuration '" + contentSource + "'");
     }
     try {
-      return (List<String>) option;
+      return (List<String>)option;
     } catch (ClassCastException e) {
       throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type List of strings in configuration '" + contentSource + "'");
     }

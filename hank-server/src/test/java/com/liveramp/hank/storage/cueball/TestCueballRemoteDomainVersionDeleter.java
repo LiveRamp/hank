@@ -16,6 +16,11 @@
 
 package com.liveramp.hank.storage.cueball;
 
+import java.io.File;
+import java.nio.ByteBuffer;
+
+import org.junit.Test;
+
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
@@ -25,10 +30,6 @@ import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.BaseTestCase;
-import org.junit.Test;
-
-import java.io.File;
-import java.nio.ByteBuffer;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -44,7 +45,7 @@ public class TestCueballRemoteDomainVersionDeleter extends BaseTestCase {
     final Cueball storageEngine = new Cueball(1,
         new Murmur64Hasher(), 1, 1, localDiskRoot,
         new LocalPartitionRemoteFileOps.Factory(), NoCueballCompressionCodec.class,
-        new MockDomain("domain", 0, 1, null, null, null, null), 0, -1);
+        new MockDomain("domain", 0, 1, null, null, null, null), 0);
     Writer writer = storageEngine.getWriter(new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base()),
         new LocalPartitionRemoteFileOps(localDiskRoot, 0), 0);
     writer.write(key, value);

@@ -15,28 +15,45 @@
  */
 package com.liveramp.hank.partition_server;
 
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.config.DataDirectoriesConfigurator;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.thrift.TException;
+import org.junit.Test;
+
 import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.config.ReaderConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainGroup;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
-import com.liveramp.hank.test.partitioner.MapPartitioner;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.mock.MockReader;
 import com.liveramp.hank.storage.mock.MockStorageEngine;
-import com.liveramp.hank.test.coordinator.*;
-import org.apache.thrift.TException;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.*;
+import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.test.coordinator.MockHost;
+import com.liveramp.hank.test.coordinator.MockHostDomain;
+import com.liveramp.hank.test.coordinator.MockHostDomainPartition;
+import com.liveramp.hank.test.coordinator.MockRing;
+import com.liveramp.hank.test.coordinator.MockRingGroup;
+import com.liveramp.hank.test.partitioner.MapPartitioner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -84,8 +101,8 @@ public class TestPartitionServerHandler extends BaseTestCase {
   public void testSetUpAndServe() throws Exception {
     PartitionServerHandler handler = createHandler(0);
 
-    assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));
-    assertEquals(HankResponse.value(V1), handler.get((byte) 0, K5));
+    assertEquals(HankResponse.value(V1), handler.get((byte)0, K1));
+    assertEquals(HankResponse.value(V1), handler.get((byte)0, K5));
 
     assertEquals(HankResponse.xception(HankException.wrong_host(true)),
         handler.get(0, K2));
@@ -127,7 +144,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
         K5, 4);
     MockStorageEngine storageEngine = new MockStorageEngine() {
       @Override
-      public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber)
+      public Reader getReader(ReaderConfigurator configurator, int partitionNumber)
           throws IOException {
         return new MockReader(configurator, partitionNumber, V1, readerVersionNumber) {
           @Override
@@ -176,6 +193,6 @@ public class TestPartitionServerHandler extends BaseTestCase {
   }
 
   private static ByteBuffer bb(int i) {
-    return ByteBuffer.wrap(new byte[]{(byte) i});
+    return ByteBuffer.wrap(new byte[]{(byte)i});
   }
 }
