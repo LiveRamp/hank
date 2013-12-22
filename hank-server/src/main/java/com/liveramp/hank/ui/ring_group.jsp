@@ -180,6 +180,7 @@ Collections.sort(clients, new ClientMetadataComparator());
     <th>Latency</th>
     <th>Hit Rate</th>
     <th>Cache Hits</th>
+    <th>Cache Size</th>
     <th>Version</th>
     <th>Closed On</th>
     </tr>
@@ -212,7 +213,13 @@ Collections.sort(clients, new ClientMetadataComparator());
     </td>
     <td class='centered'><%= FormatUtils.formatDouble(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
     <td class='centered'><%= UiUtils.formatCacheHits(runtimeStatisticsForDomain) %></td>
+    <td class='centered'>
+      <%= String.format("%,d", runtimeStatisticsForDomain.getCacheStatistics().getNumItems())  %> items
+      /
+      <%= FormatUtils.formatNumBytes(runtimeStatisticsForDomain.getCacheStatistics().getNumManagedBytes()) %>
+    </td>
       <% } else { %>
+    <td class='centered'>-</td>
     <td class='centered'>-</td>
     <td class='centered'>-</td>
     <td class='centered'>-</td>

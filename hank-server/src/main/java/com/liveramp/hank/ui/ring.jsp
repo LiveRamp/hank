@@ -150,6 +150,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <th>Latency</th>
     <th>Hit Rate</th>
     <th>Cache Hits</th>
+    <th>Cache Size</th>
     </tr>
       <%
      SortedMap<Domain, RuntimeStatisticsAggregator> runtimeStatisticsForDomains = Rings.computeRuntimeStatisticsForDomains(runtimeStatistics);
@@ -167,6 +168,11 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     </td>
     <td class='centered'><%= FormatUtils.formatDouble(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
     <td class='centered'><%= UiUtils.formatCacheHits(runtimeStatisticsForDomain) %></td>
+    <td class='centered'>
+      <%= String.format("%,d", runtimeStatisticsForDomain.getCacheStatistics().getNumItems())  %> items
+      /
+      <%= FormatUtils.formatNumBytes(runtimeStatisticsForDomain.getCacheStatistics().getNumManagedBytes()) %>
+    </td>
     </tr>
       <%
     }
