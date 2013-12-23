@@ -19,7 +19,11 @@ package com.liveramp.hank.util;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 public class MemoryBoundLruHashMap<K extends ManagedBytes, V extends ManagedBytes> {
+
+  private static final Logger LOG = Logger.getLogger(MemoryBoundLruHashMap.class);
 
   private long numManagedBytes = 0;
   private final long maxNumManagedBytes;
@@ -92,7 +96,7 @@ public class MemoryBoundLruHashMap<K extends ManagedBytes, V extends ManagedByte
       result += entry.getKey().getNumManagedBytes() + entry.getValue().getNumManagedBytes();
     }
     if (result != numManagedBytes) {
-      throw new RuntimeException("numManagedBytes (" + numManagedBytes + ") and recomputed numManagedBytes (" + result + ") differ");
+      LOG.error("numManagedBytes (" + numManagedBytes + ") and recomputed numManagedBytes (" + result + ") differ");
     }
     return result;
   }
