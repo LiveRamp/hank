@@ -32,7 +32,10 @@ public class ByteBufferManagedBytes implements ManagedBytes {
 
   @Override
   public long getNumManagedBytes() {
-    return buffer.capacity();
+    // 8 bytes for ByteBufferManagedBytes itself
+    // 40 bytes for the corresponding ByteBuffer
+    // Plus the capacity of the underlying byte array
+    return 8 + 40 + buffer.capacity();
   }
 
   @Override
