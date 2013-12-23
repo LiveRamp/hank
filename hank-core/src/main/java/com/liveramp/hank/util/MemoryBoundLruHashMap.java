@@ -86,6 +86,17 @@ public class MemoryBoundLruHashMap<K extends ManagedBytes, V extends ManagedByte
     return numManagedBytes;
   }
 
+  public long recomputeNumManagedBytes() {
+    long result = 0;
+    for (Map.Entry<K, V> entry : map.entrySet()) {
+      result += entry.getKey().getNumManagedBytes() + entry.getValue().getNumManagedBytes();
+    }
+    if (result != numManagedBytes) {
+      throw new RuntimeException("numManagedBytes (" + numManagedBytes + ") and recomputed numManagedBytes (" + result + ") differ");
+    }
+    return result;
+  }
+
   private void manage(K key, V value) {
     numManagedBytes += key.getNumManagedBytes() + value.getNumManagedBytes();
   }
