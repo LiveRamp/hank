@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 
+import org.apache.log4j.Logger;
+
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.compression.Decompressor;
 import com.liveramp.hank.storage.CacheStatistics;
@@ -32,6 +34,7 @@ import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.ByteBufferManagedBytes;
 import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.EncodingHelper;
+import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.SynchronizedMemoryBoundCache;
 import com.liveramp.hank.util.UnsafeByteArrayOutputStream;
 
@@ -50,6 +53,9 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final boolean cacheLastDecompressedBlock;
   private ByteBuffer lastDecompressedBlock;
   private long lastDecompressedBlockOffset = -1;
+
+  private static final Logger LOG = Logger.getLogger(CurlyReader.class);
+  private static final Map<String, Integer> bufferSizes = new HashMap<String, Integer>();
 
   private static class Local {
 
@@ -196,6 +202,9 @@ public class CurlyReader implements Reader, ICurlyReader {
         block.arrayOffset() + block.position(),
         block.remaining(),
         local.getDecompressionOutputStream());
+    synchronized (bufferSizes) {
+      bufferSizes.put(Thread.currentThread().getName(), local.getDecompressionOutputStream().getByteBuffer().capacity());
+    }
     return local.getDecompressionOutputStream().getByteBuffer();
   }
 
@@ -312,5 +321,17 @@ public class CurlyReader implements Reader, ICurlyReader {
       keyFileReader.close();
     }
     cache = null;
+  }
+
+  public static void logBufferSizes() {
+    synchronized (bufferSizes) {
+      long total = 0;
+      for (Map.Entry<String, Integer> entry : bufferSizes.entrySet()) {
+        LOG.info("Decompression buffer for " + entry.getKey() + ": " + FormatUtils.formatNumBytes(entry.getValue()));
+        total += entry.getValue();
+      }
+      LOG.info("Decompression buffers: " + bufferSizes.size() + " buffers, total: " + FormatUtils.formatNumBytes(total));
+    }
+
   }
 }
