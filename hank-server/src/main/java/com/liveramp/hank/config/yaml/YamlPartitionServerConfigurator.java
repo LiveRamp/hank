@@ -39,6 +39,7 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   public static final String NUM_CONCURRENT_GET_BULK_TASKS = "num_concurrent_get_bulk_tasks";
   public static final String GET_BULK_TASK_SIZE = "get_bulk_task_size";
   public static final String GET_TIMER_AGGREGATOR_WINDOW_KEY = "get_timer_aggregator_window";
+  public static final String BUFFER_REUSE_MAX_SIZE = "buffer_reuse_max_size";
   public static final String CACHE_NUM_BYTES_CAPACITY = "cache_num_bytes_capacity";
   public static final String CACHE_NUM_ITEMS_CAPACITY = "cache_num_items_capacity";
 
@@ -65,6 +66,8 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
         GET_BULK_TASK_SIZE);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         GET_TIMER_AGGREGATOR_WINDOW_KEY);
+    getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
+        BUFFER_REUSE_MAX_SIZE);
     getRequiredLong(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         CACHE_NUM_BYTES_CAPACITY);
     getRequiredLong(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
@@ -113,6 +116,12 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   public int getGetTimerAggregatorWindow() {
     return getInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         GET_TIMER_AGGREGATOR_WINDOW_KEY);
+  }
+
+  @Override
+  public int getBufferReuseMaxSize() {
+    return getInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
+        BUFFER_REUSE_MAX_SIZE);
   }
 
   @Override

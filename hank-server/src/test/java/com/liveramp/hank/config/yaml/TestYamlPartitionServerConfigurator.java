@@ -42,6 +42,7 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     pw.println("    num_concurrent_get_bulk_tasks: 1");
     pw.println("    get_bulk_task_size: 2");
     pw.println("    get_timer_aggregator_window: 1000");
+    pw.println("    buffer_reuse_max_size: 1024");
     pw.println("    cache_num_bytes_capacity: 1000000");
     pw.println("    cache_num_items_capacity: 2000");
     pw.println("  update_daemon:");
@@ -60,6 +61,7 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     assertEquals(5, conf.getNumConcurrentUpdates());
     assertEquals(2, conf.getMaxConcurrentUpdatesPerDataDirectory());
     assertEquals(5, conf.getNumConcurrentQueries());
+    assertEquals(1024, conf.getBufferReuseMaxSize());
     assertEquals(1000000, conf.getCacheNumBytesCapacity());
     assertEquals(2000, conf.getCacheNumItemsCapacity());
   }
