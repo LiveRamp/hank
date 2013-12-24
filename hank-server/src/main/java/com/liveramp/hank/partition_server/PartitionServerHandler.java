@@ -62,6 +62,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
   private final int getBulkTaskSize;
+  private final int bufferReuseMaxSize;
   private static final long GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_VALUE = 1;
   private static final TimeUnit GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
 
@@ -91,6 +92,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
         new GetBulkThreadFactory());
 
     getBulkTaskSize = configurator.getGetBulkTaskSize();
+    bufferReuseMaxSize = configurator.getBufferReuseMaxSize();
 
     // Prestart core threads
     getBulkTaskExecutor.prestartAllCoreThreads();
@@ -222,6 +224,11 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   @Override
   public HankResponse get(int domainId, ByteBuffer key) {
     ReaderResult result = readerResultThreadLocal.get();
+    // If buffer exceeds limit, reset it
+    if (result.getBuffer() != null && result.getBuffer().capacity() > bufferReuseMaxSize) {
+      readerResultThreadLocal.remove();
+      result = readerResultThreadLocal.get();
+    }
     result.clear();
     return _get(this, domainId, key, result);
   }
