@@ -48,7 +48,6 @@ import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.StorageEngine;
-import com.liveramp.hank.storage.curly.CurlyReader;
 import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
@@ -431,8 +430,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
         }
         LOG.info("Result buffers: " + bufferSizes.size() + " buffers, total: " + FormatUtils.formatNumBytes(total));
       }
-      // Compute Curly buffer stats
-      CurlyReader.logBufferSizes();
     }
 
     @Override
