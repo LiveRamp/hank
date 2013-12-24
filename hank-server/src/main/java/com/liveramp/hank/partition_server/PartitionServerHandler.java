@@ -228,9 +228,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     result.clear();
     HankResponse response = _get(this, domainId, key, result);
     synchronized (bufferSizes) {
-      if (result.getBuffer() != null) {
-        bufferSizes.put(Thread.currentThread().getName(), result.getBuffer().capacity());
-      }
+      bufferSizes.put(Thread.currentThread().getName(), result.getBuffer().capacity());
     }
     return response;
   }
