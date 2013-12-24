@@ -75,7 +75,7 @@ public class SynchronizedMemoryBoundCache<K extends ManagedBytes, V extends Mana
       return 0;
     } else {
       synchronized (cache) {
-        return cache.recomputeNumManagedBytes();
+        return cache.getNumManagedBytes();
       }
     }
   }
