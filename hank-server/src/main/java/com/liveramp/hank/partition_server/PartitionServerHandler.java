@@ -49,7 +49,6 @@ import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.util.Bytes;
-import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
 
 /**
@@ -76,8 +75,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   private final UpdateStatisticsRunnable updateRuntimeStatisticsRunnable;
   private final Thread updateRuntimeStatisticsThread;
   private static final int UPDATE_RUNTIME_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
-
-  private final Map<String, Integer> bufferSizes = new HashMap<String, Integer>();
 
   // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
@@ -226,11 +223,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   public HankResponse get(int domainId, ByteBuffer key) {
     ReaderResult result = readerResultThreadLocal.get();
     result.clear();
-    HankResponse response = _get(this, domainId, key, result);
-    synchronized (bufferSizes) {
-      bufferSizes.put(Thread.currentThread().getName(), result.getBuffer().capacity());
-    }
-    return response;
+    return _get(this, domainId, key, result);
   }
 
   @Override
@@ -419,15 +412,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       }
       // Set statistics
       Hosts.setRuntimeStatistics(host, runtimeStatisticsAggregators);
-      // Compute buffer stats
-      synchronized (bufferSizes) {
-        long total = 0;
-        for (Map.Entry<String, Integer> entry : bufferSizes.entrySet()) {
-          LOG.info("Result buffer for " + entry.getKey() + ": " + FormatUtils.formatNumBytes(entry.getValue()));
-          total += entry.getValue();
-        }
-        LOG.info("Result buffers: " + bufferSizes.size() + " buffers, total: " + FormatUtils.formatNumBytes(total));
-      }
     }
 
     @Override
