@@ -240,6 +240,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         configurator,
         configurator.getCacheNumBytesCapacity(),
         configurator.getCacheNumItemsCapacity(),
+        configurator.getBufferReuseMaxSize(),
         2);
 
     return new CurlyReader(CurlyReader.getLatestBase(getTargetDirectory(configurator, partitionNumber)),
@@ -250,7 +251,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         blockCompressionCodec,
         offsetNumBytes,
         offsetInBlockNumBytes,
-        false);
+        false,
+        subConfigurator.getBufferReuseMaxSize());
   }
 
   @Override
@@ -338,7 +340,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException {
             // Note: key file reader is null as it will *not* be used
             return new CurlyReader(curlyFilePath, recordFileReadBufferBytes,
-                null, 10 << 20, 1 << 10, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
+                null, 10L << 20, 1 << 10, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true, 10 << 10);
           }
         }
     );

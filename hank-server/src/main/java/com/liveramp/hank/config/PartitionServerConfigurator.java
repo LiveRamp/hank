@@ -34,7 +34,5 @@ public interface PartitionServerConfigurator extends CoordinatorConfigurator, Re
 
   public int getGetTimerAggregatorWindow();
 
-  public int getBufferReuseMaxSize();
-
   public ReaderConfigurator getReaderConfigurator(int numTotalPartitions);
 }

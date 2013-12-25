@@ -23,15 +23,18 @@ public class BaseReaderConfigurator implements ReaderConfigurator {
   private final DataDirectoriesConfigurator dataDirectoriesConfigurator;
   private final long cacheNumBytesCapacity;
   private final long cacheNumItemsCapacity;
+  private final int bufferReuseMaxSize;
   private final int numTotalPartitions;
 
   public BaseReaderConfigurator(DataDirectoriesConfigurator dataDirectoriesConfigurator,
                                 long cacheNumBytesCapacity,
                                 long cacheNumItemsCapacity,
+                                int bufferReuseMaxSize,
                                 int numTotalPartitions) {
     this.dataDirectoriesConfigurator = dataDirectoriesConfigurator;
     this.cacheNumBytesCapacity = cacheNumBytesCapacity;
     this.cacheNumItemsCapacity = cacheNumItemsCapacity;
+    this.bufferReuseMaxSize = bufferReuseMaxSize;
     this.numTotalPartitions = numTotalPartitions;
   }
 
@@ -49,6 +52,11 @@ public class BaseReaderConfigurator implements ReaderConfigurator {
       return cacheNumItemsCapacity;
     }
     return cacheNumItemsCapacity / numTotalPartitions;
+  }
+
+  @Override
+  public int getBufferReuseMaxSize() {
+    return bufferReuseMaxSize;
   }
 
   @Override

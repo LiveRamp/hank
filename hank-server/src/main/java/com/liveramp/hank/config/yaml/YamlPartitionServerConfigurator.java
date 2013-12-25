@@ -126,7 +126,12 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
 
   @Override
   public ReaderConfigurator getReaderConfigurator(int numTotalPartitions) {
-    return new BaseReaderConfigurator(this, getCacheNumBytesCapacity(), getCacheNumItemsCapacity(), numTotalPartitions);
+    return new BaseReaderConfigurator(
+        this,
+        getCacheNumBytesCapacity(),
+        getCacheNumItemsCapacity(),
+        getBufferReuseMaxSize(),
+        numTotalPartitions);
   }
 
   @Override

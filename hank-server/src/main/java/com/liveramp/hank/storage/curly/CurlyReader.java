@@ -41,6 +41,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
+  private final int bufferReuseMaxSize;
   private SynchronizedMemoryBoundCache<ByteBufferManagedBytes, ByteBufferManagedBytes> cache;
   private final CompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
@@ -54,7 +55,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private static class Local {
 
     private final Map<CompressionCodec, Decompressor> blockDecompressors;
-    private final UnsafeByteArrayOutputStream decompressionOutputStream;
+    private UnsafeByteArrayOutputStream decompressionOutputStream;
 
     public Local() {
       this.blockDecompressors = new HashMap<CompressionCodec, Decompressor>();
@@ -74,8 +75,12 @@ public class CurlyReader implements Reader, ICurlyReader {
       return decompressionOutputStream;
     }
 
-    public void reset() {
+    public void clear() {
       decompressionOutputStream.reset();
+    }
+
+    public void dropDecompressionOutputStream() {
+      decompressionOutputStream = new UnsafeByteArrayOutputStream();
     }
   }
 
@@ -99,7 +104,7 @@ public class CurlyReader implements Reader, ICurlyReader {
                      Reader keyFileReader,
                      long cacheNumBytesCapacity,
                      int cacheNumItemsCapacity) throws IOException {
-    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheNumBytesCapacity, cacheNumItemsCapacity, null, -1, -1, false);
+    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheNumBytesCapacity, cacheNumItemsCapacity, null, -1, -1, false, 0);
   }
 
   public CurlyReader(CurlyFilePath curlyFile,
@@ -110,7 +115,8 @@ public class CurlyReader implements Reader, ICurlyReader {
                      CompressionCodec blockCompressionCodec,
                      int offsetNumBytes,
                      int offsetInBlockNumBytes,
-                     boolean cacheLastDecompressedBlock) throws IOException {
+                     boolean cacheLastDecompressedBlock,
+                     int bufferReuseMaxSize) throws IOException {
     this.recordFile = new FileInputStream(curlyFile.getPath()).getChannel();
     this.keyFileReader = keyFileReader;
     this.readBufferSize = recordFileReadBufferBytes;
@@ -130,6 +136,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (cacheLastDecompressedBlock) {
       lastDecompressedBlock = ByteBuffer.allocate(1);
     }
+    this.bufferReuseMaxSize = bufferReuseMaxSize;
   }
 
   @Override
@@ -183,6 +190,8 @@ public class CurlyReader implements Reader, ICurlyReader {
           decompressedBlockByteBuffer.arrayOffset() + decompressedBlockByteBuffer.position(),
           valueSize);
       result.getBuffer().flip();
+      // Drop decompression buffer if needed, it's not used anymore
+      dropDecompressionBuffer();
     }
     // Store result in cache if needed
     addValueToCache(locationDeepCopy, result.getBuffer());
@@ -190,13 +199,21 @@ public class CurlyReader implements Reader, ICurlyReader {
 
   private ByteBuffer decompressBlock(ByteBuffer block) throws IOException {
     Local local = threadLocal.get();
-    local.reset();
+    local.clear();
     local.getBlockDecompressor(blockCompressionCodec).decompressBlock(
         block.array(),
         block.arrayOffset() + block.position(),
         block.remaining(),
         local.getDecompressionOutputStream());
     return local.getDecompressionOutputStream().getByteBuffer();
+  }
+
+  private void dropDecompressionBuffer() {
+    Local local = threadLocal.get();
+    if (local.getDecompressionOutputStream().getByteBuffer() != null &&
+        local.getDecompressionOutputStream().getByteBuffer().capacity() > bufferReuseMaxSize) {
+      local.dropDecompressionOutputStream();
+    }
   }
 
   // Note: the buffer in result must be at least readBufferSize long

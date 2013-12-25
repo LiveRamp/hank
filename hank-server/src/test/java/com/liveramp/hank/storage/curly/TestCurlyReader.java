@@ -121,7 +121,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     );
 
     CurlyReader reader = new CurlyReader(CurlyReader.getLatestBase(TMP_TEST_CURLY_READER), 1024, keyfileReader, -1, -1,
-        blockCompressionCodec, 3, 2, true);
+        blockCompressionCodec, 3, 2, true, 0);
 
     ReaderResult result = new ReaderResult();
 
