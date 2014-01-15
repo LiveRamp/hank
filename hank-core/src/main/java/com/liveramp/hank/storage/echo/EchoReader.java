@@ -1,12 +1,12 @@
 package com.liveramp.hank.storage.echo;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.storage.CacheStatistics;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
-import com.liveramp.hank.util.Bytes;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class EchoReader implements Reader {
   private final int partNum;
@@ -19,7 +19,7 @@ public class EchoReader implements Reader {
   public void get(ByteBuffer key, ReaderResult result) throws IOException {
     StringBuilder sb = new StringBuilder();
     sb.append("Original value: ");
-    sb.append(Bytes.bytesToHexString(key));
+    sb.append(BytesUtils.bytesToHexString(key));
     sb.append(" Assigned to partition number: ");
     sb.append(partNum);
 

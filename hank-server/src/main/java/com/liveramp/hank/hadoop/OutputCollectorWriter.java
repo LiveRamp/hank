@@ -1,7 +1,7 @@
 package com.liveramp.hank.hadoop;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.storage.Writer;
-import com.liveramp.hank.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.OutputCollector;
@@ -27,8 +27,8 @@ public class OutputCollectorWriter implements Writer {
   @Override
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
     //TODO: This is EXTREMELY inneficient
-    byte[] keyBytes = Bytes.byteBufferDeepCopy(key).array();
-    byte[] valueBytes = Bytes.byteBufferDeepCopy(value).array();
+    byte[] keyBytes = BytesUtils.byteBufferDeepCopy(key).array();
+    byte[] valueBytes = BytesUtils.byteBufferDeepCopy(value).array();
     outputCollector.collect(
         new KeyAndPartitionWritable(new BytesWritable(keyBytes), partitionNumber),
         new ValueWritable(new BytesWritable(valueBytes)));

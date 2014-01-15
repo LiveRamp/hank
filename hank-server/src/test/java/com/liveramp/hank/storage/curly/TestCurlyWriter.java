@@ -15,9 +15,9 @@
  */
 package com.liveramp.hank.storage.curly;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.storage.map.MapWriter;
-import com.liveramp.hank.util.Bytes;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -100,7 +100,7 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
     assertFalse(keyfileWriter.entries.containsKey(KEY4));
 
     // verify that the record stream looks as expected
-    System.out.println(Bytes.bytesToHexString(ByteBuffer.wrap(s.toByteArray())));
+    System.out.println(BytesUtils.bytesToHexString(ByteBuffer.wrap(s.toByteArray())));
     assertEquals(ByteBuffer.wrap(expectedBlock), ByteBuffer.wrap(s.toByteArray()));
   }
 

@@ -21,13 +21,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.SortedSet;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.storage.CacheStatistics;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.ByteBufferManagedBytes;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.SynchronizedMemoryBoundCache;
 
 public class CueballReader implements Reader {
@@ -152,7 +152,7 @@ public class CueballReader implements Reader {
 
   private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, byte[] key) {
     for (; off < limit; off += fullRecordSize) {
-      int comparison = Bytes.compareBytesUnsigned(keyfileBufferChunk, off,
+      int comparison = BytesUtils.compareBytesUnsigned(keyfileBufferChunk, off,
           key, 0, keyHashSize);
       // found match
       if (comparison == 0) {
@@ -197,11 +197,11 @@ public class CueballReader implements Reader {
   }
 
   private void addValueToCache(ByteBuffer keyHash, ByteBuffer value) {
-    cache.put(new ByteBufferManagedBytes(Bytes.byteBufferDeepCopy(keyHash)), new ByteBufferManagedBytes(Bytes.byteBufferDeepCopy(value)));
+    cache.put(new ByteBufferManagedBytes(BytesUtils.byteBufferDeepCopy(keyHash)), new ByteBufferManagedBytes(BytesUtils.byteBufferDeepCopy(value)));
   }
 
   private void addNotFoundToCache(ByteBuffer keyHash) {
-    cache.put(new ByteBufferManagedBytes(Bytes.byteBufferDeepCopy(keyHash)), NOT_FOUND_MARKER);
+    cache.put(new ByteBufferManagedBytes(BytesUtils.byteBufferDeepCopy(keyHash)), NOT_FOUND_MARKER);
   }
 
   // Return true if managed to read the corresponding value from the cache and into result

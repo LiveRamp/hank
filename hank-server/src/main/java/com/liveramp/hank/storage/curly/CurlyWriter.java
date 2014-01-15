@@ -15,10 +15,10 @@
  */
 package com.liveramp.hank.storage.curly;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.storage.Writer;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.IOStreamUtils;
 import com.liveramp.hank.util.LruHashMap;
@@ -146,7 +146,7 @@ public class CurlyWriter implements Writer {
         keyfileWriter.write(key, valueOffsetBuffer);
         // Value was not found in cache. Cache current value encoded offset buffer if needed
         if (hashedValueToEncodedRecordOffsetCache != null) {
-          hashedValueToEncodedRecordOffsetCache.put(hashedValue, Bytes.byteBufferDeepCopy(valueOffsetBuffer));
+          hashedValueToEncodedRecordOffsetCache.put(hashedValue, BytesUtils.byteBufferDeepCopy(valueOffsetBuffer));
         }
         // Encode value size and write it
         int valueLength = value.remaining();
@@ -185,7 +185,7 @@ public class CurlyWriter implements Writer {
         keyfileWriter.write(key, valueOffsetBuffer);
         // Value was not found in cache. Cache current value encoded offset buffer if needed
         if (hashedValueToEncodedRecordOffsetCache != null) {
-          hashedValueToEncodedRecordOffsetCache.put(hashedValue, Bytes.byteBufferDeepCopy(valueOffsetBuffer));
+          hashedValueToEncodedRecordOffsetCache.put(hashedValue, BytesUtils.byteBufferDeepCopy(valueOffsetBuffer));
         }
         // Increment the offset
         offsetInDecompressedBlock += valueLengthNumBytes + valueLength;

@@ -15,9 +15,9 @@
  */
 package com.liveramp.hank.hasher;
 
-import java.nio.ByteBuffer;
+import com.liveramp.commons.util.BytesUtils;
 
-import com.liveramp.hank.util.Bytes;
+import java.nio.ByteBuffer;
 
 /**
  * This is a very fast, non-cryptographic hash suitable for general hash-based
@@ -150,7 +150,7 @@ public final class Murmur64Hasher implements Hasher {
   public static void main(String[] args) {
     int hashSize = Integer.valueOf(args[1]);
     byte[] result = new byte[hashSize];
-    new Murmur64Hasher().hash(Bytes.hexStringToBytes(args[0]), hashSize, result);
-    System.out.println(Bytes.bytesToHexString(ByteBuffer.wrap(result)));
+    new Murmur64Hasher().hash(BytesUtils.hexStringToBytes(args[0]), hashSize, result);
+    System.out.println(BytesUtils.bytesToHexString(ByteBuffer.wrap(result)));
   }
 }

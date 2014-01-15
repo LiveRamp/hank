@@ -27,9 +27,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.config.HankSmartClientConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -45,11 +43,12 @@ import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.util.AtomicLongCollection;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.SynchronizedMemoryBoundCacheExpiring;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 
 import static com.liveramp.hank.client.HostConnectionPool.getHostListShuffleSeed;
 
@@ -464,18 +463,18 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
           return NO_REPLICA;
         }
         if (LOG.isTraceEnabled()) {
-          LOG.trace("Looking in domain " + domain.getName() + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
+          LOG.trace("Looking in domain " + domain.getName() + ", in partition " + partition + ", for key: " + BytesUtils.bytesToHexString(key));
         }
         // Perform get
         HankResponse response = hostConnectionPool.get(domain, key, queryMaxNumTries, keyHash);
         // Cache response if necessary, do not cache exceptions
         if (responseCache.isEnabled() && response.is_set_not_found() || response.is_set_value()) {
           responseCache.put(
-              new DomainAndKey(domain, Bytes.byteBufferDeepCopy(key)),
+              new DomainAndKey(domain, BytesUtils.byteBufferDeepCopy(key)),
               new HankResponseManagedBytes(response.deepCopy()));
         }
         if (response.is_set_xception()) {
-          LOG.error(getLogPrefix() + "Failed to perform get: domain " + domain.getName() + ", partition " + partition + ", key: " + Bytes.bytesToHexString(key) + ", partitioner: " + domain.getPartitioner() + ", response: " + response);
+          LOG.error(getLogPrefix() + "Failed to perform get: domain " + domain.getName() + ", partition " + partition + ", key: " + BytesUtils.bytesToHexString(key) + ", partitioner: " + domain.getPartitioner() + ", response: " + response);
         }
         return response;
       } finally {

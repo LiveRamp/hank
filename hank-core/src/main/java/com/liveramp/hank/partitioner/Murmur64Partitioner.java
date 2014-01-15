@@ -15,8 +15,8 @@
  */
 package com.liveramp.hank.partitioner;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.hasher.Murmur64Hasher;
-import com.liveramp.hank.util.Bytes;
 
 import java.nio.ByteBuffer;
 
@@ -51,6 +51,6 @@ public class Murmur64Partitioner implements Partitioner {
   }
 
   public static void main(String[] args) {
-    System.out.println(new Murmur64Partitioner().partition(Bytes.hexStringToBytes(args[0]), Integer.valueOf(args[1])));
+    System.out.println(new Murmur64Partitioner().partition(BytesUtils.hexStringToBytes(args[0]), Integer.valueOf(args[1])));
   }
 }

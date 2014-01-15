@@ -1,5 +1,17 @@
 package com.liveramp.hank.storage.curly;
 
+import com.liveramp.commons.util.BytesUtils;
+import com.liveramp.hank.storage.CacheStatistics;
+import com.liveramp.hank.storage.ReaderResult;
+import com.liveramp.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
+import com.liveramp.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
+import com.liveramp.hank.storage.map.MapWriter;
+import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.util.EncodingHelper;
+import org.apache.commons.lang.NotImplementedException;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -7,20 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang.NotImplementedException;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.liveramp.hank.storage.CacheStatistics;
-import com.liveramp.hank.storage.ReaderResult;
-import com.liveramp.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
-import com.liveramp.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
-import com.liveramp.hank.storage.map.MapWriter;
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.util.Bytes;
-import com.liveramp.hank.util.EncodingHelper;
-
 import static org.junit.Assert.assertEquals;
 
 public class TestCurlyCompactingMerger extends BaseTestCase {
@@ -144,20 +142,20 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
 
     // Print merged data
     for (Map.Entry<ByteBuffer, ByteBuffer> entry : recordFileWriter.entries.entrySet()) {
-      System.err.println("Key: " + Bytes.bytesToHexString(entry.getKey())
-          + ", Value: " + Bytes.bytesToHexString(entry.getValue()));
+      System.err.println("Key: " + BytesUtils.bytesToHexString(entry.getKey())
+          + ", Value: " + BytesUtils.bytesToHexString(entry.getValue()));
     }
 
     // Check merged data
     assertEquals(7, recordFileWriter.entries.size());
 
-    assertEquals(0, Bytes.compareBytesUnsigned(getBB(0), recordFileWriter.entries.get(getBB(0))));  // 0,0
-    assertEquals(0, Bytes.compareBytesUnsigned(getBB(11), recordFileWriter.entries.get(getBB(1)))); // 1,11
-    assertEquals(0, Bytes.compareBytesUnsigned(getBB(12), recordFileWriter.entries.get(getBB(2)))); // 2,12
-    assertEquals(0, Bytes.compareBytesUnsigned(getBB(3), recordFileWriter.entries.get(getBB(3)))); // 3,3
-    assertEquals(0, Bytes.compareBytesUnsigned(getBB(14), recordFileWriter.entries.get(getBB(4)))); // 4,14
-    assertEquals(0, Bytes.compareBytesUnsigned(getBB(16), recordFileWriter.entries.get(getBB(5)))); // 5,16
-    assertEquals(0, Bytes.compareBytesUnsigned(getBB(8), recordFileWriter.entries.get(getBB(6)))); // 6,8
+    assertEquals(0, BytesUtils.compareBytesUnsigned(getBB(0), recordFileWriter.entries.get(getBB(0))));  // 0,0
+    assertEquals(0, BytesUtils.compareBytesUnsigned(getBB(11), recordFileWriter.entries.get(getBB(1)))); // 1,11
+    assertEquals(0, BytesUtils.compareBytesUnsigned(getBB(12), recordFileWriter.entries.get(getBB(2)))); // 2,12
+    assertEquals(0, BytesUtils.compareBytesUnsigned(getBB(3), recordFileWriter.entries.get(getBB(3)))); // 3,3
+    assertEquals(0, BytesUtils.compareBytesUnsigned(getBB(14), recordFileWriter.entries.get(getBB(4)))); // 4,14
+    assertEquals(0, BytesUtils.compareBytesUnsigned(getBB(16), recordFileWriter.entries.get(getBB(5)))); // 5,16
+    assertEquals(0, BytesUtils.compareBytesUnsigned(getBB(8), recordFileWriter.entries.get(getBB(6)))); // 6,8
   }
 
   private ByteBuffer getBB(int b) {
