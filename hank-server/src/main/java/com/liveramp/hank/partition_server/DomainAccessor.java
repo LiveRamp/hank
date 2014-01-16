@@ -16,12 +16,12 @@
 
 package com.liveramp.hank.partition_server;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.ReaderResult;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.HankTimerEventAggregator;
 import org.apache.log4j.Logger;
@@ -60,7 +60,7 @@ public class DomainAccessor {
       PartitionAccessor partitionAccessor = partitionAccessors[partition];
       if (partitionAccessor == null) {
         LOG.error("Failed to perform get because of an Exception: wrong host for domain: " + hostDomain.getDomain().getName()
-            + ", partition: " + partition + ", key: " + Bytes.bytesToHexString(key) + ", response: " + WRONG_HOST);
+            + ", partition: " + partition + ", key: " + BytesUtils.bytesToHexString(key) + ", response: " + WRONG_HOST);
         return WRONG_HOST;
       }
       return partitionAccessor.get(key, result);

@@ -18,8 +18,8 @@
  */
 package com.liveramp.hank.storage.cueball;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.IOStreamUtils;
 
 import java.io.BufferedInputStream;
@@ -141,7 +141,7 @@ public final class CueballStreamBuffer {
    * @return
    */
   public int compareTo(CueballStreamBuffer other) {
-    return Bytes.compareBytesUnsigned(uncompressedBuffer,
+    return BytesUtils.compareBytesUnsigned(uncompressedBuffer,
         currentOffset,
         other.uncompressedBuffer,
         other.getCurrentOffset(),

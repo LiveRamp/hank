@@ -15,10 +15,10 @@
  */
 package com.liveramp.hank.storage.cueball;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.storage.Writer;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.IOStreamUtils;
 
@@ -93,41 +93,41 @@ public class CueballWriter implements Writer {
     }
     // Check that key is different from previous one
     if (previousKey != null && previousKey.remaining() == key.remaining()
-        && 0 == Bytes.compareBytesUnsigned(key, previousKey)) {
+        && 0 == BytesUtils.compareBytesUnsigned(key, previousKey)) {
       throw new IOException("Keys must be distinct but two consecutive (in terms of comparableKey) keys are equal.");
     }
     // Hash key
     hasher.hash(key, keyHashSize, keyHashBytes);
     // Compare with previous key hash
-    int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
+    int previousKeyHashComparision = BytesUtils.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     // Check that there is not a key hash collision
     if (previousKey != null && 0 == previousKeyHashComparision) {
       throw new IOException("Collision: two consecutive keys have the same hash value."
           + "\nKey: "
-          + Bytes.bytesToHexString(key)
+          + BytesUtils.bytesToHexString(key)
           + "\nPrevious key: "
-          + Bytes.bytesToHexString(previousKey)
+          + BytesUtils.bytesToHexString(previousKey)
           + "\nHash: "
-          + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)));
+          + BytesUtils.bytesToHexString(ByteBuffer.wrap(keyHashBytes)));
     }
     // Check key hash ordering
     if (0 > previousKeyHashComparision) {
       throw new IOException("Key ordering is incorrect. They should be ordered by increasing hash (comparableKey) value, but a decreasing sequence was detected."
           + "\nKey: "
-          + Bytes.bytesToHexString(key)
+          + BytesUtils.bytesToHexString(key)
           + "\nHash: "
-          + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes))
+          + BytesUtils.bytesToHexString(ByteBuffer.wrap(keyHashBytes))
           + "\nPrevious key: "
-          + Bytes.bytesToHexString(previousKey)
+          + BytesUtils.bytesToHexString(previousKey)
           + "\nPrevious Hash: "
-          + Bytes.bytesToHexString(ByteBuffer.wrap(previousKeyHashBytes)));
+          + BytesUtils.bytesToHexString(ByteBuffer.wrap(previousKeyHashBytes)));
     }
     // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
     numRecordsWritten++;
     // Save current key and key hash
     System.arraycopy(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
-    previousKey = Bytes.byteBufferDeepCopy(key, previousKey);
+    previousKey = BytesUtils.byteBufferDeepCopy(key, previousKey);
   }
 
   public void writeHash(ByteBuffer hashedKey, ByteBuffer value) throws IOException {

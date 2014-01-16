@@ -15,8 +15,8 @@
  */
 package com.liveramp.hank.test.partitioner;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.partitioner.Partitioner;
-import com.liveramp.hank.util.Bytes;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -38,7 +38,7 @@ public class MapPartitioner implements Partitioner {
     }
     Integer partition = map.get(key);
     if (partition == null) {
-      throw new RuntimeException("Key not found in the supplied map: " + Bytes.bytesToHexString(key));
+      throw new RuntimeException("Key not found in the supplied map: " + BytesUtils.bytesToHexString(key));
     }
     if (!(partition < numPartitions)) {
       throw new RuntimeException("Partition " + map.get(key)

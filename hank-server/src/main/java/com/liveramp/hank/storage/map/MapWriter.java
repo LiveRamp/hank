@@ -15,8 +15,8 @@
  */
 package com.liveramp.hank.storage.map;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.storage.Writer;
-import com.liveramp.hank.util.Bytes;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -43,10 +43,10 @@ public class MapWriter implements Writer {
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
     recordsWritten++;
     if (entries.containsKey(key)) {
-      throw new RuntimeException("Duplicate entry for key: " + Bytes.bytesToHexString(key));
+      throw new RuntimeException("Duplicate entry for key: " + BytesUtils.bytesToHexString(key));
     }
-    ByteBuffer keyCopy = Bytes.byteBufferDeepCopy(key);
-    ByteBuffer valueCopy = Bytes.byteBufferDeepCopy(value);
+    ByteBuffer keyCopy = BytesUtils.byteBufferDeepCopy(key);
+    ByteBuffer valueCopy = BytesUtils.byteBufferDeepCopy(value);
     entries.put(keyCopy, valueCopy);
   }
 

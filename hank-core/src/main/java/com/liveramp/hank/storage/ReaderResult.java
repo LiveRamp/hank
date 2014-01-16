@@ -15,7 +15,7 @@
  */
 package com.liveramp.hank.storage;
 
-import com.liveramp.hank.util.Bytes;
+import com.liveramp.commons.util.BytesUtils;
 
 import java.nio.ByteBuffer;
 
@@ -94,7 +94,7 @@ public class ReaderResult {
     sb.append(isFound);
     if (isFound) {
       sb.append(", data=");
-      sb.append(Bytes.bytesToHexString(buffer));
+      sb.append(BytesUtils.bytesToHexString(buffer));
     }
     sb.append("]");
     return sb.toString();

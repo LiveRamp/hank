@@ -24,13 +24,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.compression.Decompressor;
 import com.liveramp.hank.storage.CacheStatistics;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.ByteBufferManagedBytes;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.SynchronizedMemoryBoundCache;
 import com.liveramp.hank.util.UnsafeByteArrayOutputStream;
@@ -147,7 +147,7 @@ public class CurlyReader implements Reader, ICurlyReader {
       return;
     }
     // Deep copy the location if caching is active, since result might point to location and overwrite it
-    ByteBuffer locationDeepCopy = cache.isEnabled() ? Bytes.byteBufferDeepCopy(location) : null;
+    ByteBuffer locationDeepCopy = cache.isEnabled() ? BytesUtils.byteBufferDeepCopy(location) : null;
     if (blockCompressionCodec == null) {
       // When not using block compression, location just contains an offset. Decode it.
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location);
@@ -172,7 +172,7 @@ public class CurlyReader implements Reader, ICurlyReader {
         // Cache the decompressed block if requested
         if (cacheLastDecompressedBlock) {
           lastDecompressedBlockOffset = recordFileBlockOffset;
-          lastDecompressedBlock = Bytes.byteBufferDeepCopy(decompressedBlockByteBuffer, lastDecompressedBlock);
+          lastDecompressedBlock = BytesUtils.byteBufferDeepCopy(decompressedBlockByteBuffer, lastDecompressedBlock);
         }
       }
 
@@ -304,7 +304,7 @@ public class CurlyReader implements Reader, ICurlyReader {
 
   // Note: location should already be a deep copy that won't get modified
   private void addValueToCache(ByteBuffer location, ByteBuffer value) {
-    cache.put(new ByteBufferManagedBytes(location), new ByteBufferManagedBytes(Bytes.byteBufferDeepCopy(value)));
+    cache.put(new ByteBufferManagedBytes(location), new ByteBufferManagedBytes(BytesUtils.byteBufferDeepCopy(value)));
   }
 
   // Return true if managed to read the corresponding value from the cache and into result

@@ -1,8 +1,8 @@
 package com.liveramp.hank.hadoop;
 
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.StorageEngine;
-import com.liveramp.hank.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.WritableComparable;
 
@@ -23,7 +23,7 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
 
   public KeyAndPartitionWritableComparable(StorageEngine storageEngine, Partitioner partitioner, int numPartitions, BytesWritable key) {
     this.keyAndPartitionWritable = new KeyAndPartitionWritable(partitioner, numPartitions, key);
-    this.comparableKey = Bytes.byteBufferDeepCopy(storageEngine.getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength())));
+    this.comparableKey = BytesUtils.byteBufferDeepCopy(storageEngine.getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength())));
   }
 
   public KeyAndPartitionWritable getKeyAndPartitionWritable() {
@@ -57,7 +57,7 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     } else if (keyAndPartitionWritable.getPartition() > other.keyAndPartitionWritable.getPartition()) {
       return 1;
     } else {
-      return Bytes.compareBytesUnsigned(comparableKey, other.comparableKey);
+      return BytesUtils.compareBytesUnsigned(comparableKey, other.comparableKey);
     }
   }
 

@@ -30,14 +30,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-import org.junit.Test;
-
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.PartitionServerConfigurator;
@@ -75,10 +68,16 @@ import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.curly.Curly;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
@@ -640,14 +639,14 @@ public class IntegrationTest extends ZkTestCase {
         part = new TreeMap<ByteBuffer, ByteBuffer>(new Comparator<ByteBuffer>() {
           public int compare(ByteBuffer arg0, ByteBuffer arg1) {
             final StorageEngine storageEngine = domain.getStorageEngine();
-            final ByteBuffer keyL = Bytes.byteBufferDeepCopy(storageEngine.getComparableKey(arg0));
+            final ByteBuffer keyL = BytesUtils.byteBufferDeepCopy(storageEngine.getComparableKey(arg0));
             final ByteBuffer keyR = storageEngine.getComparableKey(arg1);
-            return Bytes.compareBytesUnsigned(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.remaining());
+            return BytesUtils.compareBytesUnsigned(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.remaining());
           }
         });
         sortedAndPartitioned.put(partNum, part);
       }
-      LOG.trace(String.format("putting %s -> %s into partition %d", Bytes.bytesToHexString(pair.getKey()), Bytes.bytesToHexString(pair.getValue()), partNum));
+      LOG.trace(String.format("putting %s -> %s into partition %d", BytesUtils.bytesToHexString(pair.getKey()), BytesUtils.bytesToHexString(pair.getValue()), partNum));
       part.put(pair.getKey(), pair.getValue());
     }
     StorageEngine engine = domain.getStorageEngine();
@@ -658,7 +657,7 @@ public class IntegrationTest extends ZkTestCase {
           new LocalPartitionRemoteFileOps(domainRoot, part.getKey()), part.getKey());
       final SortedMap<ByteBuffer, ByteBuffer> partPairs = part.getValue();
       for (Map.Entry<ByteBuffer, ByteBuffer> pair : partPairs.entrySet()) {
-        LOG.trace(String.format("writing %s -> %s", Bytes.bytesToHexString(pair.getKey()), Bytes.bytesToHexString(pair.getValue())));
+        LOG.trace(String.format("writing %s -> %s", BytesUtils.bytesToHexString(pair.getKey()), BytesUtils.bytesToHexString(pair.getValue())));
         writer.write(pair.getKey(), pair.getValue());
       }
       writer.close();

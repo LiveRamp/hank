@@ -7,6 +7,7 @@
     <%@page import="com.liveramp.hank.generated.*" %>
     <%@page import="com.liveramp.hank.ui.*" %>
     <%@page import="com.liveramp.hank.util.*" %>
+    <%@page import="com.liveramp.commons.util.*" %>
     <%@page import="java.util.*" %>
     <%@page import="java.net.*" %>
     <%@page import="java.nio.ByteBuffer" %>
@@ -434,7 +435,7 @@ Collections.sort(clients, new ClientMetadataComparator());
           ByteBuffer key = null;
           String dataFormat = request.getParameter("f");
           if (dataFormat.equals("hex")) {
-            key = Bytes.hexStringToBytes(request.getParameter("k"));
+            key = BytesUtils.hexStringToBytes(request.getParameter("k"));
           } else if (dataFormat.equals("string")) {
             key = ByteBuffer.wrap(request.getParameter("k").getBytes("UTF-8"));
           }
@@ -458,7 +459,7 @@ Collections.sort(clients, new ClientMetadataComparator());
 
       <%
           ByteBuffer valueBuffer = hankResponse.buffer_for_value();
-          String valueString = Bytes.bytesToHexString(valueBuffer);
+          String valueString = BytesUtils.bytesToHexString(valueBuffer);
           String[] valueStrings = valueString.split(" ");
           %>
 

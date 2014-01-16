@@ -16,6 +16,13 @@
 
 package com.liveramp.hank.storage.curly;
 
+import com.liveramp.commons.util.BytesUtils;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
+import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.hasher.Hasher;
+import com.liveramp.hank.partitioner.Partitioner;
+import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,13 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
-import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
-import com.liveramp.hank.coordinator.mock.MockDomainVersion;
-import com.liveramp.hank.hasher.Hasher;
-import com.liveramp.hank.partitioner.Partitioner;
-import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
-import com.liveramp.hank.util.Bytes;
 
 public class TestDomainGenerator {
 
@@ -87,7 +87,7 @@ public class TestDomainGenerator {
       Collections.sort(part.getValue(), new Comparator<byte[]>() {
         @Override
         public int compare(byte[] arg0, byte[] arg1) {
-          return Bytes.compareBytesUnsigned(ByteBuffer.wrap(arg0), ByteBuffer.wrap(arg1));
+          return BytesUtils.compareBytesUnsigned(ByteBuffer.wrap(arg0), ByteBuffer.wrap(arg1));
         }
       });
     }

@@ -16,19 +16,19 @@
 
 package com.liveramp.hank.hadoop.test;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.hadoop.DomainBuilderEmptyOutputFormat;
 import com.liveramp.hank.hadoop.DomainBuilderProperties;
 import com.liveramp.hank.hadoop.HadoopDomainBuilder;
 import com.liveramp.hank.hadoop.HadoopTestCase;
 import com.liveramp.hank.hadoop.TestHadoopDomainBuilder;
 import com.liveramp.hank.storage.map.MapStorageEngine;
-import com.liveramp.hank.util.Bytes;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import static org.junit.Assert.assertEquals;
 
@@ -60,10 +60,10 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
     assertEquals(5, MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).size());
 
     // Verify data
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v0".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("0".getBytes()))));
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v1".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("1".getBytes()))));
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v2".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("2".getBytes()))));
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v3".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("3".getBytes()))));
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v4".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("4".getBytes()))));
+    assertEquals(0, BytesUtils.compareBytesUnsigned(ByteBuffer.wrap("v0".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("0".getBytes()))));
+    assertEquals(0, BytesUtils.compareBytesUnsigned(ByteBuffer.wrap("v1".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("1".getBytes()))));
+    assertEquals(0, BytesUtils.compareBytesUnsigned(ByteBuffer.wrap("v2".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("2".getBytes()))));
+    assertEquals(0, BytesUtils.compareBytesUnsigned(ByteBuffer.wrap("v3".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("3".getBytes()))));
+    assertEquals(0, BytesUtils.compareBytesUnsigned(ByteBuffer.wrap("v4".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("4".getBytes()))));
   }
 }

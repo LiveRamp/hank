@@ -29,8 +29,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
-
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -48,8 +47,8 @@ import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.StorageEngine;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
+import org.apache.log4j.Logger;
 
 /**
  * Implements the actual data serving logic of the PartitionServer
@@ -281,7 +280,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     } catch (IOException e) {
       String errMsg = String.format(
           "Exception during GET. Domain: %s (domain #%d) Key: %s",
-          domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
+          domainAccessor.getName(), domainId, BytesUtils.bytesToHexString(key));
       LOG.error(errMsg, e);
       return HankResponse.xception(
           HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
@@ -353,7 +352,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
           if (((double)valueBuffer.limit())
               < (USED_SIZE_THRESHOLD_FOR_VALUE_BUFFER_DEEP_COPY * valueBuffer.capacity())) {
             // Deep copy the value. Hence we can reuse the result buffer.
-            response.set_value(Bytes.byteBufferDeepCopy(valueBuffer));
+            response.set_value(BytesUtils.byteBufferDeepCopy(valueBuffer));
             result.clear();
           } else {
             // Keep the ReaderResult's buffer in the response. Hence we need to create a new result buffer.

@@ -16,13 +16,6 @@
 
 package com.liveramp.hank.performance;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
@@ -38,6 +31,13 @@ import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.IOStreamUtils;
+
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class PerformanceTestCueball {
 

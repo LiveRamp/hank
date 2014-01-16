@@ -15,15 +15,7 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-
+import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.coordinator.AbstractRingGroup;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.DataLocationChangeListener;
@@ -34,7 +26,6 @@ import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroupDataLocationChangeListener;
 import com.liveramp.hank.generated.ClientMetadata;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
-import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.zookeeper.WatchedEnum;
 import com.liveramp.hank.zookeeper.WatchedMap;
 import com.liveramp.hank.zookeeper.WatchedMap.ElementLoader;
@@ -43,6 +34,11 @@ import com.liveramp.hank.zookeeper.WatchedNodeListener;
 import com.liveramp.hank.zookeeper.WatchedThriftNode;
 import com.liveramp.hank.zookeeper.ZkPath;
 import com.liveramp.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+
+import java.io.IOException;
+import java.util.*;
 
 public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
@@ -147,7 +143,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   public boolean claimRingGroupConductor(RingGroupConductorMode mode) throws IOException {
     try {
       if (zk.exists(ringGroupConductorOnlinePath, false) == null) {
-        zk.create(ringGroupConductorOnlinePath, Bytes.stringToBytes(mode.toString()), CreateMode.EPHEMERAL);
+        zk.create(ringGroupConductorOnlinePath, BytesUtils.stringToBytes(mode.toString()), CreateMode.EPHEMERAL);
         return true;
       }
       return false;
