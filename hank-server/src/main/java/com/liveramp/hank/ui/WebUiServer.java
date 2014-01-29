@@ -1,22 +1,30 @@
 package com.liveramp.hank.ui;
 
-import com.liveramp.hank.config.CoordinatorConfigurator;
-import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
-import com.liveramp.hank.config.yaml.YamlMonitorConfigurator;
-import com.liveramp.hank.coordinator.Coordinator;
-import com.liveramp.hank.monitor.Monitor;
-import com.liveramp.hank.ui.controllers.*;
-import com.liveramp.hank.util.CommandLineChecker;
+import java.net.URL;
+import java.util.EnumSet;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.server.DispatcherType;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import java.net.URL;
+import com.liveramp.hank.config.CoordinatorConfigurator;
+import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
+import com.liveramp.hank.config.yaml.YamlMonitorConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.monitor.Monitor;
+import com.liveramp.hank.ui.controllers.DomainController;
+import com.liveramp.hank.ui.controllers.DomainGroupController;
+import com.liveramp.hank.ui.controllers.HostController;
+import com.liveramp.hank.ui.controllers.RingController;
+import com.liveramp.hank.ui.controllers.RingGroupController;
+import com.liveramp.hank.util.CommandLineChecker;
 
 public class WebUiServer {
   @SuppressWarnings("unused")
@@ -62,6 +70,9 @@ public class WebUiServer {
     new RingGroupController("ring_group", coordinator).addServlet(servletHandler);
     new RingController("ring", coordinator).addServlet(servletHandler);
     new HostController("host", coordinator).addServlet(servletHandler);
+
+    //  turn on gzip compression
+    servletHandler.addFilter(GzipFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
 
     // put them together into a context handler
     ContextHandlerCollection contexts = new ContextHandlerCollection();
