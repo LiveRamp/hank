@@ -84,10 +84,8 @@ Collections.sort(clients, new ClientMetadataComparator());
       <% if (ringGroup.isRingGroupConductorOnline()) { %>
       <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.INACTIVE) { %>
     <td class='inactive centered'>INACTIVE</td>
-      <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
-    <td class='complete centered'>ACTIVE</td>
       <% } else { %>
-    <td>unknown</td>
+    <td class='complete centered'><%= ringGroup.getRingGroupConductorMode() %></td>
       <% } %>
       <% } else { %>
     <td class='error centered'>OFFLINE</td>
@@ -257,6 +255,8 @@ Collections.sort(clients, new ClientMetadataComparator());
     INACTIVE: do nothing</option>
     <option value="ACTIVE">
     ACTIVE: conduct updates</option>
+    <option value="PROACTIVE">
+    PROACTIVE: conduct updates proactively</option>
     </select>
     <input type="submit" value="Change mode"/>
     </form>
