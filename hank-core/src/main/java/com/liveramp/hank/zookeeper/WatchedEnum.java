@@ -23,12 +23,12 @@ import java.util.Set;
 
 public class WatchedEnum<E extends Enum<E>> implements WatchedNodeListener<String> {
 
-  private final Class clazz;
+  private final Class<E> clazz;
   private final WatchedString watchedString;
   private final Set<WatchedNodeListener<E>> listeners = new HashSet<WatchedNodeListener<E>>();
   private E cachedValue = null;
 
-  public WatchedEnum(final Class clazz,
+  public WatchedEnum(final Class<E> clazz,
                      final ZooKeeperPlus zk,
                      final String nodePath,
                      boolean waitForCreation) throws KeeperException, InterruptedException {
@@ -76,7 +76,7 @@ public class WatchedEnum<E extends Enum<E>> implements WatchedNodeListener<Strin
     if (s == null) {
       return null;
     } else {
-      return (E) E.valueOf(clazz, s);
+      return E.valueOf(clazz, s);
     }
   }
 
