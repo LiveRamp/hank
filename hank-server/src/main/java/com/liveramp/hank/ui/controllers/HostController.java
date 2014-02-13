@@ -1,12 +1,21 @@
 package com.liveramp.hank.ui.controllers;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
-import com.liveramp.hank.ui.URLEnc;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
+import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
+import com.liveramp.hank.ui.URLEnc;
 
 public class HostController extends Controller {
   private final Coordinator coordinator;
@@ -122,7 +131,7 @@ public class HostController extends Controller {
 
     // TODO: make this assigner configurable
     ModPartitionAssigner assigner = new ModPartitionAssigner();
-    assigner.prepare(r, rg.getDomainGroup().getDomainVersions());
+    assigner.prepare(r, rg.getDomainGroup().getDomainVersions(), RingGroupConductorMode.ACTIVE);
     if (!assigner.isAssigned(h)) {
       assigner.assign(h);
     }

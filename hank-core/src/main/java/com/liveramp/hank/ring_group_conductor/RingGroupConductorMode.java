@@ -19,5 +19,6 @@ package com.liveramp.hank.ring_group_conductor;
 public enum RingGroupConductorMode {
   OFFLINE,
   INACTIVE,
-  ACTIVE
+  ACTIVE,
+  PROACTIVE
 }

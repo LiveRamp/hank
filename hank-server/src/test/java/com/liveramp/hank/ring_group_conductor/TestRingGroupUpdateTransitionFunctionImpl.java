@@ -15,6 +15,17 @@
  */
 package com.liveramp.hank.ring_group_conductor;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainGroup;
 import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
@@ -33,16 +44,6 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 
 import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
@@ -167,7 +168,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
                          Set<DomainGroupDomainVersion> assignedVersions,
                          HostState hostState) throws IOException {
     if (assignedVersions != null) {
-      partitionAssigner.prepare(ring, assignedVersions);
+      partitionAssigner.prepare(ring, assignedVersions, rg.getRingGroupConductorMode());
     }
     for (Host host : ring.getHosts()) {
       if (assignedVersions != null) {
@@ -175,13 +176,13 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
       }
       host.setState(hostState);
       if (currentVersions != null) {
-        ((MockHostLocal) host).setCurrentVersion(currentVersions);
+        ((MockHostLocal)host).setCurrentVersion(currentVersions);
       }
     }
   }
 
   private boolean isAssigned(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
-    partitionAssigner.prepare(ring, domainVersions);
+    partitionAssigner.prepare(ring, domainVersions, rg.getRingGroupConductorMode());
     return partitionAssigner.isAssigned(host);
   }
 
@@ -496,6 +497,48 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
   }
 
   @Test
+  public void testReassignProactivelyWhenHostsAreOffline() throws IOException {
+    domainGroup.setDomainVersions(versionsMap1);
+
+    setUpRing(r0, v1, v1, HostState.SERVING);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
+
+    assertTrue(isAssigned(r0, r0h0, v1));
+    assertTrue(isAssigned(r0, r0h1, v1));
+
+    r0h0.setState(HostState.OFFLINE);
+
+    assertTrue(isAssigned(r0, r0h0, v1));
+    assertTrue(isAssigned(r0, r0h1, v1));
+
+    // Switch to proactive
+    rg.setRingGroupConductorMode(RingGroupConductorMode.PROACTIVE);
+
+    assertFalse(isAssigned(r0, r0h0, v1));
+    assertFalse(isAssigned(r0, r0h1, v1));
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // r0h1 should be going idle for assignment
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getAndClearLastEnqueuedCommand());
+
+    r0h1.setState(HostState.IDLE);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    assertFalse(isAssigned(r0, r0h0, v1));
+    assertTrue(isAssigned(r0, r0h1, v1));
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // r0h1 should be executing update
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h1.getAndClearLastEnqueuedCommand());
+  }
+
+  @Test
   public void testExecuteUpdateWhenAssignedAndIdle() throws IOException {
     domainGroup.setDomainVersions(versionsMap2);
 
@@ -613,7 +656,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     setUpRing(r0, v1, v2, HostState.SERVING);
     // Make r0h0 up to date
-    partitionAssigner.prepare(r0, v2);
+    partitionAssigner.prepare(r0, v2, rg.getRingGroupConductorMode());
     partitionAssigner.assign(r0h0);
     r0h0.setCurrentVersion(v2);
     // r0h1 is still updating

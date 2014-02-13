@@ -107,7 +107,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing = computeDomainToPartitionToHostsFullyServing(ringGroup);
 
     for (Ring ring : ringGroup.getRingsSorted()) {
-      partitionAssigner.prepare(ring, domainGroup.getDomainVersions());
+      partitionAssigner.prepare(ring, domainGroup.getDomainVersions(), ringGroup.getRingGroupConductorMode());
       for (Host host : ring.getHostsSorted()) {
         manageTransitions(host, domainGroup, minNumReplicasFullyServing, domainToPartitionToHostsFullyServing);
       }

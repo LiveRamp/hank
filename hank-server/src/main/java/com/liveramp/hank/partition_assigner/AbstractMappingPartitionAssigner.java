@@ -34,19 +34,23 @@ import com.liveramp.hank.coordinator.HostDomainPartition;
 import com.liveramp.hank.coordinator.HostDomains;
 import com.liveramp.hank.coordinator.Hosts;
 import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 
 public abstract class AbstractMappingPartitionAssigner implements PartitionAssigner {
 
   private static final Logger LOG = Logger.getLogger(AbstractMappingPartitionAssigner.class);
 
   private Set<DomainGroupDomainVersion> domainVersions;
+  private RingGroupConductorMode ringGroupConductorMode;
   private Set<Domain> domains;
   private Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings;
 
   @Override
   public void prepare(Ring ring,
-                      Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+                      Set<DomainGroupDomainVersion> domainVersions,
+                      RingGroupConductorMode ringGroupConductorMode) throws IOException {
     this.domainVersions = domainVersions;
+    this.ringGroupConductorMode = ringGroupConductorMode;
     this.hostToDomainToPartitionsMappings = getHostToDomainToPartitionsMapping(ring, domainVersions);
     domains = new HashSet<Domain>();
     for (DomainGroupDomainVersion domainVersion : domainVersions) {
@@ -65,8 +69,12 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
       // Determine which hosts can serve this domain
       SortedSet<Host> validHosts = new TreeSet<Host>();
       for (Host host : ring.getHosts()) {
+        // Ignore offline hosts if mode is PROACTIVE
+        if (!Hosts.isOnline(host) && ringGroupConductorMode == RingGroupConductorMode.PROACTIVE) {
+          continue;
+        }
+        // Check that host is valid, and has all required flags
         if (host.getFlags().containsAll(domain.getRequiredHostFlags()) || host.getFlags().contains(Hosts.ALL_FLAGS_EXPRESSION)) {
-          // Host has all required flags
           validHosts.add(host);
         }
       }
@@ -74,7 +82,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
       if (validHosts.isEmpty()) {
         LOG.error("Unable to assign Domain " + domain.getName()
             + " to Ring " + ring.toString()
-            + " since no Host in the Ring satisfies the flags required by " + domain.getName());
+            + " since no Host in the Ring is valid for: " + domain.getName());
         // Return error
         return null;
       } else {

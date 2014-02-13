@@ -16,16 +16,19 @@
 
 package com.liveramp.hank.partition_assigner;
 
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
-import com.liveramp.hank.coordinator.Host;
-import com.liveramp.hank.coordinator.Ring;
-
 import java.io.IOException;
 import java.util.Set;
 
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
+
 public interface PartitionAssigner {
 
-  public void prepare(Ring ring, Set<DomainGroupDomainVersion> domainVersions) throws IOException;
+  public void prepare(Ring ring,
+                      Set<DomainGroupDomainVersion> domainVersions,
+                      RingGroupConductorMode ringGroupConductorMode) throws IOException;
 
   public boolean isAssigned(Host host) throws IOException;
 

@@ -15,16 +15,17 @@
  */
 package com.liveramp.hank.ring_group_conductor;
 
+import java.io.IOException;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
 import com.liveramp.hank.util.CommandLineChecker;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
-
-import java.io.IOException;
 
 public class RingGroupConductor {
 
@@ -78,10 +79,7 @@ public class RingGroupConductor {
               snapshotRingGroup = ringGroup;
             }
 
-            // Only process updates if ring group conductor is configured to be active/proactive
-            if (snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) {
-              processUpdates(snapshotRingGroup);
-            }
+            processUpdates(snapshotRingGroup);
             Thread.sleep(configurator.getSleepInterval());
           }
         } catch (InterruptedException e) {
@@ -101,7 +99,11 @@ public class RingGroupConductor {
   }
 
   void processUpdates(RingGroup ringGroup) throws IOException {
-    transFunc.manageTransitions(ringGroup);
+    // Only process updates if ring group conductor is configured to be active/proactive
+    if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE ||
+        ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE) {
+      transFunc.manageTransitions(ringGroup);
+    }
   }
 
   private void releaseIfClaimed() throws IOException {
