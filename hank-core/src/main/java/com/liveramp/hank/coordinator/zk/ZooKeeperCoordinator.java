@@ -15,17 +15,30 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.zookeeper.WatchedMap;
-import com.liveramp.hank.zookeeper.ZkPath;
-import com.liveramp.hank.zookeeper.ZooKeeperConnection;
-import com.liveramp.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
-import java.io.IOException;
-import java.util.*;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.CoordinatorFactory;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.mock.MockDomain;
+import com.liveramp.hank.zookeeper.WatchedMap;
+import com.liveramp.hank.zookeeper.ZkPath;
+import com.liveramp.hank.zookeeper.ZooKeeperConnection;
+import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 
 /**
  * An implementation of the Coordinator built on top of the Apache ZooKeeper
@@ -68,7 +81,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     public Coordinator getCoordinator(Map<String, Object> options) {
       validateOptions(options);
       try {
-        return new ZooKeeperCoordinator((String) options.get(CONNECT_STRING_KEY), (Integer) options.get(SESSION_TIMEOUT_KEY), (String) options.get(DOMAINS_ROOT_KEY), (String) options.get(DOMAIN_GROUPS_ROOT_KEY), (String) options.get(RING_GROUPS_ROOT_KEY));
+        return new ZooKeeperCoordinator((String)options.get(CONNECT_STRING_KEY), (Integer)options.get(SESSION_TIMEOUT_KEY), (String)options.get(DOMAINS_ROOT_KEY), (String)options.get(DOMAIN_GROUPS_ROOT_KEY), (String)options.get(RING_GROUPS_ROOT_KEY));
       } catch (Exception e) {
         throw new RuntimeException("Couldn't make a ZooKeeperCoordinator from options "
             + options, e);
@@ -187,7 +200,12 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public Domain getDomain(String domainName) {
-    return domains.get(domainName);
+    Domain result = domains.get(domainName);
+    if (result != null) {
+      return result;
+    } else {
+      return new MockDomain(domainName, -1);
+    }
   }
 
   @Override
@@ -212,7 +230,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         return domain;
       }
     }
-    return null;
+    return new MockDomain("?", domainId);
   }
 
   @Override
@@ -315,7 +333,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
                              String storageEngineOptions,
                              String partitionerClassName,
                              List<String> requiredHostFlags) throws IOException {
-    ZkDomain domain = (ZkDomain) getDomain(domainName);
+    ZkDomain domain = (ZkDomain)getDomain(domainName);
     if (domain == null) {
       throw new IOException("Could not get Domain '" + domainName + "' from Coordinator.");
     } else {
@@ -346,8 +364,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   public RingGroup addRingGroup(String ringGroupName, String domainGroupName) throws IOException {
     try {
       RingGroup rg = ZkRingGroup.create(zk, ZkPath.append(ringGroupsRoot, ringGroupName),
-          (ZkDomainGroup) getDomainGroup(domainGroupName), this);
-      ringGroups.put(ringGroupName, (ZkRingGroup) rg);
+          (ZkDomainGroup)getDomainGroup(domainGroupName), this);
+      ringGroups.put(ringGroupName, (ZkRingGroup)rg);
       return rg;
     } catch (Exception e) {
       throw new IOException(e);

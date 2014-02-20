@@ -15,15 +15,19 @@
  */
 package com.liveramp.hank.coordinator.mock;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import com.liveramp.hank.coordinator.AbstractDomain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionProperties;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.storage.StorageEngineFactory;
-
-import java.io.IOException;
-import java.util.*;
 
 public class MockDomain extends AbstractDomain {
 
@@ -51,8 +55,12 @@ public class MockDomain extends AbstractDomain {
     this.storageEngineOptions = storageEngineOptions;
   }
 
-  public MockDomain(String domainName) {
-    this(domainName, 0, 1, null, null, null, null);
+  public MockDomain(String name) {
+    this(name, 0);
+  }
+
+  public MockDomain(String name, int id) {
+    this(name, id, 1, null, null, null, null);
   }
 
   @Override
