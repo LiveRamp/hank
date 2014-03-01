@@ -16,13 +16,25 @@
 
 package com.liveramp.hank.partition_assigner;
 
-import com.liveramp.hank.coordinator.Host;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedSet;
+
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.Host;
 
 public class ModPartitionAssigner extends AbstractMappingPartitionAssigner implements PartitionAssigner {
 
   @Override
+  protected Map<Integer, Host> getPartitionsAssignment(Domain domain, SortedSet<Host> validHosts) {
+    Map<Integer, Host> result = new HashMap<Integer, Host>();
+    for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
+      // Find a host for this partition
+      result.put(partitionNumber, getHostResponsibleForPartition(validHosts, partitionNumber));
+    }
+    return result;
+  }
+
   protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber) {
     // If there are no hosts, simply return null
     if (validHostsSorted.size() == 0) {

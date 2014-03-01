@@ -58,7 +58,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
     }
   }
 
-  abstract protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber);
+  abstract protected Map<Integer, Host> getPartitionsAssignment(Domain domain, SortedSet<Host> validHosts);
 
   private Map<Host, Map<Domain, Set<Integer>>>
   getHostToDomainToPartitionsMapping(Ring ring, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
@@ -86,9 +86,10 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
         // Return error
         return null;
       } else {
-        for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
-          // Find a host for this partition
-          Host host = getHostResponsibleForPartition(validHosts, partitionNumber);
+        Map<Integer, Host> partitionAssignments = getPartitionsAssignment(domain, validHosts);
+        for (Map.Entry<Integer, Host> entry : partitionAssignments.entrySet()) {
+          int partitionNumber = entry.getKey();
+          Host host = entry.getValue();
           if (host == null) {
             LOG.error("Unable to assign Partition #" + partitionNumber
                 + " of Domain " + domain.getName()
