@@ -13,7 +13,8 @@ import com.liveramp.hank.coordinator.Hosts;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
-import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
+import com.liveramp.hank.partition_assigner.PartitionAssigner;
+import com.liveramp.hank.partition_assigner.RendezVousPartitionAssigner;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.ui.URLEnc;
 
@@ -130,7 +131,7 @@ public class HostController extends Controller {
     Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
 
     // TODO: make this assigner configurable
-    ModPartitionAssigner assigner = new ModPartitionAssigner();
+    PartitionAssigner assigner = new RendezVousPartitionAssigner();
     assigner.prepare(r, rg.getDomainGroup().getDomainVersions(), RingGroupConductorMode.ACTIVE);
     if (!assigner.isAssigned(h)) {
       assigner.assign(h);

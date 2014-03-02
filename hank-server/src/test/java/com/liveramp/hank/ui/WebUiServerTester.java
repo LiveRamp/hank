@@ -24,8 +24,8 @@ import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.generated.SmartClient.Iface;
-import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
 import com.liveramp.hank.partition_assigner.PartitionAssigner;
+import com.liveramp.hank.partition_assigner.RendezVousPartitionAssigner;
 import com.liveramp.hank.partition_server.DoublePopulationStatisticsAggregator;
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
@@ -41,7 +41,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
     DomainGroup dg1 = coordinator.getDomainGroup("Group_1");
 
     // Assign
-    PartitionAssigner partitionAssigner = new ModPartitionAssigner();
+    PartitionAssigner partitionAssigner = new RendezVousPartitionAssigner();
     RingGroup rgAlpha = coordinator.getRingGroup("RG_Alpha");
     RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
     RingGroup rgGamma = coordinator.getRingGroup("RG_Gamma");

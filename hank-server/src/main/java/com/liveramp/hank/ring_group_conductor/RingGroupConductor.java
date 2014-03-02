@@ -24,7 +24,7 @@ import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.RingGroup;
-import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
+import com.liveramp.hank.partition_assigner.RendezVousPartitionAssigner;
 import com.liveramp.hank.util.CommandLineChecker;
 
 public class RingGroupConductor {
@@ -46,7 +46,7 @@ public class RingGroupConductor {
   private Thread shutdownHook;
 
   public RingGroupConductor(RingGroupConductorConfigurator configurator) throws IOException {
-    this(configurator, new RingGroupUpdateTransitionFunctionImpl(new ModPartitionAssigner(), configurator.getMinRingFullyServingObservations()));
+    this(configurator, new RingGroupUpdateTransitionFunctionImpl(new RendezVousPartitionAssigner(), configurator.getMinRingFullyServingObservations()));
   }
 
   RingGroupConductor(RingGroupConductorConfigurator configurator, RingGroupUpdateTransitionFunction transFunc) throws IOException {
