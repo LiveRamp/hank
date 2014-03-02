@@ -36,10 +36,6 @@ public class ModPartitionAssigner extends AbstractMappingPartitionAssigner imple
   }
 
   protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber) {
-    // If there are no hosts, simply return null
-    if (validHostsSorted.size() == 0) {
-      return null;
-    }
     int hostIndex = partitionNumber % validHostsSorted.size();
     for (Host host : validHostsSorted) {
       if (hostIndex-- == 0) {

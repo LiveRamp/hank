@@ -67,7 +67,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
       Domain domain = dgvdv.getDomain();
 
       // Determine which hosts can serve this domain
-      SortedSet<Host> validHosts = new TreeSet<Host>();
+      SortedSet<Host> validHostsSorted = new TreeSet<Host>();
       for (Host host : ring.getHosts()) {
         // Ignore offline hosts if mode is PROACTIVE
         if (!Hosts.isOnline(host) && ringGroupConductorMode == RingGroupConductorMode.PROACTIVE) {
@@ -75,41 +75,33 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
         }
         // Check that host is valid, and has all required flags
         if (host.getFlags().containsAll(domain.getRequiredHostFlags()) || host.getFlags().contains(Hosts.ALL_FLAGS_EXPRESSION)) {
-          validHosts.add(host);
+          validHostsSorted.add(host);
         }
       }
       // Check if there are valid hosts
-      if (validHosts.isEmpty()) {
+      if (validHostsSorted.isEmpty()) {
         LOG.error("Unable to assign Domain " + domain.getName()
             + " to Ring " + ring.toString()
             + " since no Host in the Ring is valid for: " + domain.getName());
         // Return error
         return null;
       } else {
-        Map<Integer, Host> partitionAssignments = getPartitionsAssignment(domain, validHosts);
+        Map<Integer, Host> partitionAssignments = getPartitionsAssignment(domain, validHostsSorted);
         for (Map.Entry<Integer, Host> entry : partitionAssignments.entrySet()) {
           int partitionNumber = entry.getKey();
           Host host = entry.getValue();
-          if (host == null) {
-            LOG.error("Unable to assign Partition #" + partitionNumber
-                + " of Domain " + domain.getName()
-                + " to Ring " + ring.toString()
-                + " since no valid Host was found.");
-            return null;
-          } else {
-            // Record the assignment mapping
-            Map<Domain, Set<Integer>> domainToPartitionsMappings = result.get(host);
-            if (domainToPartitionsMappings == null) {
-              domainToPartitionsMappings = new TreeMap<Domain, Set<Integer>>();
-              result.put(host, domainToPartitionsMappings);
-            }
-            Set<Integer> partitionsMapping = domainToPartitionsMappings.get(domain);
-            if (partitionsMapping == null) {
-              partitionsMapping = new TreeSet<Integer>();
-              domainToPartitionsMappings.put(domain, partitionsMapping);
-            }
-            partitionsMapping.add(partitionNumber);
+          // Record the assignment mapping
+          Map<Domain, Set<Integer>> domainToPartitionsMappings = result.get(host);
+          if (domainToPartitionsMappings == null) {
+            domainToPartitionsMappings = new TreeMap<Domain, Set<Integer>>();
+            result.put(host, domainToPartitionsMappings);
           }
+          Set<Integer> partitionsMapping = domainToPartitionsMappings.get(domain);
+          if (partitionsMapping == null) {
+            partitionsMapping = new TreeSet<Integer>();
+            domainToPartitionsMappings.put(domain, partitionsMapping);
+          }
+          partitionsMapping.add(partitionNumber);
         }
       }
     }
