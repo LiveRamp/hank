@@ -54,7 +54,7 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     }
     for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
       // Assign to hosts by order of increasing weight
-      List<Host> orderedHosts = getOrderedWeightedHosts(partitionNumber, validHosts);
+      List<Host> orderedHosts = getOrderedWeightedHosts(domain, partitionNumber, validHosts);
       boolean assigned = false;
       for (Host host : orderedHosts) {
         // If there is room, assign, otherwise skip to next host
@@ -77,22 +77,23 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     private final Host host;
     private final Long rendezVousHashValue;
 
-    private HostAndPartitionRendezVous(int partitionId, Host host) {
+    private HostAndPartitionRendezVous(Domain domain, int partitionId, Host host) {
       this.host = host;
-      this.rendezVousHashValue = computeRendezVousHashValue(partitionId, host);
+      this.rendezVousHashValue = computeRendezVousHashValue(domain, partitionId, host);
     }
 
     // Technique based on Rendez-Vous Hashing (achieves a result similar to consistent hashing)
-    private long computeRendezVousHashValue(int partitionId, Host host) {
+    private long computeRendezVousHashValue(Domain domain, int partitionId, Host host) {
       byte[] hostAddress;
       try {
         hostAddress = host.getAddress().toString().getBytes("UTF-8");
       } catch (UnsupportedEncodingException e) {
         throw new RuntimeException(e);
       }
-      ByteBuffer value = ByteBuffer.allocate(4 + hostAddress.length)
+      ByteBuffer value = ByteBuffer.allocate(4 + 4 + hostAddress.length)
           .order(ByteOrder.LITTLE_ENDIAN)
           .putInt(partitionId)
+          .putInt(domain.getId())
           .put(hostAddress);
       value.flip();
       return Murmur64Hasher.murmurHash64(value);
@@ -104,10 +105,10 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     }
   }
 
-  private List<Host> getOrderedWeightedHosts(int partitionNumber, SortedSet<Host> validHosts) {
+  private List<Host> getOrderedWeightedHosts(Domain domain, int partitionNumber, SortedSet<Host> validHosts) {
     List<HostAndPartitionRendezVous> hostAndPartitionRendezVousList = new ArrayList<HostAndPartitionRendezVous>();
     for (Host host : validHosts) {
-      hostAndPartitionRendezVousList.add(new HostAndPartitionRendezVous(partitionNumber, host));
+      hostAndPartitionRendezVousList.add(new HostAndPartitionRendezVous(domain, partitionNumber, host));
     }
     // Sort by rendez vous hash values
     Collections.sort(hostAndPartitionRendezVousList);
