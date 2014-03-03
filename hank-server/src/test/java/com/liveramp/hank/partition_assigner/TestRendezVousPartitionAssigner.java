@@ -37,37 +37,57 @@ public class TestRendezVousPartitionAssigner extends BaseTestCase {
     mappings = getPartitionAssignment(2, host1, host2, host3);
     assertEquals(2, mappings.size());
     assertEquals(host1, mappings.get(0));
-    assertEquals(host2, mappings.get(1));
+    assertEquals(host3, mappings.get(1));
 
     mappings = getPartitionAssignment(3, host1, host2, host3);
     assertEquals(3, mappings.size());
     assertEquals(host1, mappings.get(0));
-    assertEquals(host2, mappings.get(1));
-    assertEquals(host3, mappings.get(2));
+    assertEquals(host3, mappings.get(1));
+    assertEquals(host2, mappings.get(2));
 
     mappings = getPartitionAssignment(4, host1, host2, host3);
     assertEquals(4, mappings.size());
     assertEquals(host1, mappings.get(0));
-    assertEquals(host2, mappings.get(1));
+    assertEquals(host3, mappings.get(1));
     assertEquals(host1, mappings.get(2));
-    assertEquals(host3, mappings.get(3));
+    assertEquals(host2, mappings.get(3));
 
     mappings = getPartitionAssignment(5, host1, host2, host3);
     assertEquals(5, mappings.size());
     assertEquals(host1, mappings.get(0));
-    assertEquals(host2, mappings.get(1));
+    assertEquals(host3, mappings.get(1));
     assertEquals(host1, mappings.get(2));
-    assertEquals(host3, mappings.get(3));
-    assertEquals(host2, mappings.get(4));
+    assertEquals(host2, mappings.get(3));
+    assertEquals(host3, mappings.get(4));
 
     mappings = getPartitionAssignment(6, host1, host2, host3);
     assertEquals(6, mappings.size());
     assertEquals(host1, mappings.get(0));
-    assertEquals(host2, mappings.get(1));
+    assertEquals(host3, mappings.get(1));
     assertEquals(host1, mappings.get(2));
-    assertEquals(host3, mappings.get(3));
-    assertEquals(host2, mappings.get(4));
-    assertEquals(host3, mappings.get(5));
+    assertEquals(host2, mappings.get(3));
+    assertEquals(host3, mappings.get(4));
+    assertEquals(host2, mappings.get(5));
+  }
+
+  @Test
+  public void testConsistency() {
+
+    final int numPartitions = 1000;
+
+    Map<Integer, Host> mappingsA = getPartitionAssignment(numPartitions, host1, host2, host3);
+    assertEquals(numPartitions, mappingsA.size());
+
+    Map<Integer, Host> mappingsB = getPartitionAssignment(numPartitions, host1, host3);
+    assertEquals(numPartitions, mappingsB.size());
+
+    int consistent = 0;
+    for (int partitionId = 0; partitionId < numPartitions; ++partitionId) {
+      if (mappingsA.get(partitionId).equals(mappingsB.get(partitionId))) {
+        ++consistent;
+      }
+    }
+    assertEquals(656, consistent);
   }
 
   private Map<Integer, Host> getPartitionAssignment(int numPartitions, Host... hosts) {
