@@ -31,43 +31,47 @@ public class TestRendezVousPartitionAssigner extends BaseTestCase {
     assertEquals(host1, mappings.get(0));
 
     mappings = getPartitionAssignment(1, host1, host2, host3);
-    assertEquals(1, mappings.size());
-    assertEquals(host1, mappings.get(0));
+    assertEquals(1, numPartitionsAssigned(host1, mappings));
 
     mappings = getPartitionAssignment(2, host1, host2, host3);
     assertEquals(2, mappings.size());
-    assertEquals(host1, mappings.get(0));
-    assertEquals(host3, mappings.get(1));
+    assertEquals(1, numPartitionsAssigned(host1, mappings));
+    assertEquals(0, numPartitionsAssigned(host2, mappings));
+    assertEquals(1, numPartitionsAssigned(host3, mappings));
 
     mappings = getPartitionAssignment(3, host1, host2, host3);
     assertEquals(3, mappings.size());
-    assertEquals(host1, mappings.get(0));
-    assertEquals(host3, mappings.get(1));
-    assertEquals(host2, mappings.get(2));
+    assertEquals(1, numPartitionsAssigned(host1, mappings));
+    assertEquals(1, numPartitionsAssigned(host2, mappings));
+    assertEquals(1, numPartitionsAssigned(host3, mappings));
 
     mappings = getPartitionAssignment(4, host1, host2, host3);
     assertEquals(4, mappings.size());
-    assertEquals(host1, mappings.get(0));
-    assertEquals(host3, mappings.get(1));
-    assertEquals(host1, mappings.get(2));
-    assertEquals(host2, mappings.get(3));
+    assertEquals(2, numPartitionsAssigned(host1, mappings));
+    assertEquals(0, numPartitionsAssigned(host2, mappings));
+    assertEquals(2, numPartitionsAssigned(host3, mappings));
 
     mappings = getPartitionAssignment(5, host1, host2, host3);
     assertEquals(5, mappings.size());
-    assertEquals(host1, mappings.get(0));
-    assertEquals(host3, mappings.get(1));
-    assertEquals(host1, mappings.get(2));
-    assertEquals(host2, mappings.get(3));
-    assertEquals(host3, mappings.get(4));
+    assertEquals(2, numPartitionsAssigned(host1, mappings));
+    assertEquals(1, numPartitionsAssigned(host2, mappings));
+    assertEquals(2, numPartitionsAssigned(host3, mappings));
 
     mappings = getPartitionAssignment(6, host1, host2, host3);
     assertEquals(6, mappings.size());
-    assertEquals(host1, mappings.get(0));
-    assertEquals(host3, mappings.get(1));
-    assertEquals(host1, mappings.get(2));
-    assertEquals(host2, mappings.get(3));
-    assertEquals(host3, mappings.get(4));
-    assertEquals(host2, mappings.get(5));
+    assertEquals(2, numPartitionsAssigned(host1, mappings));
+    assertEquals(2, numPartitionsAssigned(host2, mappings));
+    assertEquals(2, numPartitionsAssigned(host3, mappings));
+  }
+
+  private int numPartitionsAssigned(Host host, Map<Integer, Host> mapppings) {
+    int result = 0;
+    for (Map.Entry<Integer, Host> entry : mapppings.entrySet()) {
+      if (entry.getValue().equals(host)) {
+        ++result;
+      }
+    }
+    return result;
   }
 
   @Test

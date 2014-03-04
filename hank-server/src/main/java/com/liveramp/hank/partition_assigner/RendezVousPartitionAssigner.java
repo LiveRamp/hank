@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.SortedSet;
 
 import com.liveramp.hank.coordinator.Domain;
@@ -46,6 +47,8 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
   }
 
   private Map<Host, List<Integer>> getHostToPartitions(Domain domain, SortedSet<Host> validHosts) {
+    // Fixed seed so that partitioning is stable
+    Random random = new Random(0);
     int maxPartitionsPerHost = getMaxPartitionsPerHost(domain, validHosts);
     Map<Host, List<Integer>> result = new HashMap<Host, List<Integer>>();
     // Initialize empty mappings
@@ -59,9 +62,9 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
       partitionNumbers.add(partitionNumber);
     }
-    Collections.shuffle(partitionNumbers);
+    Collections.shuffle(partitionNumbers, random);
     // Assign partitions
-    for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
+    for (Integer partitionNumber : partitionNumbers) {
       // Assign to hosts by order of increasing weight
       List<Host> orderedHosts = getOrderedWeightedHosts(domain, partitionNumber, validHosts);
       boolean assigned = false;
