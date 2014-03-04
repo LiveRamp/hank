@@ -52,6 +52,15 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     for (Host host : validHosts) {
       result.put(host, new ArrayList<Integer>());
     }
+    // Use a shuffled list of partitions to spread the load. (Because of the max number of partitions
+    // per host, the last partitions to be assigned are likely to be affected by that and aggregate
+    // on a few hosts.)
+    List<Integer> partitionNumbers = new ArrayList<Integer>();
+    for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
+      partitionNumbers.add(partitionNumber);
+    }
+    Collections.shuffle(partitionNumbers);
+    // Assign partitions
     for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
       // Assign to hosts by order of increasing weight
       List<Host> orderedHosts = getOrderedWeightedHosts(domain, partitionNumber, validHosts);
