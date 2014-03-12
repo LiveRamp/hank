@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.log4j.Logger;
 
 import com.liveramp.hank.config.PartitionServerConfigurator;
@@ -515,26 +515,13 @@ public class UpdateManager implements IUpdateManager {
       LOG.info("Deleting unknown files in " + dataDirectoryPath);
       File dataDirectory = new File(dataDirectoryPath);
       if (dataDirectory.exists()) {
-        for (File file : FileUtils.listFilesAndDirs(dataDirectory, new TrueFileFilter(), new TrueFileFilter())) {
+        for (File file : FileUtils.listFilesAndDirs(dataDirectory, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
           if (!expectedFiles.contains(file.getCanonicalPath())) {
             LOG.info("Deleting unknown file: " + file.getCanonicalPath());
             FileUtils.deleteQuietly(file);
           }
         }
       }
-    }
-  }
-
-  private static class TrueFileFilter implements IOFileFilter {
-
-    @Override
-    public boolean accept(File file) {
-      return true;
-    }
-
-    @Override
-    public boolean accept(File dir, String name) {
-      return true;
     }
   }
 }
