@@ -18,6 +18,7 @@ package com.liveramp.hank.storage;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Set;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
@@ -60,4 +61,6 @@ public interface StorageEngine {
   public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization();
 
   public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber);
+
+  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int versionNumber, int partitionNumber) throws IOException;
 }

@@ -432,25 +432,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public String toString() {
-    return "Curly [compressionCodecClass=" + keyFileCompressionCodecClass
-        + ", cueballStorageEngine=" + cueballStorageEngine
-        + ", domainName=" + domain.getName()
-        + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
-        + ", hashIndexBits=" + hashIndexBits
-        + ", keyHashSize=" + keyHashSize
-        + ", offsetNumBytes=" + offsetNumBytes
-        + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
-        + ", remoteDomainRoot=" + remoteDomainRoot
-        + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
-        + ", valueFoldingCacheSize=" + valueFoldingCacheCapacity
-        + ", blockCompressionCodec=" + blockCompressionCodec
-        + ", compressedBlockSizeThreshold=" + compressedBlockSizeThreshold
-        + ", offsetInBlockNumBytes=" + offsetInBlockNumBytes
-        + "]";
-  }
-
-  @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
     return new CurlyRemoteDomainVersionDeleter(domain, remoteDomainRoot, partitionRemoteFileOpsFactory);
   }
@@ -472,5 +453,32 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
     return Cueball.getDataDirectory(configurator, domain, partitionNumber);
+  }
+
+  @Override
+  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int domainVersionNumber, int partitionNumber) throws IOException {
+    Set<String> result = new HashSet<String>();
+    result.addAll(cueballStorageEngine.getFiles(configurator, domainVersionNumber, partitionNumber));
+    result.add(getTargetDirectory(configurator, partitionNumber) + "/" + getName(domainVersionNumber, true));
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Curly [compressionCodecClass=" + keyFileCompressionCodecClass
+        + ", cueballStorageEngine=" + cueballStorageEngine
+        + ", domainName=" + domain.getName()
+        + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
+        + ", hashIndexBits=" + hashIndexBits
+        + ", keyHashSize=" + keyHashSize
+        + ", offsetNumBytes=" + offsetNumBytes
+        + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
+        + ", remoteDomainRoot=" + remoteDomainRoot
+        + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
+        + ", valueFoldingCacheSize=" + valueFoldingCacheCapacity
+        + ", blockCompressionCodec=" + blockCompressionCodec
+        + ", compressedBlockSizeThreshold=" + compressedBlockSizeThreshold
+        + ", offsetInBlockNumBytes=" + offsetInBlockNumBytes
+        + "]";
   }
 }

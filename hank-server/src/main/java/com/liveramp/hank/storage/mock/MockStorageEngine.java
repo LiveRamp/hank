@@ -17,6 +17,8 @@ package com.liveramp.hank.storage.mock;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.Set;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
@@ -109,5 +111,10 @@ public class MockStorageEngine implements StorageEngine {
   @Override
   public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
     return null;
+  }
+
+  @Override
+  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int versionNumber, int partitionNumber) throws IOException {
+    return Collections.emptySet();
   }
 }

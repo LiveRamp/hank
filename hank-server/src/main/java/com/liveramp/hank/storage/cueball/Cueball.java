@@ -367,6 +367,13 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
+  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int domainVersionNumber, int partitionNumber) throws IOException {
+    Set<String> result = new HashSet<String>();
+    result.add(getTargetDirectory(configurator, partitionNumber) + "/" + getName(domainVersionNumber, true));
+    return result;
+  }
+
+  @Override
   public String toString() {
     return "Cueball [compressionCodecClass=" + compressionCodecClass
         + ", domainName=" + domain.getName()

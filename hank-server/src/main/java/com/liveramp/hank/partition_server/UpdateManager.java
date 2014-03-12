@@ -15,14 +15,17 @@
  */
 package com.liveramp.hank.partition_server;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -32,6 +35,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.log4j.Logger;
 
 import com.liveramp.hank.config.PartitionServerConfigurator;
@@ -322,6 +327,8 @@ public class UpdateManager implements IUpdateManager {
   public void update() throws IOException {
     HankTimer timer = new HankTimer();
     try {
+      // Delete unknown files
+      deleteUnknownFiles();
       // Perform update
       Semaphore concurrentUpdatesSemaphore = new Semaphore(configurator.getNumConcurrentUpdates());
       List<Throwable> encounteredThrowables = new ArrayList<Throwable>();
@@ -479,5 +486,55 @@ public class UpdateManager implements IUpdateManager {
     Deleter deleter = hostDomain.getDomain().getStorageEngine().getDeleter(configurator, partition.getPartitionNumber());
     deleter.delete();
     hostDomain.removePartition(partition.getPartitionNumber());
+  }
+
+  private void deleteUnknownFiles() throws IOException {
+    // Compute expected files
+    Set<String> expectedFiles = new HashSet<String>();
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      StorageEngine storageEngine = hostDomain.getDomain().getStorageEngine();
+      for (HostDomainPartition hostDomainPartition : hostDomain.getPartitions()) {
+        Integer versionNumber = hostDomainPartition.getCurrentDomainVersion();
+        if (versionNumber != null) {
+          for (String filePath : storageEngine.getFiles(configurator, versionNumber, hostDomainPartition.getPartitionNumber())) {
+            File file = new File(filePath);
+            // Add the file itself
+            expectedFiles.add(file.getCanonicalPath());
+            // Add all parent directories
+            File parent = file.getParentFile();
+            while (parent != null) {
+              expectedFiles.add(parent.getCanonicalPath());
+              parent = parent.getParentFile();
+            }
+          }
+        }
+      }
+    }
+    // Delete unknown files
+    for (String dataDirectoryPath : configurator.getDataDirectories()) {
+      LOG.info("Deleting unknown files in " + dataDirectoryPath);
+      File dataDirectory = new File(dataDirectoryPath);
+      if (dataDirectory.exists()) {
+        for (File file : FileUtils.listFilesAndDirs(dataDirectory, new TrueFileFilter(), new TrueFileFilter())) {
+          if (!expectedFiles.contains(file.getCanonicalPath())) {
+            LOG.info("Deleting unknown file: " + file.getCanonicalPath());
+            FileUtils.deleteQuietly(file);
+          }
+        }
+      }
+    }
+  }
+
+  private static class TrueFileFilter implements IOFileFilter {
+
+    @Override
+    public boolean accept(File file) {
+      return true;
+    }
+
+    @Override
+    public boolean accept(File dir, String name) {
+      return true;
+    }
   }
 }
