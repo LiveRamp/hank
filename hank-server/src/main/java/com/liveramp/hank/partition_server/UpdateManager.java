@@ -515,7 +515,7 @@ public class UpdateManager implements IUpdateManager {
       LOG.info("Deleting unknown files in " + dataDirectoryPath);
       File dataDirectory = new File(dataDirectoryPath);
       if (dataDirectory.exists()) {
-        for (File file : FileUtils.listFilesAndDirs(dataDirectory, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+        for (File file : FileUtils.listFiles(dataDirectory, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
           if (!expectedFiles.contains(file.getCanonicalPath())) {
             LOG.info("Deleting unknown file: " + file.getCanonicalPath());
             FileUtils.deleteQuietly(file);
