@@ -412,7 +412,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     try {
       while (dataServer == null || !dataServer.isServing()) {
         if (!waitForDataServer) {
-          LOG.info("Data server encountered an error. Stopping to wait for it to start.");
+          LOG.info("Data server encountered an error. Stop waiting for it to start.");
           break;
         }
         LOG.debug("Data server isn't online yet. Waiting...");
