@@ -16,18 +16,25 @@
 
 package com.liveramp.hank.zookeeper;
 
+import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 public class WatchedMap<T> extends AbstractMap<String, T> {
 
@@ -87,7 +94,7 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private final Object notifyMutex = new Object();
   private final ElementLoader<T> elementLoader;
   private final CompletionDetector completionDetector;
-  private final Set<WatchedMapListener<T>> listeners = new TreeSet<WatchedMapListener<T>>();
+  private final Set<WatchedMapListener<T>> listeners = new HashSet<WatchedMapListener<T>>();
 
   private CompletionAwaiter awaiter = new CompletionAwaiter() {
     @Override
@@ -293,13 +300,13 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
     return internalMap.get(key);
   }
 
-  public void addListener(WatchedMapListener listener) {
+  public void addListener(WatchedMapListener<T> listener) {
     synchronized (listeners) {
       listeners.add(listener);
     }
   }
 
-  public void removeListener(WatchedMapListener listener) {
+  public void removeListener(WatchedMapListener<T> listener) {
     synchronized (listeners) {
       listeners.remove(listener);
     }

@@ -15,6 +15,15 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.coordinator.AbstractRingGroup;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -34,11 +43,6 @@ import com.liveramp.hank.zookeeper.WatchedNodeListener;
 import com.liveramp.hank.zookeeper.WatchedThriftNode;
 import com.liveramp.hank.zookeeper.ZkPath;
 import com.liveramp.hank.zookeeper.ZooKeeperPlus;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-
-import java.io.IOException;
-import java.util.*;
 
 public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
@@ -105,10 +109,10 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
     }
   }
 
-  private class RingsWatchedMapListener implements WatchedMapListener<ZkRingGroup> {
+  private class RingsWatchedMapListener implements WatchedMapListener<ZkRing> {
 
     @Override
-    public void onWatchedMapChange(WatchedMap<ZkRingGroup> watchedMap) {
+    public void onWatchedMapChange(WatchedMap<ZkRing> watchedMap) {
       fireDataLocationChangeListeners();
     }
 
