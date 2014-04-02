@@ -16,17 +16,12 @@
 
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.coordinator.Host;
-import com.liveramp.hank.coordinator.HostState;
-import com.liveramp.hank.coordinator.PartitionServerAddress;
-import com.liveramp.hank.generated.HankBulkResponse;
-import com.liveramp.hank.generated.HankResponse;
-import com.liveramp.hank.partition_server.IfaceWithShutdown;
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.test.coordinator.MockHost;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.HankTimer;
-import com.liveramp.hank.util.WaitUntil;
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -38,11 +33,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.generated.HankBulkResponse;
+import com.liveramp.hank.generated.HankResponse;
+import com.liveramp.hank.partition_server.IfaceWithShutdown;
+import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.test.coordinator.MockHost;
+import com.liveramp.hank.util.Condition;
+import com.liveramp.hank.util.HankTimer;
+import com.liveramp.hank.util.WaitUntil;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -302,11 +303,13 @@ public class TestHostConnection extends BaseTestCase {
     mockPartitionServer = new MockPartitionServer(handler, numWorkerThreads, partitionServerAddress);
     mockPartitionServerThread = new Thread(mockPartitionServer);
     mockPartitionServerThread.start();
-    while (mockPartitionServer.dataServer == null ||
-        !mockPartitionServer.dataServer.isServing()) {
-      LOG.info("Waiting for data server to start serving...");
-      Thread.sleep(100);
-    }
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return mockPartitionServer.dataServer != null &&
+            mockPartitionServer.dataServer.isServing();
+      }
+    });
   }
 
   private HankResponse get(int tryLockTimeoutMs,
