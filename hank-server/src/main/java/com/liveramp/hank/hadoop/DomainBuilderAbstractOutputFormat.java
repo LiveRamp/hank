@@ -207,7 +207,10 @@ public abstract class DomainBuilderAbstractOutputFormat
   }
 
   public static void moveContentsAndDelete(Path srcDir, Path dstDir, FileSystem fs, Logger logger) throws IOException {
-    if (!fs.isDirectory(srcDir)) {
+    if (!fs.exists(srcDir)) {
+      return;
+    }
+    if (fs.exists(srcDir) && !fs.isDirectory(srcDir)) {
       throw new IllegalArgumentException(srcDir + " is not a directory");
     }
     if (fs.exists(dstDir) && !fs.isDirectory(dstDir)) {

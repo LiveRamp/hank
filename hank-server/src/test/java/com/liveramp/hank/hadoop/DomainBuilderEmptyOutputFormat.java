@@ -16,16 +16,17 @@
 
 package com.liveramp.hank.hadoop;
 
-import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.storage.PartitionRemoteFileOps;
-import com.liveramp.hank.storage.StorageEngine;
-import com.liveramp.hank.storage.Writer;
+import java.io.IOException;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
-import java.io.IOException;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.storage.PartitionRemoteFileOps;
+import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.storage.Writer;
 
 // This class is intended to be used for testing. It does not output anything but
 // still forwards key,value pairs to the underlying Writer from the Domain.
@@ -34,7 +35,7 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderAbstractOutputF
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
     // Use a no-op partition file ops
-    return new DomainBuilderRecordWriter(conf, null) {
+    return new DomainBuilderRecordWriter(conf, "/") {
       @Override
       protected Writer getWriter(StorageEngine storageEngine,
                                  DomainVersion domainVersion,
