@@ -30,6 +30,7 @@ import cascading.operation.Function;
 import cascading.operation.FunctionCall;
 import cascading.pipe.Each;
 import cascading.pipe.GroupBy;
+import cascading.pipe.Merge;
 import cascading.pipe.Pipe;
 import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
@@ -94,7 +95,7 @@ public class DomainBuilderAssembly extends SubAssembly {
           new Fields(COMPARABLE_KEY_FIELD_NAME));
     } else {
       // The input is considered to be already partitioned and sorted
-      tail = outputPipe;
+      tail = new Merge(outputPipe, partitionMarkersPipe);
     }
     setTails(tail);
   }

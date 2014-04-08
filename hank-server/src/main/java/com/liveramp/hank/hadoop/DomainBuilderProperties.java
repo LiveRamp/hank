@@ -83,7 +83,7 @@ public class DomainBuilderProperties {
     if (randomTmpOutputPathId == null) {
       randomTmpOutputPathId = UUID.randomUUID().toString();
     }
-    return outputPath + "/" + TMP_OUTPUT_PATH + "version-" + versionNumber + "_" + randomTmpOutputPathId + "/";
+    return outputPath + "/" + TMP_OUTPUT_PATH + "version_" + versionNumber + "_" + randomTmpOutputPathId + "/";
   }
 
   public Class<? extends DomainBuilderAbstractOutputFormat> getOutputFormatClass() {

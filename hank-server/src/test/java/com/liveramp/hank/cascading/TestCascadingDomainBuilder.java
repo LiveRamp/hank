@@ -16,6 +16,16 @@
 
 package com.liveramp.hank.cascading;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapred.JobConf;
+import org.junit.Test;
+
 import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.Identity;
 import cascading.pipe.Each;
@@ -26,19 +36,11 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
+
 import com.liveramp.hank.hadoop.DomainBuilderProperties;
 import com.liveramp.hank.hadoop.HadoopTestCase;
 import com.liveramp.hank.hadoop.IntStringKeyStorageEngineCoordinator;
 import com.liveramp.hank.storage.HdfsPartitionRemoteFileOps;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.JobConf;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -95,6 +97,19 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
         getTT("0", "v0"),
         getTT("2", "v2"),
         getTT("4", "v4"),
+        getTT("1", "v1"),
+        getTT("3", "v3"),
+        getTT("5", "v5"));
+  }
+
+  private void createEmptyInputs() throws IOException {
+    // A
+    writeSequenceFile(INPUT_PATH_A, new Fields("key", "value"));
+  }
+
+  private void createPartiallyEmptyInputs() throws IOException {
+    // A
+    writeSequenceFile(INPUT_PATH_A, new Fields("key", "value"),
         getTT("1", "v1"),
         getTT("3", "v3"),
         getTT("5", "v5"));
@@ -255,5 +270,49 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     } catch (Exception e) {
       // Correct behavior
     }
+  }
+
+  @Test
+  public void testMissingPartitions() throws IOException {
+    // Create empty inputs
+    createEmptyInputs();
+    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
+        IntStringKeyStorageEngineCoordinator.getConfigurator(2))
+        .setOutputPath(OUTPUT_PATH_A)
+        .setShouldPartitionAndSortInput(true);
+
+    Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
+    Pipe pipe = getPipe("pipe");
+
+    new CascadingDomainBuilder(properties, null, pipe, "key", "value")
+        .build(new Properties(), "pipe", inputTap);
+
+    // Check output
+    String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
+    String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 1, "0.base"));
+    assertEquals("", p1);
+    assertEquals("", p2);
+  }
+
+  @Test
+  public void testMissingPartitionsWithSortedInput() throws IOException {
+    // Create empty inputs
+    createPartiallyEmptyInputs();
+    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
+        IntStringKeyStorageEngineCoordinator.getConfigurator(2))
+        .setOutputPath(OUTPUT_PATH_A)
+        .setShouldPartitionAndSortInput(false);
+
+    Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
+    Pipe pipe = getPipe("pipe");
+
+    new CascadingDomainBuilder(properties, null, pipe, "key", "value")
+        .build(new Properties(), "pipe", inputTap);
+
+    // Check output
+    String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
+    String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 1, "0.base"));
+    assertEquals("", p1);
+    assertEquals("1 v1\n3 v3\n5 v5\n", p2);
   }
 }

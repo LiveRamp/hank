@@ -16,12 +16,13 @@
 
 package com.liveramp.hank.hadoop;
 
-import com.liveramp.hank.config.CoordinatorConfigurator;
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.storage.PartitionRemoteFileOps;
-import com.liveramp.hank.storage.StorageEngine;
-import com.liveramp.hank.storage.Writer;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
@@ -30,9 +31,15 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import com.liveramp.hank.config.CoordinatorConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.RunWithCoordinator;
+import com.liveramp.hank.coordinator.RunnableWithCoordinator;
+import com.liveramp.hank.storage.PartitionRemoteFileOps;
+import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.storage.Writer;
 
 // Base class of output formats used to build domains.
 public abstract class DomainBuilderAbstractOutputFormat
@@ -44,6 +51,8 @@ public abstract class DomainBuilderAbstractOutputFormat
   public static final String CONF_PARAM_HANK_TMP_OUTPUT_PATH = "com.liveramp.hank.output.tmp_path";
   public static final String CONF_PARAM_HANK_VERSION_NUMBER = "com.liveramp.hank.output.version_number";
   public static final String CONF_PARAM_HANK_NUM_PARTITIONS = "com.liveramp.hank.output.num_partitions";
+
+  public static final String EMPTY_PARTITIONS_DIR = "_empty";
 
   public static String createConfParamName(String domainName, String confParamName) {
     return domainName + "#" + confParamName;
@@ -84,6 +93,7 @@ public abstract class DomainBuilderAbstractOutputFormat
 
     private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
+    private final JobConf jobConf;
     private final CoordinatorConfigurator configurator;
     private final String domainName;
     private final Integer domainVersionNumber;
@@ -95,10 +105,13 @@ public abstract class DomainBuilderAbstractOutputFormat
 
     private Writer writer = null;
     private Integer writerPartition = null;
+    private Path writerOutputPath = null;
+    private int numRecordsWritten = 0;
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(JobConf conf,
                               String outputPath) throws IOException {
+      this.jobConf = conf;
       // Load configuration items
       this.configurator = DomainBuilderProperties.getConfigurator(conf);
       this.domainName = DomainBuilderProperties.getDomainName(conf);
@@ -141,6 +154,7 @@ public abstract class DomainBuilderAbstractOutputFormat
       } else {
         // Write record
         writer.write(key.getKey(), value.getAsByteBuffer());
+        ++numRecordsWritten;
       }
     }
 
@@ -154,30 +168,68 @@ public abstract class DomainBuilderAbstractOutputFormat
             + " has already been written.");
       }
       // Set up new writer
-      writer = getWriter(storageEngine,
-          domainVersion,
-          storageEngine.getPartitionRemoteFileOpsFactory().getPartitionRemoteFileOps(outputPath, partitionNumber),
-          partitionNumber);
+      writerOutputPath = new Path(outputPath, "partition_" + partitionNumber + "_" + UUID.randomUUID().toString());
+      numRecordsWritten = 0;
       writerPartition = partitionNumber;
       writtenPartitions.add(partitionNumber);
+      writer = getWriter(storageEngine,
+          domainVersion,
+          storageEngine.getPartitionRemoteFileOpsFactory().getPartitionRemoteFileOps(writerOutputPath.toString(), partitionNumber),
+          partitionNumber);
     }
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
         LOG.info("Closing current partition writer: " + writer.toString());
         writer.close();
-        RunWithCoordinator.run(configurator, new RunnableWithCoordinator() {
-          @Override
-          public void run(Coordinator coordinator) throws IOException {
-            DomainVersion domainVersion = DomainBuilderProperties.getDomainVersion(coordinator,
-                domainName,
-                domainVersionNumber);
-            domainVersion.addPartitionProperties(writerPartition,
-                writer.getNumBytesWritten(),
-                writer.getNumRecordsWritten());
-          }
-        });
+        FileSystem fs = writerOutputPath.getFileSystem(jobConf);
+        if (numRecordsWritten > 0) {
+          // Move non empty partition data
+          moveContentsAndDelete(writerOutputPath, new Path(outputPath), fs, LOG);
+          // Record metatada only if it's not an empty partition
+          RunWithCoordinator.run(configurator, new RunnableWithCoordinator() {
+            @Override
+            public void run(Coordinator coordinator) throws IOException {
+              DomainVersion domainVersion = DomainBuilderProperties.getDomainVersion(coordinator,
+                  domainName,
+                  domainVersionNumber);
+              domainVersion.addPartitionProperties(writerPartition,
+                  writer.getNumBytesWritten(),
+                  writer.getNumRecordsWritten());
+            }
+          });
+        } else {
+          // Move empty partition data
+          moveContentsAndDelete(writerOutputPath, new Path(outputPath, EMPTY_PARTITIONS_DIR), fs, LOG);
+        }
       }
     }
+  }
+
+  public static void moveContentsAndDelete(Path srcDir, Path dstDir, FileSystem fs, Logger logger) throws IOException {
+    if (!fs.isDirectory(srcDir)) {
+      throw new IllegalArgumentException(srcDir + " is not a directory");
+    }
+    if (fs.exists(dstDir) && !fs.isDirectory(dstDir)) {
+      throw new IllegalArgumentException(dstDir + " is not a directory");
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug("Moving contents of: " + srcDir + " to: " + dstDir);
+    }
+    FileStatus[] files = fs.listStatus(srcDir);
+    for (FileStatus file : files) {
+      Path sourcePath = file.getPath();
+      Path targetPath = new Path(dstDir, file.getPath().getName());
+      if (logger.isDebugEnabled()) {
+        logger.debug("Moving: " + sourcePath + " to: " + targetPath);
+      }
+      if (!fs.mkdirs(targetPath.getParent())) {
+        throw new IOException("Failed at creating directory " + targetPath.getParent());
+      }
+      if (!fs.rename(sourcePath, targetPath)) {
+        throw new IOException("Failed at renaming " + sourcePath + " to " + targetPath);
+      }
+    }
+    fs.delete(srcDir);
   }
 }

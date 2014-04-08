@@ -187,12 +187,10 @@ public class CascadingDomainBuilder {
       // Add partition marker sources
       Map<String, Tap> actualSources = new HashMap<String, Tap>(sources);
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        if (domainBuilder.properties.shouldPartitionAndSortInput()) {
-          actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(domainBuilder.properties.getDomainName()),
-              new PartitionMarkerTap(domainBuilder.properties.getDomainName(),
-                  domainBuilder.keyFieldName,
-                  domainBuilder.valueFieldName));
-        }
+        actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(domainBuilder.properties.getDomainName()),
+            new PartitionMarkerTap(domainBuilder.properties.getDomainName(),
+                domainBuilder.keyFieldName,
+                domainBuilder.valueFieldName));
       }
 
       // Construct tails array
@@ -331,11 +329,9 @@ public class CascadingDomainBuilder {
   private Flow<JobConf> getFlow(FlowConnectorFactory flowConnectorFactory,
                                 Map<String, Tap> sources) {
     Map<String, Tap> actualSources = new HashMap<String, Tap>(sources);
-    if (properties.shouldPartitionAndSortInput()) {
-      actualSources.put(
-          DomainBuilderAssembly.getPartitionMarkersPipeName(properties.getDomainName()),
-          new PartitionMarkerTap(properties.getDomainName(), keyFieldName, valueFieldName));
-    }
+    actualSources.put(
+        DomainBuilderAssembly.getPartitionMarkersPipeName(properties.getDomainName()),
+        new PartitionMarkerTap(properties.getDomainName(), keyFieldName, valueFieldName));
     return flowConnectorFactory.create(getProperties()).connect(getFlowName(), actualSources, outputTap, pipe);
   }
 }

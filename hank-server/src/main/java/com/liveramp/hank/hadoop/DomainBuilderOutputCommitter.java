@@ -16,7 +16,16 @@
 
 package com.liveramp.hank.hadoop;
 
-import com.liveramp.cascading_ext.fs.TrashHelper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -25,15 +34,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobContext;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import com.liveramp.cascading_ext.fs.TrashHelper;
 
 public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
@@ -45,7 +46,8 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
   private static final Set<String> IGNORE_PATHS = new HashSet<String>(Arrays.asList(
       "_logs",
-      "_temporary"
+      "_temporary",
+      DomainBuilderAbstractOutputFormat.EMPTY_PARTITIONS_DIR
   ));
 
   // Note: setupJob() commitJob() and cleanupJob() should get called automatically by the MapReduce
@@ -71,6 +73,24 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     cleanupJob(domainName, conf);
   }
 
+  private static void copyPartitionsFrom(Path sourceDir,
+                                         FileSystem fs,
+                                         Set<Integer> copiedPartitions,
+                                         List<MoveContentsAndDeleteTask> tasks,
+                                         ExecutorService executor,
+                                         Path outputPath) throws IOException {
+    for (FileStatus partition : fs.listStatus(sourceDir)) {
+      if (!IGNORE_PATHS.contains(partition.getPath().getName()) && partition.isDir()) {
+        int partitionNumber = Integer.valueOf(partition.getPath().getName());
+        if (!copiedPartitions.contains(partitionNumber)) {
+          copiedPartitions.add(partitionNumber);
+          MoveContentsAndDeleteTask task = new MoveContentsAndDeleteTask(partition.getPath(), new Path(outputPath, partition.getPath().getName()), fs);
+          tasks.add(task);
+          executor.execute(task);
+        }
+      }
+    }
+  }
 
   public static void commitJob(String domainName, JobConf conf) throws IOException {
     Path outputPath = new Path(DomainBuilderProperties.getOutputPath(domainName, conf));
@@ -82,23 +102,24 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
     // Move temporary output to final output
     LOG.info("Moving temporary output files from: " + tmpOutputPath + " to final output path: " + outputPath);
-    FileStatus[] partitions = fs.listStatus(tmpOutputPath);
 
     /* Current multithreading handles each partition separately.
      * Could use a higher level of granularity and have each file copying
      * performed as a separate Runnable.
      */
     final ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
+    Set<Integer> copiedPartitions = new HashSet<Integer>();
+    final List<MoveContentsAndDeleteTask> tasks = new ArrayList<MoveContentsAndDeleteTask>();
 
-    final List<PartitionCopier> partitionCopiers = new ArrayList<PartitionCopier>();
-    for (FileStatus partition : partitions) {
-      if (!IGNORE_PATHS.contains(partition.getPath().getName()) &&
-          partition.isDir()) {
-        PartitionCopier partitionCopier = new PartitionCopier(partition, outputPath, fs);
-        partitionCopiers.add(partitionCopier);
-        executor.execute(partitionCopier);
-      }
+    // Copy complete partitions
+    copyPartitionsFrom(tmpOutputPath, fs, copiedPartitions, tasks, executor, outputPath);
+
+    // Copy missing partitions from the empty partitions directory
+    Path emptyPartitionsPath = new Path(tmpOutputPath, DomainBuilderAbstractOutputFormat.EMPTY_PARTITIONS_DIR);
+    if (fs.exists(emptyPartitionsPath)) {
+      copyPartitionsFrom(emptyPartitionsPath, fs, copiedPartitions, tasks, executor, outputPath);
     }
+
     executor.shutdown();
 
     try {
@@ -110,9 +131,9 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
       throw new IOException("Executor interrupted", e);
     }
 
-    for (PartitionCopier partitionCopier : partitionCopiers) {
-      if (partitionCopier.exception != null) {
-        throw new IOException("Partition copying failed for " + partitionCopier.partition, partitionCopier.exception);
+    for (MoveContentsAndDeleteTask task : tasks) {
+      if (task.exception != null) {
+        throw new IOException("Partition copying failed for " + task.srcDir, task.exception);
       }
     }
 
@@ -131,42 +152,25 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     }
   }
 
-  private static class PartitionCopier implements Runnable {
+  private static class MoveContentsAndDeleteTask implements Runnable {
 
-    private final FileStatus partition;
+    private final Path srcDir;
+    private final Path dstDir;
     private final FileSystem fs;
-    private final Path outputPath;
     private IOException exception;
 
-    PartitionCopier(FileStatus partition, Path outputPath, FileSystem fs) {
-      this.partition = partition;
+    MoveContentsAndDeleteTask(Path srcDir, Path dstDir, FileSystem fs) {
+      this.srcDir = srcDir;
+      this.dstDir = dstDir;
       this.fs = fs;
-      this.outputPath = outputPath;
     }
 
     @Override
     public void run() {
       try {
-        copyPartitionContents();
+        DomainBuilderAbstractOutputFormat.moveContentsAndDelete(srcDir, dstDir, fs, LOG);
       } catch (IOException e) {
         this.exception = e;
-      }
-    }
-
-    private void copyPartitionContents() throws IOException {
-      FileStatus[] partitionFiles = fs.listStatus(partition.getPath());
-      for (FileStatus partitionFile : partitionFiles) {
-        Path sourcePath = partitionFile.getPath();
-        Path targetPath = new Path(new Path(outputPath, partition.getPath().getName()), partitionFile.getPath().getName());
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Moving: " + sourcePath + " to: " + targetPath);
-        }
-        if (!fs.mkdirs(targetPath.getParent())) {
-          throw new IOException("Failed at creating directory " + targetPath.getParent());
-        }
-        if (!fs.rename(sourcePath, targetPath)) {
-          throw new IOException("Failed at renaming " + sourcePath + " to " + targetPath);
-        }
       }
     }
   }
