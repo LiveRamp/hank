@@ -50,7 +50,7 @@ public class PartitionMarkerTap extends Tap<JobConf, RecordReader, OutputCollect
 
   @Override
   public TupleEntryIterator openForRead(FlowProcess<JobConf> jobConfFlowProcess, RecordReader recordReader) throws IOException {
-    return new TupleEntrySchemeIterator(jobConfFlowProcess, new PartitionMarkerScheme("key", "value"), new RecordReaderIterator(recordReader));
+    return new TupleEntrySchemeIterator(jobConfFlowProcess, this.getScheme(), new RecordReaderIterator(recordReader));
   }
 
   @Override
