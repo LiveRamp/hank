@@ -30,13 +30,13 @@ The 1.0-SNAPSHOT build can be retrieved there:
 Building
 ====
 
-To build hank from source,
+To build hank from source and generate the jar in target/:
 
 ```bash
 > mvn package
 ```
 
-will generate the jar in target/.  To run the test suite locally,
+To run the test suite locally:
 
 ```bash
 > mvn test
