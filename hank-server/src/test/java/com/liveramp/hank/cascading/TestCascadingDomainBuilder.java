@@ -297,6 +297,28 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
   @Test
   public void testMissingPartitionsWithSortedInput() throws IOException {
     // Create empty inputs
+    createEmptyInputs();
+    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
+        IntStringKeyStorageEngineCoordinator.getConfigurator(2))
+        .setOutputPath(OUTPUT_PATH_A)
+        .setShouldPartitionAndSortInput(false);
+
+    Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
+    Pipe pipe = getPipe("pipe");
+
+    new CascadingDomainBuilder(properties, null, pipe, "key", "value")
+        .build(new Properties(), "pipe", inputTap);
+
+    // Check output
+    String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
+    String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 1, "0.base"));
+    assertEquals("", p1);
+    assertEquals("", p2);
+  }
+
+  @Test
+  public void testPartiallyMissingPartitionsWithSortedInput() throws IOException {
+    // Create partially empty inputs
     createPartiallyEmptyInputs();
     DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
         IntStringKeyStorageEngineCoordinator.getConfigurator(2))
