@@ -36,7 +36,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
   @Test
   public void testIt() throws Exception {
-    final Coordinator coordinator = getMockCoordinator();
+    final Coordinator coordinator = getApiMockCoordinator();
 
     DomainGroup dg1 = coordinator.getDomainGroup(ZkMockCoordinatorTestCase.DOMAIN_GROUP_0);
 

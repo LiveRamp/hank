@@ -1,11 +1,12 @@
 package com.liveramp.hank.ui;
 
-import com.liveramp.hank.ZkMockCoordinatorTestCase;
-import com.liveramp.hank.coordinator.Coordinator;
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
+import com.liveramp.hank.ZkMockCoordinatorTestCase;
+import com.liveramp.hank.coordinator.Coordinator;
 
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
@@ -18,14 +19,14 @@ public class TestHankApiHelper extends ZkMockCoordinatorTestCase {
 
   @Before
   public void setUp() throws Exception {
-    coordinator = getMockCoordinator();
+    coordinator = getApiMockCoordinator();
     helper = new HankApiHelper(coordinator);
   }
 
   @Test
   public void testGetDomainData() throws IOException {
-    HankApiHelper.DomainData data = helper.getDomainData(coordinator.getDomain("domain0"));
-    assertEquals("domain0", data.name);
+    HankApiHelper.DomainData data = helper.getDomainData(coordinator.getDomain(ZkMockCoordinatorTestCase.DOMAIN_0));
+    assertEquals(ZkMockCoordinatorTestCase.DOMAIN_0, data.name);
     assertEquals(32, data.numPartitions);
     assertEquals(2, data.versionsMap.size());
 
@@ -45,32 +46,32 @@ public class TestHankApiHelper extends ZkMockCoordinatorTestCase {
 
   @Test
   public void testGetDomainGroupData() throws Exception {
-    HankApiHelper.DomainGroupData data = helper.getDomainGroupData(coordinator.getDomainGroup("Group_1"));
-    assertEquals("Group_1", data.name);
+    HankApiHelper.DomainGroupData data = helper.getDomainGroupData(coordinator.getDomainGroup(ZkMockCoordinatorTestCase.DOMAIN_GROUP_0));
+    assertEquals(ZkMockCoordinatorTestCase.DOMAIN_GROUP_0, data.name);
 
     assertNotNull(data.domainVersions);
-    assertEquals(1, (int) data.domainVersions.get("domain0"));
-    assertEquals(1, (int) data.domainVersions.get("domain1"));
+    assertEquals(1, (int)data.domainVersions.get(ZkMockCoordinatorTestCase.DOMAIN_0));
+    assertEquals(1, (int)data.domainVersions.get(ZkMockCoordinatorTestCase.DOMAIN_1));
   }
 
   @Test
   public void testGetRingGroupData() throws Exception {
-    HankApiHelper.RingGroupData data = helper.getRingGroupData(coordinator.getRingGroup("RG_Alpha"));
-    assertEquals("RG_Alpha", data.name);
+    HankApiHelper.RingGroupData data = helper.getRingGroupData(coordinator.getRingGroup(ZkMockCoordinatorTestCase.RING_GROUP_0));
+    assertEquals(ZkMockCoordinatorTestCase.RING_GROUP_0, data.name);
     assertEquals(0, data.numPartitions);
     assertEquals(3, data.ringsMap.size());
   }
 
   @Test
   public void testGetDeployStatusForDomain() throws Exception {
-    HankApiHelper.DomainDeployStatus status = helper.getDomainDeployStatus(coordinator.getDomain("domain0"));
-    assertEquals("domain0", status.domainName);
+    HankApiHelper.DomainDeployStatus status = helper.getDomainDeployStatus(coordinator.getDomain(ZkMockCoordinatorTestCase.DOMAIN_0));
+    assertEquals(ZkMockCoordinatorTestCase.DOMAIN_0, status.domainName);
   }
 
   @Test
   public void testGetDeployStatusForDomainGroup() throws Exception {
-    HankApiHelper.DomainGroupDeployStatus status = helper.getDomainGroupDeployStatus(coordinator.getDomainGroup("Group_1"));
-    assertEquals("Group_1", status.domainGroupName);
+    HankApiHelper.DomainGroupDeployStatus status = helper.getDomainGroupDeployStatus(coordinator.getDomainGroup(ZkMockCoordinatorTestCase.DOMAIN_GROUP_0));
+    assertEquals(ZkMockCoordinatorTestCase.DOMAIN_GROUP_0, status.domainGroupName);
     assertEquals(2, status.ringGroupsMap.size());
   }
 }

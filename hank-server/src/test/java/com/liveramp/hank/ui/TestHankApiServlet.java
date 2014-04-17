@@ -1,14 +1,15 @@
 package com.liveramp.hank.ui;
 
 
-import com.liveramp.hank.ZkMockCoordinatorTestCase;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import com.liveramp.hank.ZkMockCoordinatorTestCase;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -20,7 +21,7 @@ public class TestHankApiServlet extends ZkMockCoordinatorTestCase {
 
   @Before
   public void setUp() throws Exception {
-    apiServlet = new HankApiServlet(getMockCoordinator());
+    apiServlet = new HankApiServlet(getApiMockCoordinator());
   }
 
   @Test
@@ -42,36 +43,36 @@ public class TestHankApiServlet extends ZkMockCoordinatorTestCase {
   @Test
   public void testGetDomain() throws IOException {
     assertEmptyResponse(new String[]{"domain"}, new String[]{"blah"});
-    assertEmptyResponse(new String[]{"domain", "domain_version"}, new String[]{"domain0", "blah"});
+    assertEmptyResponse(new String[]{"domain", "domain_version"}, new String[]{ZkMockCoordinatorTestCase.DOMAIN_0, "blah"});
 
-    assertNotEmptyResponse(new String[]{"domain"}, new String[]{"domain0"});
-    assertNotEmptyResponse(new String[]{"domain", "domain_version"}, new String[]{"domain0", "0"});
+    assertNotEmptyResponse(new String[]{"domain"}, new String[]{ZkMockCoordinatorTestCase.DOMAIN_0});
+    assertNotEmptyResponse(new String[]{"domain", "domain_version"}, new String[]{ZkMockCoordinatorTestCase.DOMAIN_0, "0"});
   }
 
   @Test
   public void testGetDomainGroup() throws IOException {
     assertEmptyResponse(new String[]{"domain_group"}, new String[]{"blah"});
 
-    assertNotEmptyResponse(new String[]{"domain_group"}, new String[]{"Group_1"});
+    assertNotEmptyResponse(new String[]{"domain_group"}, new String[]{ZkMockCoordinatorTestCase.DOMAIN_GROUP_0});
   }
 
   @Test
   public void testRingGroup() throws IOException {
     assertEmptyResponse(new String[]{"ring_group"}, new String[]{"blah"});
 
-    assertNotEmptyResponse(new String[]{"ring_group"}, new String[]{"RG_Alpha"});
+    assertNotEmptyResponse(new String[]{"ring_group"}, new String[]{ZkMockCoordinatorTestCase.RING_GROUP_0});
   }
 
   @Test
   public void testDeployStatusForDomain() throws IOException {
     assertEmptyResponse(new String[]{"deploy_status_for_domain"}, new String[]{"blah"});
-    assertNotEmptyResponse(new String[]{"deploy_status_for_domain"}, new String[]{"domain0"});
+    assertNotEmptyResponse(new String[]{"deploy_status_for_domain"}, new String[]{ZkMockCoordinatorTestCase.DOMAIN_0});
   }
 
   @Test
   public void testDeployStatusForDomainGroup() throws IOException {
     assertEmptyResponse(new String[]{"deploy_status_for_domain_group"}, new String[]{"blah"});
-    assertNotEmptyResponse(new String[]{"deploy_status_for_domain_group"}, new String[]{"Group_1"});
+    assertNotEmptyResponse(new String[]{"deploy_status_for_domain_group"}, new String[]{ZkMockCoordinatorTestCase.DOMAIN_GROUP_0});
   }
 
   private void assertEmptyResponse(String[] params, String[] values) throws IOException {

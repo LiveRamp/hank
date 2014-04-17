@@ -33,15 +33,16 @@ public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
   public static final String RING_GROUP_2 = "ring-group-2";
 
   protected Coordinator getMockCoordinator() throws Exception {
-    create(ZkPath.append(getRoot(), "domains"));
-    create(ZkPath.append(getRoot(), "domain_groups"));
-    create(ZkPath.append(getRoot(), "ring_groups"));
 
-    final Coordinator coord = new ZooKeeperCoordinator.Factory().getCoordinator(
+    return new ZooKeeperCoordinator.Factory().getCoordinator(
         ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000,
             ZkPath.append(getRoot(), "domains"),
             ZkPath.append(getRoot(), "domain_groups"),
             ZkPath.append(getRoot(), "ring_groups")));
+  }
+
+  protected Coordinator getApiMockCoordinator() throws Exception {
+    Coordinator coord = getMockCoordinator();
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
