@@ -38,24 +38,24 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   public void testIt() throws Exception {
     final Coordinator coordinator = getMockCoordinator();
 
-    DomainGroup dg1 = coordinator.getDomainGroup("Group_1");
+    DomainGroup dg1 = coordinator.getDomainGroup(ZkMockCoordinatorTestCase.DOMAIN_GROUP_0);
 
     // Assign
     PartitionAssigner partitionAssigner = new RendezVousPartitionAssigner();
-    RingGroup rgAlpha = coordinator.getRingGroup("RG_Alpha");
-    RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
-    RingGroup rgGamma = coordinator.getRingGroup("RG_Gamma");
+    RingGroup rg0 = coordinator.getRingGroup(ZkMockCoordinatorTestCase.RING_GROUP_0);
+    RingGroup rg1 = coordinator.getRingGroup(ZkMockCoordinatorTestCase.RING_GROUP_1);
+    RingGroup rg2 = coordinator.getRingGroup(ZkMockCoordinatorTestCase.RING_GROUP_2);
 
-    for (Ring ring : rgAlpha.getRings()) {
+    for (Ring ring : rg0.getRings()) {
       partitionAssigner.prepare(ring, dg1.getDomainVersions(), RingGroupConductorMode.ACTIVE);
       for (Host host : ring.getHosts()) {
         partitionAssigner.assign(host);
       }
     }
 
-    // Ring ALPHA
-    rgAlpha.claimRingGroupConductor(RingGroupConductorMode.INACTIVE);
-    for (Ring ring : rgAlpha.getRings()) {
+    // Ring Group 0
+    rg0.claimRingGroupConductor(RingGroupConductorMode.INACTIVE);
+    for (Ring ring : rg0.getRings()) {
       for (Host host : ring.getHosts()) {
         Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics = new HashMap<Domain, RuntimeStatisticsAggregator>();
         host.setState(HostState.SERVING);
@@ -76,18 +76,18 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
       }
     }
 
-    // Ring BETA
+    // Ring Group 1
     // Assign
-    for (Ring ring : rgBeta.getRings()) {
+    for (Ring ring : rg1.getRings()) {
       partitionAssigner.prepare(ring, dg1.getDomainVersions(), RingGroupConductorMode.ACTIVE);
       for (Host host : ring.getHosts()) {
         partitionAssigner.assign(host);
       }
     }
-    rgBeta.claimRingGroupConductor(RingGroupConductorMode.ACTIVE);
-    for (Ring ring : rgBeta.getRings()) {
+    rg1.claimRingGroupConductor(RingGroupConductorMode.ACTIVE);
+    for (Ring ring : rg1.getRings()) {
       // Set first ring to updating
-      if (ring.getRingNumber() == rgBeta.getRings().iterator().next().getRingNumber()) {
+      if (ring.getRingNumber() == rg1.getRings().iterator().next().getRingNumber()) {
         for (Host host : ring.getHosts()) {
           // Set first host to done updating
           if (host.getAddress().equals(ring.getHosts().iterator().next().getAddress())) {
@@ -121,8 +121,8 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
       }
     }
 
-    // Ring GAMMA
-    for (Ring ring : rgGamma.getRings()) {
+    // Ring Group 2
+    for (Ring ring : rg2.getRings()) {
       for (Host host : ring.getHosts()) {
         host.setState(HostState.IDLE);
       }
