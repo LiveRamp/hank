@@ -260,11 +260,15 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
                     requestTotal,
                     randomSample),
                 randomCacheStatistics));
+      }
+      Hosts.setRuntimeStatistics(host, runtimeStatistics);
+    }
+    if (state == HostState.SERVING || state == HostState.IDLE) {
+      for (HostDomain hd : host.getAssignedDomains()) {
         for (HostDomainPartition partition : hd.getPartitions()) {
           partition.setCurrentDomainVersion(ring.getRingGroup().getDomainGroup().getDomainVersion(hd.getDomain()).getVersionNumber());
         }
       }
-      Hosts.setRuntimeStatistics(host, runtimeStatistics);
     }
     if (state == HostState.UPDATING) {
       Hosts.setUpdateETA(host, randomETA());
@@ -381,11 +385,11 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   }
 
   private double randomL1HitsRatio() {
-    return random.nextInt(100) / 100;
+    return ((double)random.nextInt(100) / 100);
   }
 
   private double randomNumHitsRatio() {
-    return random.nextInt(100) / 100;
+    return ((double)random.nextInt(100)) / 100;
   }
 
   private int randomNumRequests() {
@@ -407,6 +411,6 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   }
 
   private double randomThroughput() {
-    return random.nextInt(1000);
+    return random.nextInt(10000);
   }
 }
