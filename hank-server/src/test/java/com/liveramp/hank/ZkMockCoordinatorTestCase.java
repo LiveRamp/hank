@@ -22,11 +22,11 @@ import com.liveramp.hank.zookeeper.ZkPath;
 
 public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
 
-  public static final String DOMAIN_GROUP_0 = "domain-group-0";
-  public static final String DOMAIN_GROUP_1 = "domain-group-1";
-
   public static final String DOMAIN_0 = "domain-0";
   public static final String DOMAIN_1 = "domain-1";
+
+  public static final String DOMAIN_GROUP_0 = "domain-group-0";
+  public static final String DOMAIN_GROUP_1 = "domain-group-1";
 
   public static final String RING_GROUP_0 = "ring-group-0";
   public static final String RING_GROUP_1 = "ring-group-1";
@@ -42,33 +42,33 @@ public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
   }
 
   protected Coordinator getApiMockCoordinator() throws Exception {
-    Coordinator coord = getMockCoordinator();
+    Coordinator coordinator = getMockCoordinator();
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
-    final Domain d0 = coord.addDomain(DOMAIN_0, 32, Echo.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
+    final Domain d0 = coordinator.addDomain(DOMAIN_0, 32, Echo.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
     DomainVersion ver = d0.openNewVersion(null);
     ver.close();
     ver = d0.openNewVersion(null);
-    final Domain d1 = coord.addDomain(DOMAIN_1, 32, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
+    final Domain d1 = coordinator.addDomain(DOMAIN_1, 32, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
     ver = d1.openNewVersion(null);
     dumpZk();
     ver.close();
     ver = d1.openNewVersion(null);
     ver.close();
 
-    DomainGroup g1 = coord.addDomainGroup(DOMAIN_GROUP_0);
+    DomainGroup g1 = coordinator.addDomainGroup(DOMAIN_GROUP_0);
     Map<Domain, Integer> g1Versions = new HashMap<Domain, Integer>();
     g1Versions.put(d0, 1);
     g1Versions.put(d1, 1);
     g1.setDomainVersions(g1Versions);
 
-    DomainGroup g2 = coord.addDomainGroup(DOMAIN_GROUP_1);
+    DomainGroup g2 = coordinator.addDomainGroup(DOMAIN_GROUP_1);
     Map<Domain, Integer> g2Versions = new HashMap<Domain, Integer>();
     g2Versions.put(d1, 1);
     g2.setDomainVersions(g2Versions);
 
-    RingGroup rg0 = coord.addRingGroup(RING_GROUP_0, g1.getName());
+    RingGroup rg0 = coordinator.addRingGroup(RING_GROUP_0, g1.getName());
     Ring r1 = rg0.addRing(1);
     r1.addHost(addy("alpha-1-1"), Collections.<String>emptyList());
     r1.addHost(addy("alpha-1-2"), Collections.<String>emptyList());
@@ -89,7 +89,7 @@ public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
           Hank.getGitCommit()));
     }
 
-    RingGroup rg1 = coord.addRingGroup(RING_GROUP_1, g1.getName());
+    RingGroup rg1 = coordinator.addRingGroup(RING_GROUP_1, g1.getName());
     r1 = rg1.addRing(1);
     r1.addHost(addy("beta-1-1"), Collections.<String>emptyList());
     r1.addHost(addy("beta-1-2"), Collections.<String>emptyList());
@@ -111,14 +111,14 @@ public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
     r4.addHost(addy("beta-4-3"), Collections.<String>emptyList());
     r4.addHost(addy("beta-4-4"), Collections.<String>emptyList());
 
-    RingGroup rg2 = coord.addRingGroup(RING_GROUP_2, g2.getName());
+    RingGroup rg2 = coordinator.addRingGroup(RING_GROUP_2, g2.getName());
     r1 = rg2.addRing(1);
     r1.addHost(addy("gamma-1-1"), Collections.<String>emptyList());
 
-    return coord;
+    return coordinator;
   }
 
-  private PartitionServerAddress addy(String hostname) {
+  protected static PartitionServerAddress addy(String hostname) {
     return new PartitionServerAddress(hostname, 6200);
   }
 }
