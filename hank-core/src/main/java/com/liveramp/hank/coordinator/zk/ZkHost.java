@@ -15,17 +15,42 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.generated.*;
-import com.liveramp.hank.zookeeper.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.data.Stat;
 
-import java.io.IOException;
-import java.util.*;
+import com.liveramp.hank.coordinator.AbstractHost;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.DataLocationChangeListener;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostCommandQueueChangeListener;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.generated.HostAssignmentsMetadata;
+import com.liveramp.hank.generated.HostDomainMetadata;
+import com.liveramp.hank.generated.HostDomainPartitionMetadata;
+import com.liveramp.hank.generated.HostMetadata;
+import com.liveramp.hank.generated.StatisticsMetadata;
+import com.liveramp.hank.zookeeper.WatchedEnum;
+import com.liveramp.hank.zookeeper.WatchedNodeListener;
+import com.liveramp.hank.zookeeper.WatchedThriftNode;
+import com.liveramp.hank.zookeeper.ZkPath;
+import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkHost extends AbstractHost {
 
@@ -58,7 +83,7 @@ public class ZkHost extends AbstractHost {
                               PartitionServerAddress partitionServerAddress,
                               DataLocationChangeListener dataLocationChangeListener,
                               List<String> flags) throws KeeperException, InterruptedException {
-    String path = ZkPath.append(root, Long.toString(UUID.randomUUID().getLeastSignificantBits()));
+    String path = ZkPath.append(root, Long.toString(Math.abs(UUID.randomUUID().getLeastSignificantBits())));
     if (LOG.isTraceEnabled()) {
       LOG.trace("Creating ZkHost " + partitionServerAddress + " at " + path);
     }
