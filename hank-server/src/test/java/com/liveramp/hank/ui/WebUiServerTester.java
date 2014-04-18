@@ -235,10 +235,31 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
     if (state == HostState.SERVING) {
       Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics = new HashMap<Domain, RuntimeStatisticsAggregator>();
       for (HostDomain hd : host.getAssignedDomains()) {
+        int numRequests = randomNumRequests();
+        int numHits = (int)(randomNumHitsRatio() * numRequests);
+        int numHitsL1 = (int)(randomL1HitsRatio() * numHits);
+        int numHitsL2 = numHits - numHitsL1;
+        double requestMinimum = randomRequestMinimum();
+        double requestMaximum = randomRequestMaximum();
+        long requestValues = randomRequestValues();
+        long requestTotal = randomRequestsTotal();
+        double[] randomSample = randomRequestSample();
+        CacheStatistics randomCacheStatistics = randomCacheStatistics();
         runtimeStatistics.put(hd.getDomain(),
-            new RuntimeStatisticsAggregator(randomThroughput(), randomResponseDataThroughput(), 142, 100, 15, 48,
-                new DoublePopulationStatisticsAggregator(1.234, 300.1234 * hd.getDomain().getId(), 1000, 10000,
-                    new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250}), new CacheStatistics(123L << 20, 1L << 30, 12L << 30, 1L << 40)));
+            new RuntimeStatisticsAggregator(
+                randomThroughput(),
+                randomResponseDataThroughput(),
+                numRequests,
+                numHits,
+                numHitsL1,
+                numHitsL2,
+                new DoublePopulationStatisticsAggregator(
+                    requestMinimum,
+                    requestMaximum,
+                    requestValues,
+                    requestTotal,
+                    randomSample),
+                randomCacheStatistics));
         for (HostDomainPartition partition : hd.getPartitions()) {
           partition.setCurrentDomainVersion(ring.getRingGroup().getDomainGroup().getDomainVersion(hd.getDomain()).getVersionNumber());
         }
@@ -247,6 +268,17 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
     }
     if (state == HostState.UPDATING) {
       Hosts.setUpdateETA(host, randomETA());
+      for (HostDomain hd : host.getAssignedDomains()) {
+        for (HostDomainPartition partition : hd.getPartitions()) {
+          if (random.nextInt(3) == 0) {
+            partition.setCurrentDomainVersion(ring.getRingGroup().getDomainGroup().getDomainVersion(hd.getDomain()).getVersionNumber());
+          } else {
+            if (random.nextInt(3) != 0) {
+              partition.setCurrentDomainVersion(ring.getRingGroup().getDomainGroup().getDomainVersion(hd.getDomain()).getVersionNumber() - 1);
+            }
+          }
+        }
+      }
     }
     // filesystem
     Map<String, FilesystemStatisticsAggregator> filesystemStatistics = new HashMap<String, FilesystemStatisticsAggregator>();
@@ -255,14 +287,6 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
       filesystemStatistics.put("/data-" + i, new FilesystemStatisticsAggregator(totalSpace, randomUsableSpace(totalSpace)));
     }
     Hosts.setFilesystemStatistics(host, filesystemStatistics);
-  }
-
-  private double randomResponseDataThroughput() {
-    return random.nextInt(50) * (2 << 20);
-  }
-
-  private double randomThroughput() {
-    return random.nextInt(1000);
   }
 
   private void setUpRing(RingGroup ringGroup, int ringGroupId, int ringId) throws IOException {
@@ -337,6 +361,52 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   }
 
   private long randomTotalSpace() {
-    return (random.nextInt(5) + 1) * (long)Math.pow(1021, 4);
+    return (random.nextInt(500) + 500) * (long)Math.pow(1021, 3);
+  }
+
+  private long randomRequestsTotal() {
+    return 10000;
+  }
+
+  private long randomRequestValues() {
+    return 1000;
+  }
+
+  private double randomRequestMaximum() {
+    return random.nextInt(10) + 80;
+  }
+
+  private double randomRequestMinimum() {
+    return random.nextInt(10) * 0.001;
+  }
+
+  private double randomL1HitsRatio() {
+    return random.nextInt(100) / 100;
+  }
+
+  private double randomNumHitsRatio() {
+    return random.nextInt(100) / 100;
+  }
+
+  private int randomNumRequests() {
+    return 142;
+  }
+
+  private CacheStatistics randomCacheStatistics() {
+    int scale = random.nextInt(10) + 1;
+    return new CacheStatistics((1L * scale) << 18, (1L * scale) << 20, (1L * scale) << 20, (1L * scale) << 30);
+  }
+
+  private double[] randomRequestSample() {
+    int scale = random.nextInt(3) + 1;
+    return new double[]{0.01 * scale, 0.1 * scale, 1 * scale, 2 * scale, 3 * scale, 5 * scale, 11 * scale, 15 * scale, 21 * scale};
+  }
+
+  private double randomResponseDataThroughput() {
+    return random.nextInt(10) * (1 << 20);
+  }
+
+  private double randomThroughput() {
+    return random.nextInt(1000);
   }
 }
