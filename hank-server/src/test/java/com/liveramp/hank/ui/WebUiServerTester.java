@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.junit.Test;
 
@@ -51,106 +53,14 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   private static final String HOST_ = "host-";
   private static final int NUM_DOMAINS = 5;
   private static final int NUM_RINGS = 3;
-  private static final int NUM_HOSTS = 20;
+  private static final int NUM_HOSTS = 10;
   private static final int NUM_CLIENTS = 100;
 
   private final Random random = new Random();
 
   @Test
   public void testIt() throws Exception {
-
-    /*
-    DomainGroup dg1 = coordinator.getDomainGroup(ZkMockCoordinatorTestCase.DOMAIN_GROUP_0);
-
-    // Assign
-    PartitionAssigner partitionAssigner = new RendezVousPartitionAssigner();
-    RingGroup rg0 = coordinator.getRingGroup(ZkMockCoordinatorTestCase.RING_GROUP_0);
-    RingGroup rg1 = coordinator.getRingGroup(ZkMockCoordinatorTestCase.RING_GROUP_1);
-    RingGroup rg2 = coordinator.getRingGroup(ZkMockCoordinatorTestCase.RING_GROUP_2);
-
-    for (Ring ring : rg0.getRings()) {
-      partitionAssigner.prepare(ring, dg1.getDomainVersions(), RingGroupConductorMode.ACTIVE);
-      for (Host host : ring.getHosts()) {
-        partitionAssigner.assign(host);
-      }
-    }
-
-    // Ring Group 0
-    rg0.claimRingGroupConductor(RingGroupConductorMode.INACTIVE);
-    for (Ring ring : rg0.getRings()) {
-      for (Host host : ring.getHosts()) {
-        Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics = new HashMap<Domain, RuntimeStatisticsAggregator>();
-        host.setState(HostState.SERVING);
-        for (HostDomain hd : host.getAssignedDomains()) {
-          runtimeStatistics.put(hd.getDomain(),
-              new RuntimeStatisticsAggregator(14, 2500, 142, 100, 15, 48,
-                  new DoublePopulationStatisticsAggregator(1.234, 300.1234 * hd.getDomain().getId(), 1000, 10000,
-                      new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250}), new CacheStatistics(123L << 20, 1L << 30, 12L << 30, 1L << 40)));
-          for (HostDomainPartition partition : hd.getPartitions()) {
-            partition.setCurrentDomainVersion(dg1.getDomainVersion(hd.getDomain()).getVersionNumber());
-          }
-        }
-        Hosts.setRuntimeStatistics(host, runtimeStatistics);
-        Map<String, FilesystemStatisticsAggregator> filesystemStatistics = new HashMap<String, FilesystemStatisticsAggregator>();
-        filesystemStatistics.put("/", new FilesystemStatisticsAggregator(4 * (long)Math.pow(1020, 4), 1 * (long)Math.pow(1023, 4)));
-        filesystemStatistics.put("/data", new FilesystemStatisticsAggregator(6 * (long)Math.pow(1021, 4), 3 * (long)Math.pow(1020, 4)));
-        Hosts.setFilesystemStatistics(host, filesystemStatistics);
-      }
-    }
-
-    // Ring Group 1
-    // Assign
-    for (Ring ring : rg1.getRings()) {
-      partitionAssigner.prepare(ring, dg1.getDomainVersions(), RingGroupConductorMode.ACTIVE);
-      for (Host host : ring.getHosts()) {
-        partitionAssigner.assign(host);
-      }
-    }
-    rg1.claimRingGroupConductor(RingGroupConductorMode.ACTIVE);
-    for (Ring ring : rg1.getRings()) {
-      // Set first ring to updating
-      if (ring.getRingNumber() == rg1.getRings().iterator().next().getRingNumber()) {
-        for (Host host : ring.getHosts()) {
-          // Set first host to done updating
-          if (host.getAddress().equals(ring.getHosts().iterator().next().getAddress())) {
-            host.setState(HostState.SERVING);
-            for (HostDomain hd : host.getAssignedDomains()) {
-              for (HostDomainPartition partition : hd.getPartitions()) {
-                partition.setCurrentDomainVersion(dg1.getDomainVersion(hd.getDomain()).getVersionNumber());
-              }
-            }
-          } else {
-            // Set other hosts to still updating
-            host.setState(HostState.UPDATING);
-            // Set fake ETA
-            Hosts.setUpdateETA(host, 3243 * ((host.getAddress().hashCode() % 3) + 1));
-            for (HostDomain hd : host.getAssignedDomains()) {
-              for (HostDomainPartition partition : hd.getPartitions()) {
-                partition.setCurrentDomainVersion(0);
-              }
-            }
-          }
-        }
-      } else {
-        for (Host host : ring.getHosts()) {
-          host.setState(HostState.SERVING);
-          for (HostDomain hd : host.getAssignedDomains()) {
-            for (HostDomainPartition partition : hd.getPartitions()) {
-              partition.setCurrentDomainVersion(dg1.getDomainVersion(hd.getDomain()).getVersionNumber());
-            }
-          }
-        }
-      }
-    }
-
-    // Ring Group 2
-    for (Ring ring : rg2.getRings()) {
-      for (Host host : ring.getHosts()) {
-
-      }
-    }
-
-*/
+    Logger.getLogger("com.liveramp.hank.zookeeper").setLevel(Level.INFO);
 
     final SmartClient.Iface mockClient = new SmartClient.Iface() {
       private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>() {
@@ -296,7 +206,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   private void setUpRing(RingGroup ringGroup, int ringGroupId, int ringId) throws IOException {
     Ring ring = ringGroup.addRing(ringId);
     HostState state = randomHostState();
-    int numHosts = random.nextInt(NUM_HOSTS) + 3;
+    int numHosts = random.nextInt(NUM_HOSTS) + 10;
     for (int hostId = 0; hostId < numHosts; ++hostId) {
       setUpHost(ringGroupId, ring, hostId, state);
     }
@@ -304,7 +214,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
   private Host setUpHost(int ringGroupId, Ring ring, int hostId, HostState state) throws IOException {
     Host host = ring.addHost(addy(HOST_ + ringGroupId + "-" + ring.getRingNumber() + "-" + hostId), Collections.<String>emptyList());
-    if (random.nextInt(10) == 0) {
+    if (random.nextInt(20) == 0) {
       state = randomOtherHostState();
     }
     host.setState(state);
@@ -323,15 +233,16 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
     return dg;
   }
 
-  private static Domain setUpDomain(int domainGroupId, int domainId, Coordinator coordinator) throws IOException {
-    final Domain domain = coordinator.addDomain(DOMAIN_ + domainGroupId + "-" + domainId, 32, Echo.Factory.class.getName(), "", Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
+  private Domain setUpDomain(int domainGroupId, int domainId, Coordinator coordinator) throws IOException {
+    int numPartitions = random.nextInt(32) + 4;
+    final Domain domain = coordinator.addDomain(DOMAIN_ + domainGroupId + "-" + domainId, numPartitions, Echo.Factory.class.getName(), "", Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
     DomainVersion ver = domain.openNewVersion(null);
     ver.close();
     return domain;
   }
 
   private HostState randomHostState() {
-    switch (random.nextInt(4)) {
+    switch (random.nextInt(5)) {
       case 0:
         return HostState.SERVING;
       case 1:
@@ -339,6 +250,8 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
       case 2:
         return HostState.SERVING;
       case 3:
+        return HostState.SERVING;
+      case 4:
         return HostState.UPDATING;
       default:
         throw new IllegalStateException();
@@ -389,7 +302,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   }
 
   private double randomNumHitsRatio() {
-    return ((double)random.nextInt(100)) / 100;
+    return ((double)random.nextInt(25) + 75) / 100;
   }
 
   private int randomNumRequests() {
@@ -398,12 +311,17 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
   private CacheStatistics randomCacheStatistics() {
     int scale = random.nextInt(10) + 1;
-    return new CacheStatistics((1L * scale) << 18, (1L * scale) << 20, (1L * scale) << 20, (1L * scale) << 30);
+    return new CacheStatistics((1L * scale) << 18, (1L * scale) << 20, (100L * scale) << 20, (1L * scale) << 30);
   }
 
   private double[] randomRequestSample() {
     int scale = random.nextInt(3) + 1;
-    return new double[]{0.01 * scale, 0.1 * scale, 1 * scale, 2 * scale, 3 * scale, 5 * scale, 11 * scale, 15 * scale, 21 * scale};
+    double[] input = new double[]{0.01 * scale, 0.01 * scale, 0.1 * scale, 0.5 * scale, 0.8 * scale, 1 * scale, 1.5 * scale, 3 * scale, 8 * scale};
+    double[] result = new double[1000];
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = input[random.nextInt(input.length)];
+    }
+    return result;
   }
 
   private double randomResponseDataThroughput() {
@@ -411,6 +329,6 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   }
 
   private double randomThroughput() {
-    return random.nextInt(10000);
+    return random.nextInt(1000);
   }
 }
