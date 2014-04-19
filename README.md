@@ -7,7 +7,7 @@ Hank provides linear scalability, a no SPOF design, strives for compact on-disk 
 
 Hank leverages [ZooKeeper](http://zookeeper.apache.org) for coordination, metadata management, monitoring and notifications, [Hadoop](http://hadoop.apache.org) for external parallel indexing and intermediate data storage, [Thrift](http://thrift.apache.org) (for cross-language client-server services and MapReduce/[Cascading](http://www.cascading.org) to interface with user code and load data.
 
-When it comes to the CAP theorem, Hank provides A (Availability) and P (Partitioning), but only eventual Consistency.
+When it comes to the CAP theorem, Hank provides A (Availability) and P (Partitioning) but only eventual Consistency.
 
 ## Performance
 
