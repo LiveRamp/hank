@@ -43,7 +43,7 @@ To run the test suite locally:
 ```
 
 ![architecture diagram](docs/hank-architecture.png)
-![caching diagram](docs/hank-caching.png
+![caching diagram](docs/hank-caching.png)
 ![fixed length values diagram](docs/hank-fixed-length-values.png)
 ![variable length values diagram](docs/hank-variable-length-values.png)
 
