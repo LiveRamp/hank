@@ -41,3 +41,5 @@ To run the test suite locally:
 ```bash
 > mvn test
 ```
+
+![ring screenshot](doc/screenshot-ring.jpg)
