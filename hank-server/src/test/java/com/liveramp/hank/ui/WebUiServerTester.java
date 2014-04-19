@@ -234,7 +234,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
   }
 
   private Domain setUpDomain(int domainGroupId, int domainId, Coordinator coordinator) throws IOException {
-    int numPartitions = random.nextInt(32) + 4;
+    int numPartitions = random.nextInt(1024) + 4;
     final Domain domain = coordinator.addDomain(DOMAIN_ + domainGroupId + "-" + domainId, numPartitions, Echo.Factory.class.getName(), "", Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
     DomainVersion ver = domain.openNewVersion(null);
     ver.close();
