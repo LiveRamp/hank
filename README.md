@@ -1,15 +1,19 @@
 # Project Hank
 
+## Design
+
 Hank is a distributed key-value NoSQL database that we built and use at LiveRamp. It is designed for large data stores that dwarf the amount of available main memory and for read/write workloads that far exceed the capacity of memory-based caches. More specifically, it is optimized for very low latency random read queries and for very high throughput incremental batch writes. It performs well with data sets on the terabyte and petabyte scales with billions or trillions of records. Range queries and random writes are not supported by design, for simplicity and performance.
 Hank provides linear scalability, a no SPOF design, strives for compact on-disk and over-the-network representations, as well as for consistent performance in constrained environments such as very high data-to-RAM ratios (1000:1 and more) and low remaining disk space. Also, it is fully open source. Hank was inspired by Amazon’s DynamoDB and shares a few design characteristics with LinkedIn’s Voldemort.
-
-Performance is very dependent on hardware, and I/O and CPU overheads are kept to a strict minimum. You can expect random read request latency to be very close to the time it takes to perform two disk seeks on your drives (Hank performs exactly two disk seeks per request that does not hit the cache), which is usually around a couple of milliseconds with an empty cache on modern spinning disks, sometimes much less.
-Random read throughput is again limited by hardware but can easily hit tens of thousands of requests per second per node.
-Incremental batch write throughput is similarly limited by how much data your installation can stream over the network and write to disk (strictly sequentially, random writes are avoided), which is probably around a couple hundreds of megabytes per second per node, which, depending on the size of your values can translate to millions or hundreds of millions of key-values pairs written per second, per node.
 
 Hank leverages ZooKeeper for coordination, metadata management, monitoring and notifications, Hadoop for external parallel indexing and intermediate data storage, Thrift (for cross-language client-server services and MapReduce/Cascading to interface with user code and load data.
 
 When it comes to the CAP theorem, Hank provides only A (Availability) and P (Partitioning), and provides only eventual Consistency.
+
+## Performance
+
+Performance is very dependent on hardware, and I/O and CPU overheads are kept to a strict minimum. You can expect random read request latency to be very close to the time it takes to perform two disk seeks on your drives (Hank performs exactly two disk seeks per request that does not hit the cache), which is usually around a couple of milliseconds with an empty cache on modern spinning disks, sometimes much less.
+Random read throughput is again limited by hardware but can easily hit tens of thousands of requests per second per node.
+Incremental batch write throughput is similarly limited by how much data your installation can stream over the network and write to disk (strictly sequentially, random writes are avoided), which is probably around a couple hundreds of megabytes per second per node, which, depending on the size of your values can translate to millions or hundreds of millions of key-values pairs written per second, per node.
 
 # Why we built Hank
 
