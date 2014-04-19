@@ -59,6 +59,8 @@ To run the test suite locally:
 
 ## A distributed key-value NoSQL database
 
+![architecture diagram](docs/hank-architecture.png)
+
 Hank is a schema-less key-value database. It is conceptually similar to a distributed hash map. Keys and values are simply unstructured byte arrays, and there is no query language. It is designed to run on clusters of commodity hardware. Key-value pairs are transparently partitioned across a configurable number of partitions and fully distributed and replicated across nodes for scalability and availability. Also, data is automatically redistributed upon detected node failure. Data distribution is based on rendezvous hashing, a technique similar to consistent hashing to minimize the cost of rebalancing data across the cluster.
 
 As an API, Hank only supports random read requests (retrieving the value for a given key) and incremental batch writes updates (loading a large set of key-value pairs, overwriting previous values, and optionally clearing out old entries that have not been updated). Random writes of single key-value pairs are not supported by design, for performance and simplicity. If your use case requires performant random writes, Hank is not well suited to it.
@@ -68,8 +70,6 @@ The typical architecture layout involves dedicated Hank nodes which run a server
 Indexing is meant to be performed externally, in the sense that source data is maintained and indexed by other nodes (typically a Hadoop cluster) before being streamed to the actual Hank servers to be persisted. This setup provides good flexibility and great scalability. Also, separating the intensive indexing workload from servers that are answering time-sensitive random read requests results in more predictable performance from the point of view of clients.
 
 Clients interact directly with Hank servers when performing read requests (there is no master node). All required metadata (such as location of key-value pairs, available nodes, etc) is stored in the ZooKeeper cluster, and the provided Hank smart client is able to perform load balancing across servers and replicas, query retries, record caching, strictly locally, without having to communicate with any other node besides the Hank node from which the key-value pair is retrieved and the client’s ZooKeeper touch-point. Hank servers are built as a Thrift service, which means that they can be accessed directly from a variety of languages.
-
-![architecture diagram](docs/hank-architecture.png)
 
 ## Very low latency random read requests
 
@@ -81,10 +81,10 @@ Additionally, Hank is not very chatty. Random read requests perform only one cal
 
 ## Caching
 
+![caching diagram](docs/hank-caching.png)
+
 Hank is meant to be fast regardless of cache state, but it employs a few caching mechanisms to further speed up random read requests, as well as a simple load balancing hint to improve cache performance.
 The performance improvement obviously depends on access patterns, but we have seen production applications with a 20% client-side cache hit rate and a 50% server-side cache hit rate, resulting in a large percentage of read queries being fulfilled in much less than 0.1 milliseconds.
-
-![caching diagram](docs/hank-caching.png)
 
 ### Server-side OS-level cache
 
@@ -92,13 +92,16 @@ Hank servers benefit very heavily from OS-level disk cache and are an example of
 Because indices and values are stored in flat files on disk at specific offsets, requesting the same key-value pair twice will hit your OS-level disk page cache and be retrieved instantly. (Because read and writes do not happen concurrently on any given Hank node, cached pages do not need to get invalidated.) For this reason, a server-side application cache is not necessary, as the OS-level cache can already transparently allocate all of the node’s remaining main memory to the Hank query cache, and is very performant.
 
 ### Server-side application-level cache
+
 There is only one instance in which Hank does not fully rely on OS-level disk cache and performs its own application-level server-side caching: when it comes to domain tables that use block compression (values are grouped in large blocks and compressed and written to disk, see below). In this case the CPU overhead of decompressing a block can be non-trivial, therefore caching the compressed block by relying on the OS cache is not sufficient. Rather than caching the whole decompressed block in main memory (which would cache many unrelated key-value pairs, since keys are distributed randomly), Hank chooses to cache the individual key-value pair that was requested. Note that this approach is not perfect in the sense that a given key-value pair could be cached twice in main memory (raw in the application, and as part of a compressed block cached by the disk), but it works well in practice given that both cached objects can be useful in their own right (a request for a different key in the same compressed block would hit the disk cache and suffer only the decompression overhead, saving a disk seek).
 
 ### Client-side optimistic cache load balancing logic
+
 Hank clients load balance their read requests across servers and replicas in a way designed to optimize server-side cache performance (both the OS-level and application-level cache). We call this optimistic query cache load balancing.
 Essentially, for a given key, all clients can compute a random but deterministic value used to order the list of replicas used to query that key. This ensures that all clients can agree (without coordination) on the order in which specific nodes are going to be contacted to retrieve the value for a given key, while at the same time still distributing the overall load evenly across nodes. This significantly improves server-side cache performance if multiple independent clients are likely to query the same key over time since the first replica they’ll contact will be the one most likely to have the requested key-value pair in its cache.
 
 ### Client-side cache
+
 In addition to server-side cache, Hank clients can optionally maintain their own in-memory cache of key-value pairs for even faster retrieval (no need to go over the network or to another server). This client-side cache is both time aware (key-value pairs expire and can use versioning information from ZooKeeper to maintain consistency) and size aware (the amount of main memory used is bound and configurable).
 
 ## Very high throughput incremental batch writes
@@ -131,6 +134,8 @@ Furthermore, read request latency performance is very predictable since, as ment
 
 ### For fixed-length values
 
+![fixed length values diagram](docs/hank-fixed-length-values.png)
+
 In the case of fixed-length values, data is stored in flat files of key-value pairs. There is one file per partition. The original keys are actually not preserved, and hashed keys are used. The entire file is sorted by those hashed keys. Furthermore, to save space, only suffixes of those hashed keys are persisted. Each block contains pairs of hashed key suffix and value. All pairs in a block share the same hashed key prefix. The file also contains a serialized partial index that maps each hashed key prefix to the file offset where that block is located. This partial index can be computed linearly when building the file.
 For example, for 32-bit values, 80-bit key hashes, and a 16-bit key hash prefix, the key hash suffix would be 64 bits long (80 - 16), and each record on disk would be 96 bits long (64 + 32).
 
@@ -138,9 +143,9 @@ The index of hashed key prefix to block location is stored in main memory. At qu
 
 Updating and adding values is performed by a merge pass of the merge-sort algorithm (since the update delta files have been sorted and indexed externally). This is an efficient operation as it only involves sequential operations (one full sequential read of both files, and one sequential write of the new file).
 
-![fixed length values diagram](docs/hank-fixed-length-values.png)
-
 ### For variable-length values
+
+![variable length values diagram](docs/hank-variable-length-values.png)
 
 For variable-length values, each partition is composed of two files. An index file maps keys to disk offsets into a second file which is itself a flat file of contiguous values (each value is preceded by an integer header indicating its size). The index file simply uses the layout for fixed-length values that was described previously, in this case values are fixed-length disk offsets into the second file. Both files can be computed and written sequentially from a list of sorted key-value pairs.
 
@@ -149,8 +154,6 @@ For example, for 32-bit disk offsets, 80-bit key hashes, and a 16-bit key hash p
 
 Updating and adding values is performed in two operations. First, the new value file is simply appended to the current value file, which is a sequential write. Next, a merge pass of the merge-sort algorithm is used to merge the new index with the current index file (as described previously for fixed-length values), which is also a linear sequential operation. Offsets to the new or updated values replace old offsets in the new index. Space taken up by now unreachable values is wasted until the next compaction, which is a process that writes a new “clean” value file by walking through the index file and checking which values are actually needed.
 Note that after such an update, values might not be sorted by hashed key on disk anymore, but it does not affect performance.
-
-![variable length values diagram](docs/hank-variable-length-values.png)
 
 ### Identical value folding
 
@@ -186,10 +189,15 @@ Hank comes packaged with a nifty web-based UI and a configurable notifier. The U
 - list datasets, their sizes, the number of records in each version, and manually delete versions
 - manually send commands to servers to go online, offline, and update
 
+### All ring groups
 ![ring groups screenshot](docs/hank-screenshot-ring-groups.jpg)
-![ring group screenshot](docs/hank-screenshot-ring-group-1.jpg)
+### Ring group details
 ![ring group screenshot](docs/hank-screenshot-ring-group-2.jpg)
+### Ring details
 ![ring screenshot](docs/hank-screenshot-ring.jpg)
+### Host partitions assignments
 ![partitions screenshot](docs/hank-screenshot-partitions.jpg)
+### Administration
 ![admin screenshot](docs/hank-screenshot-admin.jpg)
+### Domain group versioning
 ![domain group screenshot](docs/hank-screenshot-domain-group.jpg)
