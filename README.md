@@ -42,4 +42,10 @@ To run the test suite locally:
 > mvn test
 ```
 
+![ring groups screenshot](doc/screenshot-ring-groups.jpg)
+![ring group screenshot](doc/screenshot-ring-group-1.jpg)
+![ring group screenshot](doc/screenshot-ring-group-2.jpg)
 ![ring screenshot](doc/screenshot-ring.jpg)
+![partitions screenshot](doc/screenshot-partitions.jpg)
+![admin screenshot](doc/screenshot-admin.jpg)
+![domain group screenshot](doc/screenshot-domain-group.jpg)
