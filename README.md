@@ -42,15 +42,15 @@ To run the test suite locally:
 > mvn test
 ```
 
-![architecture diagram](doc/hank-architecture.png)
-![caching diagram](doc/hank-caching.png
-![fixed length values diagram](doc/hank-fixed-length-values.png)
-![variable length values diagram](doc/hank-variable-length-values.png)
+![architecture diagram](docs/hank-architecture.png)
+![caching diagram](docs/hank-caching.png
+![fixed length values diagram](docs/hank-fixed-length-values.png)
+![variable length values diagram](docs/hank-variable-length-values.png)
 
-![ring groups screenshot](doc/hank-screenshot-ring-groups.jpg)
-![ring group screenshot](doc/hank-screenshot-ring-group-1.jpg)
-![ring group screenshot](doc/hank-screenshot-ring-group-2.jpg)
-![ring screenshot](doc/hank-screenshot-ring.jpg)
-![partitions screenshot](doc/hank-screenshot-partitions.jpg)
-![admin screenshot](doc/hank-screenshot-admin.jpg)
-![domain group screenshot](doc/hank-screenshot-domain-group.jpg)
+![ring groups screenshot](docs/hank-screenshot-ring-groups.jpg)
+![ring group screenshot](docs/hank-screenshot-ring-group-1.jpg)
+![ring group screenshot](docs/hank-screenshot-ring-group-2.jpg)
+![ring screenshot](docs/hank-screenshot-ring.jpg)
+![partitions screenshot](docs/hank-screenshot-partitions.jpg)
+![admin screenshot](docs/hank-screenshot-admin.jpg)
+![domain group screenshot](docs/hank-screenshot-domain-group.jpg)
