@@ -3,6 +3,7 @@
 ## Design
 
 Hank is a distributed key-value NoSQL database that we built and use at [LiveRamp](http://www.liveramp.com). It is designed for very large data stores that dwarf the amount of available main memory and for read/write workloads that far exceed the capacity of memory-based caches. More specifically, it is optimized for very low latency random read queries and for very high throughput incremental batch writes. It performs well with data sets on the terabyte and petabyte scales with billions or trillions of records. Range queries and random writes are not supported by design, for simplicity and performance.
+
 Hank provides linear scalability, a no single point of failure design, strives for compact on-disk and over-the-network representations, as well as for consistent performance in constrained environments such as very high data-to-RAM ratios (1000:1 and more) and low remaining disk space. Also, it is fully open source. Hank was inspired by Amazon’s DynamoDB and shares a few design characteristics with LinkedIn’s Voldemort.
 
 Hank leverages [ZooKeeper](http://zookeeper.apache.org) for coordination, metadata management, monitoring and notifications, [Hadoop](http://hadoop.apache.org) for external parallel indexing and intermediate data storage, [Thrift](http://thrift.apache.org) for cross-language client-server services, and MapReduce/[Cascading](http://www.cascading.org) to interface with user code and load data.
@@ -11,9 +12,11 @@ When it comes to the CAP theorem, Hank provides A (Availability) and P (Partitio
 
 ## Performance
 
-Performance is very dependent on hardware, and I/O and CPU overheads are kept to a strict minimum. You can expect random read request latency to be very close to the time it takes to perform two disk seeks on your drives (Hank performs exactly two disk seeks per request that does not hit the cache), which is usually around a couple of milliseconds with an empty cache on modern spinning disks, sometimes much less.
-Random read throughput is again limited by hardware but can easily hit tens of thousands of requests per second per node.
-Incremental batch write throughput is similarly limited by how much data your installation can stream over the network and write to disk (strictly sequentially, random writes are avoided), which is probably around a couple hundreds of megabytes per second per node, which, depending on the size of your values can translate to millions or hundreds of millions of key-values pairs written per second, per node.
+Performance is very dependent on hardware, and I/O and CPU overheads are kept to a strict minimum. Hank performs either one or two disk seeks per request that does not hit the cache, no request will ever require three disk seeks. Therefore random read request latency will be bounded by the time it takes to perform two disk seeks on your drives, which is usually around a couple of milliseconds with an empty cache on modern spinning disks, sometimes much less. Random read throughput can easily hit tens of thousands of requests per second per node.
+
+Incremental batch write throughput is also limited by your hardware, more specifically by how much data your installation can stream over the network and write to disk (strictly sequentially, random writes are entirely avoided), which is probably around a couple hundreds of megabytes per second per node, which, depending on the size of your values can translate to millions or hundreds of millions of key-values pairs written per second, per node.
+
+Additionally, Hank is not very chatty. Random read requests perform only one call over the network and communicate directly with a server that holds the requested key. There is no need for synchronization, no master node, no back-and-forth, and no agreement protocol at query time.
 
 # Why we built Hank
 
@@ -81,19 +84,15 @@ As stated earlier, Hank is optimized for satisfying read requests (retrieving th
 
 Two storage engines are provided with Hank, one designed for variable-length values (which guarantees that read requests will perform only exactly two disk seeks on cache miss), and one designed for fixed-length values (which guarantees read requests in exactly one disk seek on cache miss). No request will ever require three disk seeks. This is achieved by proactively indexing data externally, maintaining a partial index in main memory, and (in the case of variable-length values), a full index on disk. Depending on your hardware, this results in random read request latency on the order of a few milliseconds to sub-millisecond.
 
-Additionally, Hank is not very chatty. Random read requests perform only one call over the network and communicate directly with a server that holds the requested key. There is no need for synchronization, no master node, no back-and-forth, and no agreement protocol at query time.
-
 ## Caching
 
 ![caching diagram](docs/hank-caching.png)
 
-Hank is meant to be fast regardless of cache state, but it employs a few caching mechanisms to further speed up random read requests, as well as a simple load balancing hint to improve cache performance.
-The performance improvement obviously depends on access patterns, but we have seen production applications with a 20% client-side cache hit rate and a 50% server-side cache hit rate, resulting in a large percentage of read queries being fulfilled in much less than 0.1 milliseconds.
+Hank is meant to be fast regardless of cache state, but it employs a few caching mechanisms to further speed up random read requests, as well as a simple load balancing hint to improve cache performance. The performance improvement obviously depends on access patterns, but we have seen production applications with a 20% client-side cache hit rate and a 50% server-side cache hit rate, resulting in a large percentage of read queries being fulfilled in much less than 0.1 milliseconds.
 
 ### Server-side OS-level cache
 
-Hank servers benefit very heavily from OS-level disk cache and are an example of one of those applications where the OS-provided caching resources and algorithms will outperform most application-level approaches.
-Because indices and values are stored in flat files on disk at specific offsets, requesting the same key-value pair twice will hit your OS-level disk page cache and be retrieved instantly. (Because read and writes do not happen concurrently on any given Hank node, cached pages do not need to get invalidated.) For this reason, a server-side application cache is not necessary, as the OS-level cache can already transparently allocate all of the node’s remaining main memory to the Hank query cache, and is very performant.
+Hank servers benefit very heavily from OS-level disk cache and are an example of one of those applications where the OS-provided caching resources and algorithms will outperform most application-level approaches. Because indices and values are stored in flat files on disk at specific offsets, requesting the same key-value pair twice will hit your OS-level disk page cache and be retrieved instantly. (Because read and writes do not happen concurrently on any given Hank node, cached pages do not need to get invalidated.) For this reason, a server-side application cache is not necessary, as the OS-level cache can already transparently allocate all of the node’s remaining main memory to the Hank query cache, and is very performant.
 
 ### Server-side application-level cache
 
@@ -111,8 +110,7 @@ In addition to server-side cache, Hank clients can optionally maintain their own
 ## Very high throughput incremental batch writes
 
 Beyond low latency random read requests, Hank is optimized for very high throughput incremental batch writes (such as billions or trillions of records written per update). All key-value pairs are distributed across a number of independent partitions. Partitions are versioned, and new data is written to Hank servers by merging in a new (optionally partial) version of the dataset with the current key-value pairs (new delta), or by replacing them entirely, wiping out old non-updated entries (new base).
-Random writes (updating the value for a given key) are not supported by design, for simplicity and performance, since many performance shortcuts can be taken when making the assumption that random writes are not a possibility.
-Hank is only eventually consistent, in the sense that large batch write updates are long running, and affect a subset of replicas at a time, which means that two clients could see two inconsistent values for the same key at any given time during the update process (consistency is maintained when no updates are running, of course). This is another major assumption and tradeoff that opens up the door to optimization.
+Random writes (updating the value for a given key) are not supported by design, for simplicity and performance, since many performance shortcuts can be taken when making the assumption that random writes are not a possibility. Hank is only eventually consistent, in the sense that large batch write updates are long running, and affect a subset of replicas at a time, which means that two clients could see two inconsistent values for the same key at any given time during the update process (consistency is maintained when no updates are running, of course). This is another major assumption and tradeoff that opens up the door to optimization.
 
 As stated earlier, indexing is meant to be performed externally, typically on a separate Hadoop cluster. MapReduce and Cascading APIs are provided to build new domain partition versions (either delta or base) from any data set of key-value pairs that can be extracted from an HDFS file or a Cascading pipe.
 Sorting and indexing is performed by a single MapReduce job. For even better performance, and if the input dataset is already partitioned and sorted in a meaningful way (as it often happens within a Hadoop cluster), it can be performed as a single Map-only operation, skipping the expensive over-the-network shuffling and reducing steps.
@@ -162,10 +160,8 @@ Note that after such an update, values might not be sorted by hashed key on disk
 ### Identical value folding
 
 Since sorting and indexing key-value pairs is performed ahead of time and externally, it is straightforward to perform a type of compression and cache optimization that we call value folding. With value folding, two different keys can share the exact same value on disk.
-When writing values in a sorted order and building the index, a LRU-type cache is used to memorize where on disk recent values have been written. This cache maintains a mapping from hashed value to disk offset. When writing a value that has been seen recently, it is not written to the value file. Instead, the disk offset to the value written previously is re-used in the index.
-The efficiency of this technique obviously depends on how often values are duplicated and how large those are, but we have seen 20% reduction of value file size for some of our datasets.
-The cost of value folding is minimal when building data files (since it is CPU intensive and those tasks are usually IO-bound), and is a no-cost operation at runtime since it uses the same offset indirection technique.
-Furthermore value folding can actually improve read latency performance since it increases cache locality. Different requests for two different keys can hit the exact same location on disk and benefit from each other.
+
+When writing values in a sorted order and building the index, a LRU-type cache is used to memorize where on disk recent values have been written. This cache maintains a mapping from hashed value to disk offset. When writing a value that has been seen recently, it is not written to the value file. Instead, the disk offset to the value written previously is re-used in the index. The efficiency of this technique obviously depends on how often values are duplicated and how large those are, but we have seen 20% reduction of value file size for some of our datasets. The cost of value folding is minimal when building data files (since it is CPU intensive and those tasks are usually IO-bound), and is a no-cost operation at runtime since it uses the same offset indirection technique. Furthermore value folding can actually improve read latency performance since it increases cache locality. Different requests for two different keys can hit the exact same location on disk and benefit from each other.
 
 ### Block compression
 
@@ -178,7 +174,8 @@ Because of Hank’s design, performance and capacity scales horizontally and lin
 
 ## No single point of failure design
 
-There is no master node, and no node responsible for maintaining the mapping between keys and server nodes. Instead, all metadata is stored on a ZooKeeper cluster, and clients can rely the availability characteristics of that system to expect a no single point of failure behavior when querying Hank.
+There is no master node in Hank, and no node responsible for maintaining the mapping between keys and server nodes. Instead, all metadata is stored on a ZooKeeper cluster, and clients can rely the availability characteristics of that system to expect a no single point of failure behavior when performing queries.
+
 The batch write update coordinator is the only process that has a special role. It reacts to data and configuration changes, as well as runtime information from the cluster to send commands to individual nodes notifying them to come online, go idle, update, etc. However, this a very shallow installation, it is a lightweight process and it does not maintain any data on local disk. It can be stopped and restarted instantly on a different node at any time without affecting clients reading from the Hank cluster.
 
 ## Web user interface and monitoring
