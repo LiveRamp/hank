@@ -17,8 +17,8 @@
 package com.liveramp.hank.partition_assigner;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
 
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
@@ -26,22 +26,17 @@ import com.liveramp.hank.coordinator.Host;
 public class ModPartitionAssigner extends AbstractMappingPartitionAssigner implements PartitionAssigner {
 
   @Override
-  protected Map<Integer, Host> getPartitionsAssignment(Domain domain, SortedSet<Host> validHosts) {
+  protected Map<Integer, Host> getPartitionsAssignment(Domain domain, List<HostAndIndexInRing> hosts) {
     Map<Integer, Host> result = new HashMap<Integer, Host>();
     for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
       // Find a host for this partition
-      result.put(partitionNumber, getHostResponsibleForPartition(validHosts, partitionNumber));
+      result.put(partitionNumber, getHostResponsibleForPartition(hosts, partitionNumber));
     }
     return result;
   }
 
-  protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber) {
+  protected Host getHostResponsibleForPartition(List<HostAndIndexInRing> validHostsSorted, int partitionNumber) {
     int hostIndex = partitionNumber % validHostsSorted.size();
-    for (Host host : validHostsSorted) {
-      if (hostIndex-- == 0) {
-        return host;
-      }
-    }
-    throw new RuntimeException("This should never get executed. A host should have been found.");
+    return validHostsSorted.get(hostIndex).getHost();
   }
 }

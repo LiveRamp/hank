@@ -1,9 +1,8 @@
 package com.liveramp.hank.partition_assigner;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.junit.Test;
 
@@ -54,8 +53,8 @@ public class TestRendezVousPartitionAssigner extends BaseTestCase {
     mappings = getPartitionAssignment(5, host1, host2, host3);
     assertEquals(5, mappings.size());
     assertEquals(2, numPartitionsAssigned(host1, mappings));
-    assertEquals(1, numPartitionsAssigned(host2, mappings));
-    assertEquals(2, numPartitionsAssigned(host3, mappings));
+    assertEquals(2, numPartitionsAssigned(host2, mappings));
+    assertEquals(1, numPartitionsAssigned(host3, mappings));
 
     mappings = getPartitionAssignment(6, host1, host2, host3);
     assertEquals(6, mappings.size());
@@ -82,7 +81,7 @@ public class TestRendezVousPartitionAssigner extends BaseTestCase {
     Map<Integer, Host> mappingsA = getPartitionAssignment(numPartitions, host1, host2, host3);
     assertEquals(numPartitions, mappingsA.size());
 
-    Map<Integer, Host> mappingsB = getPartitionAssignment(numPartitions, host1, host3);
+    Map<Integer, Host> mappingsB = getPartitionAssignment(numPartitions, host1, null, host3);
     assertEquals(numPartitions, mappingsB.size());
 
     int consistent = 0;
@@ -91,14 +90,45 @@ public class TestRendezVousPartitionAssigner extends BaseTestCase {
         ++consistent;
       }
     }
-    assertEquals(656, consistent);
+    assertEquals(665, consistent);
+  }
+
+  @Test
+  public void testDependsOnlyOnOrder() {
+
+    final int numPartitions = 1000;
+
+    Map<Integer, Host> mappingsA = getPartitionAssignment(numPartitions, host1, host2, host3);
+    assertEquals(numPartitions, mappingsA.size());
+
+    Map<Integer, Host> mappingsB = getPartitionAssignment(numPartitions, host2, host3, host1);
+    assertEquals(numPartitions, mappingsB.size());
+
+    assertEquals(partitionsAssignedTo(host1, mappingsA), partitionsAssignedTo(host2, mappingsB));
+    assertEquals(partitionsAssignedTo(host2, mappingsA), partitionsAssignedTo(host3, mappingsB));
+    assertEquals(partitionsAssignedTo(host3, mappingsA), partitionsAssignedTo(host1, mappingsB));
+  }
+
+  private List<Integer> partitionsAssignedTo(Host host, Map<Integer, Host> assignments) {
+    List<Integer> result = new ArrayList<Integer>();
+    for (Map.Entry<Integer, Host> entry : assignments.entrySet()) {
+      if (entry.getValue().equals(host)) {
+        result.add(entry.getKey());
+      }
+    }
+    return result;
   }
 
   private Map<Integer, Host> getPartitionAssignment(int numPartitions, Host... hosts) {
-    SortedSet<Host> sortedHosts = new TreeSet<Host>();
-    sortedHosts.addAll(Arrays.asList(hosts));
+    List<AbstractMappingPartitionAssigner.HostAndIndexInRing> hostAndIndexInRings = new ArrayList<AbstractMappingPartitionAssigner.HostAndIndexInRing>();
+    for (int i = 0; i < hosts.length; ++i) {
+      Host host = hosts[i];
+      if (host != null) {
+        hostAndIndexInRings.add(new AbstractMappingPartitionAssigner.HostAndIndexInRing(host, i));
+      }
+    }
     RendezVousPartitionAssigner partitionAssigner = new RendezVousPartitionAssigner();
     Domain domain = new MockDomain("domain", 0, numPartitions, null, null, null, null);
-    return partitionAssigner.getPartitionsAssignment(domain, sortedHosts);
+    return partitionAssigner.getPartitionsAssignment(domain, hostAndIndexInRings);
   }
 }

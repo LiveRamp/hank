@@ -17,10 +17,11 @@
 package com.liveramp.hank.partition_assigner;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -45,6 +46,25 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   private Set<Domain> domains;
   private Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings;
 
+  protected static class HostAndIndexInRing {
+
+    private final Host host;
+    private final int index;
+
+    public HostAndIndexInRing(Host host, int index) {
+      this.host = host;
+      this.index = index;
+    }
+
+    public Host getHost() {
+      return host;
+    }
+
+    public int getIndexInRing() {
+      return index;
+    }
+  }
+
   @Override
   public void prepare(Ring ring,
                       Set<DomainGroupDomainVersion> domainVersions,
@@ -58,7 +78,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
     }
   }
 
-  abstract protected Map<Integer, Host> getPartitionsAssignment(Domain domain, SortedSet<Host> validHosts);
+  abstract protected Map<Integer, Host> getPartitionsAssignment(Domain domain, List<HostAndIndexInRing> hosts);
 
   private Map<Host, Map<Domain, Set<Integer>>>
   getHostToDomainToPartitionsMapping(Ring ring, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
@@ -67,26 +87,27 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
       Domain domain = dgvdv.getDomain();
 
       // Determine which hosts can serve this domain
-      SortedSet<Host> validHostsSorted = new TreeSet<Host>();
-      for (Host host : ring.getHosts()) {
+      List<HostAndIndexInRing> validHosts = new ArrayList<HostAndIndexInRing>();
+      int hostIndex = 0;
+      for (Host host : ring.getHostsSorted()) {
         // Ignore offline hosts if mode is PROACTIVE
-        if (!Hosts.isOnline(host) && ringGroupConductorMode == RingGroupConductorMode.PROACTIVE) {
-          continue;
+        if (ringGroupConductorMode != RingGroupConductorMode.PROACTIVE || Hosts.isOnline(host)) {
+          // Check that host is valid, and has all required flags
+          if (host.getFlags().containsAll(domain.getRequiredHostFlags()) || host.getFlags().contains(Hosts.ALL_FLAGS_EXPRESSION)) {
+            validHosts.add(new HostAndIndexInRing(host, hostIndex));
+          }
         }
-        // Check that host is valid, and has all required flags
-        if (host.getFlags().containsAll(domain.getRequiredHostFlags()) || host.getFlags().contains(Hosts.ALL_FLAGS_EXPRESSION)) {
-          validHostsSorted.add(host);
-        }
+        ++hostIndex;
       }
       // Check if there are valid hosts
-      if (validHostsSorted.isEmpty()) {
+      if (validHosts.isEmpty()) {
         LOG.error("Unable to assign Domain " + domain.getName()
             + " to Ring " + ring.toString()
             + " since no Host in the Ring is valid for: " + domain.getName());
         // Return error
         return null;
       } else {
-        Map<Integer, Host> partitionAssignments = getPartitionsAssignment(domain, validHostsSorted);
+        Map<Integer, Host> partitionAssignments = getPartitionsAssignment(domain, validHosts);
         for (Map.Entry<Integer, Host> entry : partitionAssignments.entrySet()) {
           int partitionNumber = entry.getKey();
           Host host = entry.getValue();

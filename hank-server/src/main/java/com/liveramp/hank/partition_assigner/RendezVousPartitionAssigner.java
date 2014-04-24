@@ -16,7 +16,6 @@
 
 package com.liveramp.hank.partition_assigner;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -25,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.SortedSet;
 
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
@@ -34,8 +32,8 @@ import com.liveramp.hank.hasher.Murmur64Hasher;
 public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigner implements PartitionAssigner {
 
   @Override
-  protected Map<Integer, Host> getPartitionsAssignment(Domain domain, SortedSet<Host> validHosts) {
-    Map<Host, List<Integer>> hostToPartitions = getHostToPartitions(domain, validHosts);
+  protected Map<Integer, Host> getPartitionsAssignment(Domain domain, List<HostAndIndexInRing> hosts) {
+    Map<Host, List<Integer>> hostToPartitions = getHostToPartitions(domain, hosts);
     // Compute result
     Map<Integer, Host> result = new HashMap<Integer, Host>();
     for (Map.Entry<Host, List<Integer>> entry : hostToPartitions.entrySet()) {
@@ -46,14 +44,14 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     return result;
   }
 
-  private Map<Host, List<Integer>> getHostToPartitions(Domain domain, SortedSet<Host> validHosts) {
+  private Map<Host, List<Integer>> getHostToPartitions(Domain domain, List<HostAndIndexInRing> hosts) {
     // Fixed seed so that partitioning is stable
     Random random = new Random(0);
-    int maxPartitionsPerHost = getMaxPartitionsPerHost(domain, validHosts);
+    int maxPartitionsPerHost = getMaxPartitionsPerHost(domain, hosts.size());
     Map<Host, List<Integer>> result = new HashMap<Host, List<Integer>>();
     // Initialize empty mappings
-    for (Host host : validHosts) {
-      result.put(host, new ArrayList<Integer>());
+    for (HostAndIndexInRing hostAndIndex : hosts) {
+      result.put(hostAndIndex.getHost(), new ArrayList<Integer>());
     }
     // Use a shuffled list of partitions to spread the load. (Because of the max number of partitions
     // per host, the last partitions to be assigned are likely to be affected by that and aggregate
@@ -66,7 +64,7 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     // Assign partitions
     for (Integer partitionNumber : partitionNumbers) {
       // Assign to hosts by order of increasing weight
-      List<Host> orderedHosts = getOrderedWeightedHosts(domain, partitionNumber, validHosts);
+      List<Host> orderedHosts = getOrderedWeightedHosts(domain, partitionNumber, hosts);
       boolean assigned = false;
       for (Host host : orderedHosts) {
         // If there is room, assign, otherwise skip to next host
@@ -89,24 +87,18 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     private final Host host;
     private final Long rendezVousHashValue;
 
-    private HostAndPartitionRendezVous(Domain domain, int partitionId, Host host) {
-      this.host = host;
-      this.rendezVousHashValue = computeRendezVousHashValue(domain, partitionId, host);
+    private HostAndPartitionRendezVous(Domain domain, int partitionId, HostAndIndexInRing hostAndIndexInRing) {
+      this.host = hostAndIndexInRing.getHost();
+      this.rendezVousHashValue = computeRendezVousHashValue(domain, partitionId, hostAndIndexInRing.getIndexInRing());
     }
 
     // Technique based on Rendez-Vous Hashing (achieves a result similar to consistent hashing)
-    private long computeRendezVousHashValue(Domain domain, int partitionId, Host host) {
-      byte[] hostAddress;
-      try {
-        hostAddress = host.getAddress().toString().getBytes("UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        throw new RuntimeException(e);
-      }
-      ByteBuffer value = ByteBuffer.allocate(4 + 4 + hostAddress.length)
+    private long computeRendezVousHashValue(Domain domain, int partitionId, int indexInRing) {
+      ByteBuffer value = ByteBuffer.allocate(4 + 4 + 4)
           .order(ByteOrder.LITTLE_ENDIAN)
           .putInt(partitionId)
           .putInt(domain.getId())
-          .put(hostAddress);
+          .putInt(indexInRing);
       value.flip();
       return Murmur64Hasher.murmurHash64(value);
     }
@@ -117,10 +109,10 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     }
   }
 
-  private List<Host> getOrderedWeightedHosts(Domain domain, int partitionNumber, SortedSet<Host> validHosts) {
+  private List<Host> getOrderedWeightedHosts(Domain domain, int partitionNumber, List<HostAndIndexInRing> hosts) {
     List<HostAndPartitionRendezVous> hostAndPartitionRendezVousList = new ArrayList<HostAndPartitionRendezVous>();
-    for (Host host : validHosts) {
-      hostAndPartitionRendezVousList.add(new HostAndPartitionRendezVous(domain, partitionNumber, host));
+    for (HostAndIndexInRing hostAndIndexInRing : hosts) {
+      hostAndPartitionRendezVousList.add(new HostAndPartitionRendezVous(domain, partitionNumber, hostAndIndexInRing));
     }
     // Sort by rendez vous hash values
     Collections.sort(hostAndPartitionRendezVousList);
@@ -132,11 +124,11 @@ public class RendezVousPartitionAssigner extends AbstractMappingPartitionAssigne
     return result;
   }
 
-  private int getMaxPartitionsPerHost(Domain domain, SortedSet<Host> validHosts) {
-    if (domain.getNumParts() % validHosts.size() == 0) {
-      return domain.getNumParts() / validHosts.size();
+  private int getMaxPartitionsPerHost(Domain domain, int numHosts) {
+    if (domain.getNumParts() % numHosts == 0) {
+      return domain.getNumParts() / numHosts;
     } else {
-      return (domain.getNumParts() / validHosts.size()) + 1;
+      return (domain.getNumParts() / numHosts) + 1;
     }
   }
 }
