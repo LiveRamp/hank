@@ -1,11 +1,11 @@
 package com.liveramp.hank.ui;
 
-import javax.servlet.DispatcherType;
 import java.net.URL;
 import java.util.EnumSet;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.server.DispatcherType;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
