@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.liveramp.hank.client.HankSmartClient;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainGroup;
@@ -38,7 +37,8 @@ public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
         ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000,
             ZkPath.append(getRoot(), "domains"),
             ZkPath.append(getRoot(), "domain_groups"),
-            ZkPath.append(getRoot(), "ring_groups")));
+            ZkPath.append(getRoot(), "ring_groups"))
+    );
   }
 
   protected Coordinator getApiMockCoordinator() throws Exception {
@@ -85,7 +85,7 @@ public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
       rg0.registerClient(new ClientMetadata(
           LocalHostUtils.getHostName(),
           System.currentTimeMillis(),
-          HankSmartClient.class.getName(),
+          "HankSmartClient",
           Hank.getGitCommit()));
     }
 

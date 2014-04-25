@@ -257,15 +257,6 @@
     <input type="submit" value="Enqueue Command"/>
     </form>
 
-    <h2>Assign Partitions</h2>
-
-    <form action="/host/assign" method="post">
-    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
-    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-    <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-    <input type="submit" value="Assign Partitions"/>
-    </form>
-
     </div>
 
 

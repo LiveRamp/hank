@@ -18,6 +18,7 @@
     <module>hank-core</module>
     <module>hank-server</module>
     <module>hank-client</module>
+    <module>hank-ui</module>
   </modules>
 
   <scm>

@@ -13,9 +13,6 @@ import com.liveramp.hank.coordinator.Hosts;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
-import com.liveramp.hank.partition_assigner.PartitionAssigner;
-import com.liveramp.hank.partition_assigner.RendezVousPartitionAssigner;
-import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.ui.URLEnc;
 
 public class HostController extends Controller {
@@ -58,12 +55,6 @@ public class HostController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doUpdate(req, resp);
-      }
-    });
-    actions.put("assign", new Action() {
-      @Override
-      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        doAssign(req, resp);
       }
     });
   }
@@ -123,20 +114,6 @@ public class HostController extends Controller {
     } else {
       redirectBack(resp, rg, r, h);
     }
-  }
-
-  protected void doAssign(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
-    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
-    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-
-    // TODO: make this assigner configurable
-    PartitionAssigner assigner = new RendezVousPartitionAssigner();
-    assigner.prepare(r, rg.getDomainGroup().getDomainVersions(), RingGroupConductorMode.ACTIVE);
-    if (!assigner.isAssigned(h)) {
-      assigner.assign(h);
-    }
-    redirectBack(resp, rg, r, h);
   }
 
   public static String getHostUrl(RingGroup ringGroup, Ring ring, Host host) {
