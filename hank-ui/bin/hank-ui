@@ -2,7 +2,6 @@
 
 BINDIR=`dirname "$0"`
 CONFDIR="$BINDIR/../conf"
-SERVER_JOBJAR=`find $BINDIR/../ -name 'hank-server-*-jobjar.jar'`
 UI_JOBJAR=`find $BINDIR/../ -name 'hank-ui-*-jobjar.jar'`
 COMPONENT=$1
 shift
@@ -18,24 +17,11 @@ else
   echo "Warning: environment configuration file was not found: $ENV_FILE"
 fi
 
-SERVER_CLASS='com.liveramp.hank.partition_server.PartitionServer'
 UI_CLASS='com.liveramp.hank.ui.WebUiServer'
-CONDUCTOR_CLASS='com.liveramp.hank.ring_group_conductor.RingGroupConductor'
 
 # Default OPTS
 
-HANK_SERVER_OPTS="$HANK_SERVER_OPTS -XX:+UseConcMarkSweepGC"
 HANK_UI_OPTS="$HANK_UI_OPTS -XX:+UseConcMarkSweepGC"
-HANK_CONDUCTOR_OPTS="$HANK_CONDUCTOR_OPTS -XX:+UseConcMarkSweepGC"
-
-function start-server {
-  set-opts $HANK_SERVER_OPTS
-  start-component $SERVER_JOBJAR $SERVER_CLASS $ARGS
-}
-
-function stop-server {
-  stop-component $SERVER_CLASS
-}
 
 function start-ui {
   set-opts $HANK_UI_OPTS
@@ -44,15 +30,6 @@ function start-ui {
 
 function stop-ui {
   stop-component $UI_CLASS
-}
-
-function start-conductor {
-  set-opts $HANK_CONDUCTOR_OPTS
-  start-component $SERVER_JOBJAR $CONDUCTOR_CLASS $ARGS
-}
-
-function stop-conductor {
-  stop-component $CONDUCTOR_CLASS
 }
 
 function set-opts {
@@ -88,9 +65,7 @@ function main {
   esac
 
   case $COMPONENT in
-    "server");;
     "ui");;
-    "conductor");;
     *) echo "Invalid component: $COMPONENT" ; exit 1;;
   esac
 
