@@ -2,7 +2,8 @@
 
 BINDIR=`dirname "$0"`
 CONFDIR="$BINDIR/../conf"
-JOBJAR=`find $BINDIR/../ -name 'hank*-jobjar.jar'`
+SERVER_JOBJAR=`find $BINDIR/../ -name 'hank-server-*-jobjar.jar'`
+UI_JOBJAR=`find $BINDIR/../ -name 'hank-ui-*-jobjar.jar'`
 COMPONENT=$1
 shift
 COMMAND=$1
@@ -29,7 +30,7 @@ HANK_CONDUCTOR_OPTS="$HANK_CONDUCTOR_OPTS -XX:+UseConcMarkSweepGC"
 
 function start-server {
   set-opts $HANK_SERVER_OPTS
-  start-component $SERVER_CLASS $ARGS
+  start-component $SERVER_JOBJAR $SERVER_CLASS $ARGS
 }
 
 function stop-server {
@@ -38,7 +39,7 @@ function stop-server {
 
 function start-ui {
   set-opts $HANK_UI_OPTS
-  start-component $UI_CLASS $ARGS
+  start-component $UI_JOBJAR $UI_CLASS $ARGS
 }
 
 function stop-ui {
@@ -47,7 +48,7 @@ function stop-ui {
 
 function start-conductor {
   set-opts $HANK_CONDUCTOR_OPTS
-  start-component $CONDUCTOR_CLASS $ARGS
+  start-component $SERVER_JOBJAR $CONDUCTOR_CLASS $ARGS
 }
 
 function stop-conductor {
@@ -59,12 +60,14 @@ function set-opts {
 }
 
 function start-component {
- CLASSNAME=$1
- shift
- ARGS=$@
- COMMAND="java $JVM_OPTS -cp $HANK_CLASSPATH:$JOBJAR $CLASSNAME $ARGS"
- echo "$COMMAND"
- eval $COMMAND
+  JOBJAR=$1
+  shift
+  CLASSNAME=$1
+  shift
+  ARGS=$@
+  COMMAND="java $JVM_OPTS -cp $HANK_CLASSPATH:$JOBJAR $CLASSNAME $ARGS"
+  echo "$COMMAND"
+  eval $COMMAND
 }
 
 function stop-component {
