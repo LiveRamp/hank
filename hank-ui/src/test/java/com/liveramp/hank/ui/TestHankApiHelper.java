@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.liveramp.hank.ZkMockCoordinatorTestCase;
+import com.liveramp.hank.test.ZkMockCoordinatorTestCase;
 import com.liveramp.hank.coordinator.Coordinator;
 
 import static junit.framework.Assert.assertNotNull;

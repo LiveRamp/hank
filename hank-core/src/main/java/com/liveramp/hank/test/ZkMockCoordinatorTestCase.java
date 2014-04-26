@@ -1,9 +1,10 @@
-package com.liveramp.hank;
+package com.liveramp.hank.test;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.liveramp.hank.Hank;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainGroup;
@@ -15,7 +16,6 @@ import com.liveramp.hank.coordinator.zk.ZooKeeperCoordinator;
 import com.liveramp.hank.generated.ClientMetadata;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.storage.echo.Echo;
-import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.LocalHostUtils;
 import com.liveramp.hank.zookeeper.ZkPath;
 

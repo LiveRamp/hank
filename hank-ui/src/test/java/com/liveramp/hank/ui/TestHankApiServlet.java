@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import com.liveramp.hank.ZkMockCoordinatorTestCase;
+import com.liveramp.hank.test.ZkMockCoordinatorTestCase;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

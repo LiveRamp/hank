@@ -15,7 +15,6 @@ import org.apache.thrift.TException;
 import org.junit.Test;
 
 import com.liveramp.hank.Hank;
-import com.liveramp.hank.ZkMockCoordinatorTestCase;
 import com.liveramp.hank.client.HankSmartClient;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -41,18 +40,19 @@ import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.storage.CacheStatistics;
 import com.liveramp.hank.storage.echo.Echo;
+import com.liveramp.hank.test.ZkMockCoordinatorTestCase;
 import com.liveramp.hank.util.LocalHostUtils;
 
 public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
-  private static final int NUM_RING_GROUPS = 10;
+  private static final int NUM_RING_GROUPS = 1;
 
   public static final String DOMAIN_ = "domain-";
   public static final String DOMAIN_GROUP_ = "domain-group-";
   public static final String RING_GROUP_ = "ring-group-";
   private static final String HOST_ = "host-";
-  private static final int NUM_DOMAINS = 5;
-  private static final int NUM_RINGS = 3;
+  private static final int NUM_DOMAINS = 2;
+  private static final int NUM_RINGS = 2;
   private static final int NUM_HOSTS = 10;
   private static final int NUM_CLIENTS = 100;
 
@@ -169,7 +169,9 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
                     requestValues,
                     requestTotal,
                     randomSample),
-                randomCacheStatistics));
+                randomCacheStatistics
+            )
+        );
       }
       Hosts.setRuntimeStatistics(host, runtimeStatistics);
     }
