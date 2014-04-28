@@ -35,7 +35,6 @@ import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.hasher.IdentityHasher;
 import com.liveramp.hank.storage.Compactor;
@@ -205,7 +204,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     return new CueballWriter(partitionRemoteFileOps.getOutputStream(getName(domainVersion.getVersionNumber(),
         domainVersionProperties.isBase())),
-        keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
+        keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits
+    );
   }
 
   private IncrementalDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
@@ -257,7 +257,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
         new IdentityHasher(),
         valueSize,
         getCompressionCodec(),
-        hashIndexBits);
+        hashIndexBits
+    );
   }
 
   @Override
@@ -336,11 +337,6 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
     return new CueballRemoteDomainCleaner(domain, numRemoteLeafVersionsToKeep);
-  }
-
-  @Override
-  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
-    return new IncrementalDomainVersionProperties.Serialization();
   }
 
   public static int getDataDirectoryIndex(int numDataDirectories, int numDomainPartitions, int partitionNumber) {

@@ -25,7 +25,6 @@ import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
@@ -119,11 +118,6 @@ public class ConstantStorageEngine implements StorageEngine {
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
-    return null;
   }
 
   @Override

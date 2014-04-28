@@ -58,8 +58,6 @@ public interface StorageEngine {
 
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException;
 
-  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization();
-
   public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber);
 
   public Set<String> getFiles(DataDirectoriesConfigurator configurator, int versionNumber, int partitionNumber) throws IOException;

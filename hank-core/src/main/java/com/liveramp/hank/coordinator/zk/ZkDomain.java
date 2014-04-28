@@ -1,21 +1,32 @@
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.generated.DomainMetadata;
-import com.liveramp.hank.partitioner.Partitioner;
-import com.liveramp.hank.storage.StorageEngine;
-import com.liveramp.hank.storage.StorageEngineFactory;
-import com.liveramp.hank.zookeeper.WatchedMap;
-import com.liveramp.hank.zookeeper.WatchedThriftNode;
-import com.liveramp.hank.zookeeper.ZkPath;
-import com.liveramp.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.IOException;
-import java.util.*;
+import com.liveramp.hank.coordinator.AbstractDomain;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.DomainVersionProperties;
+import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.generated.DomainMetadata;
+import com.liveramp.hank.partitioner.Partitioner;
+import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.storage.StorageEngineFactory;
+import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.liveramp.hank.zookeeper.WatchedMap;
+import com.liveramp.hank.zookeeper.WatchedThriftNode;
+import com.liveramp.hank.zookeeper.ZkPath;
+import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomain extends AbstractDomain implements Domain {
 
@@ -64,7 +75,8 @@ public class ZkDomain extends AbstractDomain implements Domain {
           public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
             return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), getDomainVersionPropertiesSerialization());
           }
-        });
+        }
+    );
   }
 
   public void update(final int id,
@@ -104,7 +116,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
     try {
-      return (Class<? extends StorageEngineFactory>) Class.forName(getStorageEngineFactoryClassName());
+      return (Class<? extends StorageEngineFactory>)Class.forName(getStorageEngineFactoryClassName());
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
@@ -119,7 +131,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   public StorageEngine getStorageEngine() {
     String storageEngineFactoryClassName = getStorageEngineFactoryClassName();
     try {
-      StorageEngineFactory factory = (StorageEngineFactory) Class.forName(storageEngineFactoryClassName).newInstance();
+      StorageEngineFactory factory = (StorageEngineFactory)Class.forName(storageEngineFactoryClassName).newInstance();
       return factory.getStorageEngine(getStorageEngineOptions(), this);
     } catch (Exception e) {
       LOG.error("Could not instantiate storage engine from factory " + storageEngineFactoryClassName
@@ -130,12 +142,11 @@ public class ZkDomain extends AbstractDomain implements Domain {
 
   @Override
   public Map<String, Object> getStorageEngineOptions() {
-    return (Map<String, Object>) new Yaml().load(metadata.get().get_storage_engine_options());
+    return (Map<String, Object>)new Yaml().load(metadata.get().get_storage_engine_options());
   }
 
   private DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
-    StorageEngine storageEngine = getStorageEngine();
-    return storageEngine != null ? storageEngine.getDomainVersionPropertiesSerialization() : null;
+    return new IncrementalDomainVersionProperties.Serialization();
   }
 
   @Override
@@ -143,7 +154,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
     if (partitioner == null) {
       String partitionerClassName = getPartitionerClassName();
       try {
-        partitioner = (Partitioner) ((Class) Class.forName(getPartitionerClassName())).newInstance();
+        partitioner = (Partitioner)((Class)Class.forName(getPartitionerClassName())).newInstance();
       } catch (Exception e) {
         throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
       }
@@ -189,8 +200,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
       throw new RuntimeException(e);
     }
     try {
-      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, path, versionNumber, domainVersionProperties,
-          getStorageEngine().getDomainVersionPropertiesSerialization());
+      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, path, versionNumber, domainVersionProperties, getDomainVersionPropertiesSerialization());
       versions.put(ZkDomainVersion.getPathName(newVersion.getVersionNumber()), newVersion);
       return newVersion;
     } catch (Exception e) {

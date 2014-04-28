@@ -36,7 +36,6 @@ import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
@@ -439,11 +438,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
     return new CurlyRemoteDomainCleaner(domain, numRemoteLeafVersionsToKeep);
-  }
-
-  @Override
-  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
-    return new IncrementalDomainVersionProperties.Serialization();
   }
 
   private String getTargetDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
