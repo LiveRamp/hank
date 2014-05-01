@@ -69,6 +69,15 @@
 
   <build>
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <failIfNoTests>false</failIfNoTests>
+        </configuration>
+      </plugin>
+
       <!-- Use mvn antrun:run -pl hank-core to generate Thrift sources -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
