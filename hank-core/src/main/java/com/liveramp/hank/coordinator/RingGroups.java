@@ -16,16 +16,21 @@
 
 package com.liveramp.hank.coordinator;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.util.*;
 
 public final class RingGroups {
-
-  private static final Logger LOG = Logger.getLogger(RingGroups.class);
 
   private RingGroups() {
   }
@@ -48,8 +53,19 @@ public final class RingGroups {
     DomainGroup domainGroup = ringGroup.getDomainGroup();
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
-        if(!Hosts.isUpToDate(host, domainGroup) && host.getState() == HostState.SERVING){
-          LOG.info("Host is not up to date:" + host.getAddress()+", ring "+ring.getRingNumber()+", group "+ringGroup.getName());
+        if (host.getState() == HostState.SERVING && !Hosts.isUpToDate(host, domainGroup)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  // Return true iff each host is either up to date or serving more recent versions, or not serving any data
+  public static boolean isServingOnlyUpToDateOrMoreRecent(RingGroup ringGroup, List<DomainGroupDomainVersion> domainVersions) throws IOException {
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+        if (host.getState() == HostState.SERVING && !Hosts.isUpToDateOrMoreRecent(host, domainVersions)) {
           return false;
         }
       }

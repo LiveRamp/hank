@@ -16,18 +16,20 @@
 
 package com.liveramp.hank.coordinator;
 
-import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
-import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
+import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
+import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
 
 public final class Hosts {
   private static final Logger LOG = Logger.getLogger(Hosts.class);
@@ -79,19 +81,50 @@ public final class Hosts {
   // are at the correct version. And there are no deletable partitions.
   public static boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
 
-    if(domainGroup == null){
-      LOG.info("Null domain group");
+    if (domainGroup == null || domainGroup.getDomainVersions() == null) {
       return false;
     }
 
-    if (domainGroup.getDomainVersions() == null) {
-      LOG.info("Domain group versions null for domain group: "+domainGroup);
+    if (!allPartitionsUpToDate(host, domainGroup.getDomainVersions(), false)) {
       return false;
     }
 
+    if (isAssignedDeletablePartition(host)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  public static boolean isUpToDateOrMoreRecent(Host host, List<DomainGroupDomainVersion> domainVersions) throws IOException {
+    if (!allPartitionsUpToDate(host, domainVersions, true)) {
+      return false;
+    }
+
+    if (isAssignedDeletablePartition(host)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private static boolean isAssignedDeletablePartition(Host host) throws IOException {
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      for (HostDomainPartition partition : hostDomain.getPartitions()) {
+        if (partition.isDeletable()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean allPartitionsUpToDate(Host host,
+                                               Collection<DomainGroupDomainVersion> domainVersions,
+                                               boolean allowMoreRecentDomainVersions) throws IOException {
     // Check that each domain of the given domain group version is up to date on this host
-    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
-      Domain domain = dgvdv.getDomain();
+    for (DomainGroupDomainVersion domainAndVersion : domainVersions) {
+      Domain domain = domainAndVersion.getDomain();
       HostDomain hostDomain = host.getHostDomain(domain);
       if (hostDomain != null) {
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
@@ -99,20 +132,11 @@ public final class Hosts {
           if (!partition.isDeletable()) {
             // If the partition is not currently at the given domain group version, the host is not up-to-date
             if (partition.getCurrentDomainVersion() == null ||
-                partition.getCurrentDomainVersion() != dgvdv.getVersionNumber()) {
-              LOG.info("Partition "+partition+" is not up to date with version "+dgvdv.getVersionNumber());
+                (!allowMoreRecentDomainVersions && partition.getCurrentDomainVersion() != domainAndVersion.getVersionNumber()) ||
+                (allowMoreRecentDomainVersions && (partition.getCurrentDomainVersion() < domainAndVersion.getVersionNumber()))) {
               return false;
             }
           }
-        }
-      }
-    }
-    // Check if there is any deletable partition
-    for (HostDomain hostDomain : host.getAssignedDomains()) {
-      for (HostDomainPartition partition : hostDomain.getPartitions()) {
-        if (partition.isDeletable()) {
-          LOG.info("Partition "+partition+" is deleteable");
-          return false;
         }
       }
     }
