@@ -33,8 +33,8 @@ import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.coordinator.HostDomainPartition;
@@ -116,7 +116,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
     // Compute the total number of partitions that are going to be loaded
     int numTotalPartitions = 0;
-    for (DomainGroupDomainVersion dgdv : domainGroup.getDomainVersions()) {
+    for (DomainAndVersion dgdv : domainGroup.getDomainVersions()) {
       HostDomain hostDomain = host.getHostDomain(dgdv.getDomain());
       if (hostDomain != null) {
         Set<HostDomainPartition> partitions = hostDomain.getPartitions();
@@ -133,7 +133,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
     // Determine the max domain id so we can bound the arrays
     int maxDomainId = 0;
-    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
+    for (DomainAndVersion dgvdv : domainGroup.getDomainVersions()) {
       int domainId = dgvdv.getDomain().getId();
       if (domainId > maxDomainId) {
         maxDomainId = domainId;
@@ -143,7 +143,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
     // Loop over the domains and get set up
     List<Exception> exceptions = new ArrayList<Exception>();
-    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
+    for (DomainAndVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       StorageEngine engine = domain.getStorageEngine();
 

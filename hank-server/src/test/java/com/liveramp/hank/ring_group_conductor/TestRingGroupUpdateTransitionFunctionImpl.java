@@ -27,8 +27,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostCommand;
 import com.liveramp.hank.coordinator.HostDomain;
@@ -73,10 +73,10 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
       super(address);
     }
 
-    public void setCurrentVersion(Set<DomainGroupDomainVersion> currentVersions) throws IOException {
+    public void setCurrentVersion(Set<DomainAndVersion> currentVersions) throws IOException {
       for (HostDomain hostDomain : getAssignedDomains()) {
         Integer version = null;
-        for (DomainGroupDomainVersion domainVersion : currentVersions) {
+        for (DomainAndVersion domainVersion : currentVersions) {
           if (domainVersion.getDomain().equals(hostDomain.getDomain())) {
             version = domainVersion.getVersionNumber();
             break;
@@ -94,9 +94,9 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
   private static Map<Domain, Integer> versionsMap1 = new HashMap<Domain, Integer>();
   private static Map<Domain, Integer> versionsMap2 = new HashMap<Domain, Integer>();
   private static Map<Domain, Integer> versionsMap3 = new HashMap<Domain, Integer>();
-  private static Set<DomainGroupDomainVersion> v1 = new HashSet<DomainGroupDomainVersion>();
-  private static Set<DomainGroupDomainVersion> v2 = new HashSet<DomainGroupDomainVersion>();
-  private static Set<DomainGroupDomainVersion> v3 = new HashSet<DomainGroupDomainVersion>();
+  private static Set<DomainAndVersion> v1 = new HashSet<DomainAndVersion>();
+  private static Set<DomainAndVersion> v2 = new HashSet<DomainAndVersion>();
+  private static Set<DomainAndVersion> v3 = new HashSet<DomainAndVersion>();
 
   private static Domain domain1 = new MockDomain("domain1", 1, 6, null, null, null, null);
   private static Domain domain2 = new MockDomain("domain2", 2, 6, null, null, null, null);
@@ -150,22 +150,22 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     // V1
     versionsMap1.put(domain1, 1);
-    v1.add(new DomainGroupDomainVersion(domain1, 1));
+    v1.add(new DomainAndVersion(domain1, 1));
 
     // V2
     versionsMap2.put(domain1, 2);
-    v2.add(new DomainGroupDomainVersion(domain1, 2));
+    v2.add(new DomainAndVersion(domain1, 2));
 
     // V3
     versionsMap3.put(domain1, 2);
     versionsMap3.put(domain2, 1);
-    v3.add(new DomainGroupDomainVersion(domain1, 2));
-    v3.add(new DomainGroupDomainVersion(domain2, 1));
+    v3.add(new DomainAndVersion(domain1, 2));
+    v3.add(new DomainAndVersion(domain2, 1));
   }
 
   private void setUpRing(MockRingLocal ring,
-                         Set<DomainGroupDomainVersion> currentVersions,
-                         Set<DomainGroupDomainVersion> assignedVersions,
+                         Set<DomainAndVersion> currentVersions,
+                         Set<DomainAndVersion> assignedVersions,
                          HostState hostState) throws IOException {
     if (assignedVersions != null) {
       partitionAssigner.prepare(ring, assignedVersions, rg.getRingGroupConductorMode());
@@ -181,7 +181,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     }
   }
 
-  private boolean isAssigned(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+  private boolean isAssigned(Ring ring, Host host, Set<DomainAndVersion> domainVersions) throws IOException {
     partitionAssigner.prepare(ring, domainVersions, rg.getRingGroupConductorMode());
     return partitionAssigner.isAssigned(host);
   }

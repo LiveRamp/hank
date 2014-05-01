@@ -62,7 +62,7 @@ public final class RingGroups {
   }
 
   // Return true iff each host is either up to date or serving more recent versions, or not serving any data
-  public static boolean isServingOnlyUpToDateOrMoreRecent(RingGroup ringGroup, List<DomainGroupDomainVersion> domainVersions) throws IOException {
+  public static boolean isServingOnlyUpToDateOrMoreRecent(RingGroup ringGroup, List<DomainAndVersion> domainVersions) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
         if (host.getState() == HostState.SERVING && !Hosts.isUpToDateOrMoreRecent(host, domainVersions)) {

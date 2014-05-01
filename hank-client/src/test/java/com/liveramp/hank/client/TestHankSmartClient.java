@@ -17,7 +17,7 @@ package com.liveramp.hank.client;
 
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.coordinator.HostDomainPartition;
@@ -211,8 +211,8 @@ public class TestHankSmartClient extends BaseTestCase {
 
     MockDomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
       @Override
-      public Set<DomainGroupDomainVersion> getDomainVersions() {
-        return new HashSet<DomainGroupDomainVersion>(Arrays.asList(new DomainGroupDomainVersion(existentDomain, 1)));
+      public Set<DomainAndVersion> getDomainVersions() {
+        return new HashSet<DomainAndVersion>(Arrays.asList(new DomainAndVersion(existentDomain, 1)));
       }
     };
 

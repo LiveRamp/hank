@@ -173,7 +173,7 @@ public class HankApiHelper {
     DomainGroupData data = new DomainGroupData();
     data.name = domainGroup.getName();
     Map<String, Integer> versionsMap = new HashMap<String, Integer>();
-    for (DomainGroupDomainVersion v : domainGroup.getDomainVersions()) {
+    for (DomainAndVersion v : domainGroup.getDomainVersions()) {
       versionsMap.put(v.getDomain().getName(), v.getVersionNumber());
     }
     data.domainVersions = versionsMap;

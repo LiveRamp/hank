@@ -86,7 +86,7 @@ tr.not_included td {
     for (Domain domain : allDomains) {
   %>
     <%
-      DomainGroupDomainVersion currentDomainVersion = domainGroup.getDomainVersion(domain);
+      DomainAndVersion currentDomainVersion = domainGroup.getDomainVersion(domain);
       boolean included = currentDomainVersion != null;
     %>
     <tr id="<%= domain.getId() %>_tr" <%= included ? "class='included'" : "class='not_included'" %> >

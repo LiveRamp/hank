@@ -30,7 +30,7 @@ import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.coordinator.HostDomainPartition;
@@ -158,9 +158,9 @@ public class TestPartitionServerHandler extends BaseTestCase {
 
     final MockDomainGroup dg = new MockDomainGroup("myDomainGroup") {
       @Override
-      public Set<DomainGroupDomainVersion> getDomainVersions() throws IOException {
-        Set<DomainGroupDomainVersion> result = new HashSet<DomainGroupDomainVersion>();
-        result.add(new DomainGroupDomainVersion(domain, 1));
+      public Set<DomainAndVersion> getDomainVersions() throws IOException {
+        Set<DomainAndVersion> result = new HashSet<DomainAndVersion>();
+        result.add(new DomainAndVersion(domain, 1));
         return result;
       }
     };

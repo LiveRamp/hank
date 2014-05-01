@@ -18,8 +18,8 @@ package com.liveramp.hank.partition_server;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostDomain;
@@ -200,9 +200,9 @@ public class TestUpdateManager extends BaseTestCase {
       // the domain version for this domain group version will be 2
       return new MockDomainGroup("myDomainGroup") {
         @Override
-        public Set<DomainGroupDomainVersion> getDomainVersions() {
-          Set<DomainGroupDomainVersion> result = new HashSet<DomainGroupDomainVersion>();
-          result.add(new DomainGroupDomainVersion(domain, 2));
+        public Set<DomainAndVersion> getDomainVersions() {
+          Set<DomainAndVersion> result = new HashSet<DomainAndVersion>();
+          result.add(new DomainAndVersion(domain, 2));
           return result;
         }
       };
@@ -258,7 +258,7 @@ public class TestUpdateManager extends BaseTestCase {
     // Empty domain group version
     DomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
       @Override
-      public Set<DomainGroupDomainVersion> getDomainVersions() {
+      public Set<DomainAndVersion> getDomainVersions() {
         return Collections.emptySet();
       }
     };

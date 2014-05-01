@@ -85,10 +85,10 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
   }
 
   @Override
-  public Set<DomainGroupDomainVersion> getDomainVersions() throws IOException {
-    Set<DomainGroupDomainVersion> result = new HashSet<DomainGroupDomainVersion>();
+  public Set<DomainAndVersion> getDomainVersions() throws IOException {
+    Set<DomainAndVersion> result = new HashSet<DomainAndVersion>();
     for (Map.Entry<Integer, Integer> entry : metadata.get().get_domain_versions().entrySet()) {
-      result.add(new DomainGroupDomainVersion(coordinator.getDomainById(entry.getKey()), entry.getValue()));
+      result.add(new DomainAndVersion(coordinator.getDomainById(entry.getKey()), entry.getValue()));
     }
     return result;
   }

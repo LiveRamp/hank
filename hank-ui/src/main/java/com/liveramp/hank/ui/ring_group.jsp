@@ -189,14 +189,14 @@ Collections.sort(clients, new ClientMetadataComparator());
 
          SortedSet<Domain> relevantDomains = new TreeSet<Domain>();
          relevantDomains.addAll(runtimeStatisticsForDomains.keySet());
-         for (DomainGroupDomainVersion dgdv : ringGroup.getDomainGroup().getDomainVersions()) {
+         for (DomainAndVersion dgdv : ringGroup.getDomainGroup().getDomainVersions()) {
            relevantDomains.add(dgdv.getDomain());
          }
 
          for (Domain domain : relevantDomains) {
            RuntimeStatisticsAggregator runtimeStatisticsForDomain = runtimeStatisticsForDomains.get(domain);
            DomainVersion targetDomainVersion = null;
-           DomainGroupDomainVersion dgdv = ringGroup.getDomainGroup().getDomainVersion(domain);
+           DomainAndVersion dgdv = ringGroup.getDomainGroup().getDomainVersion(domain);
            if (dgdv != null) {
              targetDomainVersion = domain.getVersion(dgdv.getVersionNumber());
            }
@@ -394,7 +394,7 @@ Collections.sort(clients, new ClientMetadataComparator());
     <select name="d">
     <option value=""></option>
       <%
-            for (DomainGroupDomainVersion dgdv : ringGroup.getDomainGroup().getDomainVersionsSorted()) {
+            for (DomainAndVersion dgdv : ringGroup.getDomainGroup().getDomainVersionsSorted()) {
           %>
     <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(dgdv.getDomain().getName()) ? " selected" : "" %>
     >

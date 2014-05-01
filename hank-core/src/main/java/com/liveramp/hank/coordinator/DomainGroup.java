@@ -24,11 +24,11 @@ public interface DomainGroup extends Comparable<DomainGroup> {
 
   public String getName();
 
-  public Set<DomainGroupDomainVersion> getDomainVersions() throws IOException;
+  public Set<DomainAndVersion> getDomainVersions() throws IOException;
 
-  public SortedSet<DomainGroupDomainVersion> getDomainVersionsSorted() throws IOException;
+  public SortedSet<DomainAndVersion> getDomainVersionsSorted() throws IOException;
 
-  public DomainGroupDomainVersion getDomainVersion(Domain domain) throws IOException;
+  public DomainAndVersion getDomainVersion(Domain domain) throws IOException;
 
   public void setDomainVersions(Map<Domain, Integer> domainVersions) throws IOException;
 

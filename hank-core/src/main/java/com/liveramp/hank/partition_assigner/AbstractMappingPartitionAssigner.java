@@ -28,7 +28,7 @@ import java.util.TreeSet;
 import org.apache.log4j.Logger;
 
 import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.coordinator.HostDomainPartition;
@@ -41,7 +41,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
 
   private static final Logger LOG = Logger.getLogger(AbstractMappingPartitionAssigner.class);
 
-  private Set<DomainGroupDomainVersion> domainVersions;
+  private Set<DomainAndVersion> domainVersions;
   private RingGroupConductorMode ringGroupConductorMode;
   private Set<Domain> domains;
   private Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings;
@@ -67,13 +67,13 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
 
   @Override
   public void prepare(Ring ring,
-                      Set<DomainGroupDomainVersion> domainVersions,
+                      Set<DomainAndVersion> domainVersions,
                       RingGroupConductorMode ringGroupConductorMode) throws IOException {
     this.domainVersions = domainVersions;
     this.ringGroupConductorMode = ringGroupConductorMode;
     this.hostToDomainToPartitionsMappings = getHostToDomainToPartitionsMapping(ring, domainVersions);
     domains = new HashSet<Domain>();
-    for (DomainGroupDomainVersion domainVersion : domainVersions) {
+    for (DomainAndVersion domainVersion : domainVersions) {
       domains.add(domainVersion.getDomain());
     }
   }
@@ -81,9 +81,9 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   abstract protected Map<Integer, Host> getPartitionsAssignment(Domain domain, List<HostAndIndexInRing> hosts);
 
   private Map<Host, Map<Domain, Set<Integer>>>
-  getHostToDomainToPartitionsMapping(Ring ring, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+  getHostToDomainToPartitionsMapping(Ring ring, Set<DomainAndVersion> domainVersions) throws IOException {
     Map<Host, Map<Domain, Set<Integer>>> result = new TreeMap<Host, Map<Domain, Set<Integer>>>();
-    for (DomainGroupDomainVersion dgvdv : domainVersions) {
+    for (DomainAndVersion dgvdv : domainVersions) {
       Domain domain = dgvdv.getDomain();
 
       // Determine which hosts can serve this domain
@@ -136,7 +136,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
       return false;
     }
     // Check required mapping is exactly satisfied
-    for (DomainGroupDomainVersion dgvdv : domainVersions) {
+    for (DomainAndVersion dgvdv : domainVersions) {
       Domain domain = dgvdv.getDomain();
       Set<Integer> partitionMappings = null;
       Map<Domain, Set<Integer>> domainToPartitionsMappings = hostToDomainToPartitionsMappings.get(host);
@@ -192,7 +192,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
       return;
     }
     // Apply required mappings and delete extra mappings
-    for (DomainGroupDomainVersion dgvdv : domainVersions) {
+    for (DomainAndVersion dgvdv : domainVersions) {
       Domain domain = dgvdv.getDomain();
       // Determine mappings for this host and domain
       Set<Integer> partitionMappings = null;

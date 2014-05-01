@@ -24,11 +24,11 @@ import java.util.TreeSet;
 public abstract class AbstractDomainGroup implements DomainGroup {
 
   @Override
-  public DomainGroupDomainVersion getDomainVersion(Domain domain) throws IOException {
+  public DomainAndVersion getDomainVersion(Domain domain) throws IOException {
     if (domain == null || domain.getName() == null) {
       return null;
     }
-    for (DomainGroupDomainVersion domainVersion : getDomainVersions()) {
+    for (DomainAndVersion domainVersion : getDomainVersions()) {
       if (domainVersion.getDomain() != null &&
           domain.getId() == domainVersion.getDomain().getId()) {
         return domainVersion;
@@ -38,14 +38,14 @@ public abstract class AbstractDomainGroup implements DomainGroup {
   }
 
   @Override
-  public SortedSet<DomainGroupDomainVersion> getDomainVersionsSorted() throws IOException {
-    return new TreeSet<DomainGroupDomainVersion>(getDomainVersions());
+  public SortedSet<DomainAndVersion> getDomainVersionsSorted() throws IOException {
+    return new TreeSet<DomainAndVersion>(getDomainVersions());
   }
 
   @Override
   public Set<Domain> getDomains() throws IOException {
     Set<Domain> result = new TreeSet<Domain>();
-    for (DomainGroupDomainVersion dgdv : getDomainVersions()) {
+    for (DomainAndVersion dgdv : getDomainVersions()) {
       result.add(dgdv.getDomain());
     }
     return result;
@@ -62,7 +62,7 @@ public abstract class AbstractDomainGroup implements DomainGroup {
     domainVersionsString.append('[');
     try {
       if (getDomainVersions() != null) {
-        for (DomainGroupDomainVersion dgvdv : getDomainVersionsSorted()) {
+        for (DomainAndVersion dgvdv : getDomainVersionsSorted()) {
           domainVersionsString.append(dgvdv.getDomain() != null ? dgvdv.getDomain().getName() : "null");
           domainVersionsString.append('@');
           domainVersionsString.append(dgvdv.getVersionNumber());

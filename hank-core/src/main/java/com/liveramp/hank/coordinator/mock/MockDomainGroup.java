@@ -23,7 +23,7 @@ import java.util.*;
 public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup {
 
   private final String name;
-  private Set<DomainGroupDomainVersion> domainVersions = new HashSet<DomainGroupDomainVersion>();
+  private Set<DomainAndVersion> domainVersions = new HashSet<DomainAndVersion>();
   private Collection<DomainGroupListener> listeners
       = new TreeSet<DomainGroupListener>();
 
@@ -37,7 +37,7 @@ public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup 
   }
 
   @Override
-  public Set<DomainGroupDomainVersion> getDomainVersions() throws IOException {
+  public Set<DomainAndVersion> getDomainVersions() throws IOException {
     return domainVersions;
   }
 
@@ -45,28 +45,28 @@ public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup 
   public void setDomainVersions(Map<Domain, Integer> domainVersions) throws IOException {
     this.domainVersions.clear();
     for (Map.Entry<Domain, Integer> entry : domainVersions.entrySet()) {
-      this.domainVersions.add(new DomainGroupDomainVersion(entry.getKey(), entry.getValue()));
+      this.domainVersions.add(new DomainAndVersion(entry.getKey(), entry.getValue()));
     }
     notifyListeners();
   }
 
   @Override
   public void setDomainVersion(Domain domain, int versionNumber) {
-    domainVersions.add(new DomainGroupDomainVersion(domain, versionNumber));
+    domainVersions.add(new DomainAndVersion(domain, versionNumber));
     notifyListeners();
   }
 
   @Override
   public void mergeDomainVersions(Map<Domain, Integer> domainVersions) throws IOException {
     for (Map.Entry<Domain, Integer> entry : domainVersions.entrySet()) {
-      this.domainVersions.add(new DomainGroupDomainVersion(entry.getKey(), entry.getValue()));
+      this.domainVersions.add(new DomainAndVersion(entry.getKey(), entry.getValue()));
     }
     notifyListeners();
   }
 
   @Override
   public void removeDomain(Domain domain) throws IOException {
-    domainVersions.remove(new DomainGroupDomainVersion(domain, -1));
+    domainVersions.remove(new DomainAndVersion(domain, -1));
   }
 
   @Override

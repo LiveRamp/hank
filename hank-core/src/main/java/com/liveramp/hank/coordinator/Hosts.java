@@ -57,7 +57,7 @@ public final class Hosts {
 
   public static UpdateProgressAggregator computeUpdateProgress(Host host, DomainGroup domainGroup) throws IOException {
     UpdateProgressAggregator result = new UpdateProgressAggregator();
-    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
+    for (DomainAndVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       HostDomain hostDomain = host.getHostDomain(domain);
       if (hostDomain != null) {
@@ -96,7 +96,7 @@ public final class Hosts {
     return true;
   }
 
-  public static boolean isUpToDateOrMoreRecent(Host host, List<DomainGroupDomainVersion> domainVersions) throws IOException {
+  public static boolean isUpToDateOrMoreRecent(Host host, List<DomainAndVersion> domainVersions) throws IOException {
     if (!allPartitionsUpToDate(host, domainVersions, true)) {
       return false;
     }
@@ -120,10 +120,10 @@ public final class Hosts {
   }
 
   private static boolean allPartitionsUpToDate(Host host,
-                                               Collection<DomainGroupDomainVersion> domainVersions,
+                                               Collection<DomainAndVersion> domainVersions,
                                                boolean allowMoreRecentDomainVersions) throws IOException {
     // Check that each domain of the given domain group version is up to date on this host
-    for (DomainGroupDomainVersion domainAndVersion : domainVersions) {
+    for (DomainAndVersion domainAndVersion : domainVersions) {
       Domain domain = domainAndVersion.getDomain();
       HostDomain hostDomain = host.getHostDomain(domain);
       if (hostDomain != null) {
@@ -162,7 +162,7 @@ public final class Hosts {
   computeServingStatusAggregator(Host host, DomainGroup domainGroup) throws IOException {
     ServingStatusAggregator result = new ServingStatusAggregator();
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      DomainGroupDomainVersion domainVersion = domainGroup.getDomainVersion(hostDomain.getDomain());
+      DomainAndVersion domainVersion = domainGroup.getDomainVersion(hostDomain.getDomain());
       // Ignore domains that are not relevant
       if (domainVersion != null) {
         for (HostDomainPartition partition : hostDomain.getPartitions()) {

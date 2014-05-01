@@ -100,7 +100,7 @@ public class UiUtils {
       throws IOException {
     StringBuilder content = new StringBuilder();
     content.append("<table class='" + cssClass + "'><tr><th>Domain</th><th>Version</th><th>Closed On</th></tr>");
-    for (DomainGroupDomainVersion version : domainGroup.getDomainVersionsSorted()) {
+    for (DomainAndVersion version : domainGroup.getDomainVersionsSorted()) {
       content.append("<tr><td class='centered'>");
       if (linkToDomains) {
         content.append("<a href='/domain.jsp?n=" + URLEnc.encode(version.getDomain().getName()) + "'>");

@@ -207,7 +207,7 @@
     <th>Cache Max Size</th>
     </tr>
       <%
-     for (DomainGroupDomainVersion dgdv : domainGroup.getDomainVersionsSorted()) {
+     for (DomainAndVersion dgdv : domainGroup.getDomainVersionsSorted()) {
        Domain domain = dgdv.getDomain();
        RuntimeStatisticsAggregator runtimeStatisticsForDomain =
        Hosts.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
@@ -296,7 +296,7 @@
       <%
     for (HostDomain hdc : host.getAssignedDomainsSorted()) {
       Domain domain = hdc.getDomain();
-      DomainGroupDomainVersion targetDomainVersion = domainGroup.getDomainVersion(domain);
+      DomainAndVersion targetDomainVersion = domainGroup.getDomainVersion(domain);
       int squareDim = (int)Math.floor(Math.sqrt(domain.getNumParts()));
       if (domain == null) {
   %>

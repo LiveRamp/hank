@@ -84,7 +84,7 @@ public class ServingStatusAggregator {
   // that are fully (all copies) served and up to date
   public ServingStatus computeUniquePartitionsServingStatus(DomainGroup domainGroup) throws IOException {
     ServingStatus result = new ServingStatus();
-    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
+    for (DomainAndVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       Map<Integer, ServingStatus> partitionToServingStatus = domainToPartitionToPartitionServingStatus.get(domain);
       int partitionsServedAndUpToDate = 0;

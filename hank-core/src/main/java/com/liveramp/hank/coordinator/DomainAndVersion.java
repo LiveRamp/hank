@@ -15,13 +15,13 @@
  */
 package com.liveramp.hank.coordinator;
 
-public class DomainGroupDomainVersion implements Comparable<DomainGroupDomainVersion> {
+public class DomainAndVersion implements Comparable<DomainAndVersion> {
 
   private final Domain domain;
   private final int versionNumber;
 
-  public DomainGroupDomainVersion(final Domain domain,
-                                  final int versionNumber) {
+  public DomainAndVersion(final Domain domain,
+                          final int versionNumber) {
     this.domain = domain;
     this.versionNumber = versionNumber;
   }
@@ -35,7 +35,7 @@ public class DomainGroupDomainVersion implements Comparable<DomainGroupDomainVer
   }
 
   @Override
-  public int compareTo(DomainGroupDomainVersion o) {
+  public int compareTo(DomainAndVersion o) {
     return getDomain().getName().compareTo(o.getDomain().getName());
   }
 
@@ -53,7 +53,7 @@ public class DomainGroupDomainVersion implements Comparable<DomainGroupDomainVer
       return false;
     }
 
-    DomainGroupDomainVersion that = (DomainGroupDomainVersion) o;
+    DomainAndVersion that = (DomainAndVersion) o;
 
     if (versionNumber != that.versionNumber) {
       return false;

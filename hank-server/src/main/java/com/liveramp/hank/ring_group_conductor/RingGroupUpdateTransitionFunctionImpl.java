@@ -25,8 +25,8 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostCommand;
 import com.liveramp.hank.coordinator.HostDomain;
@@ -234,11 +234,11 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
   }
 
   private Integer computeNumReplicasFullyServingRelevantData(Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
-                                                             Set<DomainGroupDomainVersion> domainVersions,
+                                                             Set<DomainAndVersion> domainVersions,
                                                              Host host) throws IOException {
     // Build set of relevant domains
     Set<Domain> relevantDomains = new HashSet<Domain>();
-    for (DomainGroupDomainVersion domainVersion : domainVersions) {
+    for (DomainAndVersion domainVersion : domainVersions) {
       relevantDomains.add(domainVersion.getDomain());
     }
 

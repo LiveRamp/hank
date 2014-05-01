@@ -41,7 +41,7 @@ import org.apache.log4j.Logger;
 
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostDomain;
@@ -204,17 +204,17 @@ public class UpdateManager implements IUpdateManager {
       statistics.setStartTimeMs(System.currentTimeMillis());
       try {
         // Determine target version
-        DomainGroupDomainVersion targetDomainGroupDomainVersion =
+        DomainAndVersion targetDomainAndVersion =
             ringGroup.getDomainGroup().getDomainVersion(domain);
 
         // If unable to determine the version, this partition is deletable (the corresponding domain is not in the
         // target domain group version)
-        if (partition.isDeletable() || targetDomainGroupDomainVersion == null) {
+        if (partition.isDeletable() || targetDomainAndVersion == null) {
           deletePartition(hostDomain, partition);
         } else {
           // Determine Domain Version
           DomainVersion targetDomainVersion =
-              domain.getVersion(targetDomainGroupDomainVersion.getVersionNumber());
+              domain.getVersion(targetDomainAndVersion.getVersionNumber());
 
           // Skip partitions already up-to-date
           if (partition.getCurrentDomainVersion() != null &&

@@ -25,8 +25,8 @@ import junit.framework.TestCase;
 
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
-import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostDomain;
@@ -64,9 +64,9 @@ public class TestRingGroupConductor extends TestCase {
 
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
       @Override
-      public Set<DomainGroupDomainVersion> getDomainVersions() {
-        SortedSet<DomainGroupDomainVersion> result = new TreeSet<DomainGroupDomainVersion>();
-        result.add(new DomainGroupDomainVersion(domain, 1));
+      public Set<DomainAndVersion> getDomainVersions() {
+        SortedSet<DomainAndVersion> result = new TreeSet<DomainAndVersion>();
+        result.add(new DomainAndVersion(domain, 1));
         return result;
       }
     };
