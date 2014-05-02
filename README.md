@@ -2,7 +2,7 @@
 
 ## Design
 
-Hank is an open source distributed key-value NoSQL database that we built and use at [LiveRamp](http://www.liveramp.com). It is designed for very large data stores that dwarf the amount of available main memory and for randomly distributed read/write workloads that far exceed the capacity of memory-based caches. More specifically, it is optimized for very low latency random read queries and for very high throughput incremental batch writes. It performs well with data sets on the terabyte and petabyte scales with billions or trillions of records. Range queries and random writes are not supported by design, for simplicity and performance.
+Hank is a high performance open source distributed key-value NoSQL database that we built and use at [LiveRamp](http://www.liveramp.com). It is designed for very large data stores that dwarf the amount of available main memory and for randomly distributed read/write workloads that far exceed the capacity of memory-based caches. More specifically, it is optimized for very low latency random read queries and for very high throughput incremental batch writes. It performs well with data sets on the terabyte and petabyte scales with billions or trillions of records. Range queries and random writes are not supported by design, for simplicity and performance.
 
 Hank provides linear scalability, a no single point of failure design, strives for compact on-disk and over-the-network representations, as well as for consistent performance in constrained environments such as very high data-to-RAM ratios (1000:1 and more) and low remaining disk space. Hank was inspired by Amazon’s DynamoDB and shares a few design characteristics with LinkedIn’s Voldemort.
 
