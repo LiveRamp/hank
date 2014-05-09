@@ -16,15 +16,20 @@
 
 package com.liveramp.hank.storage.incremental;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.apache.log4j.Logger;
+
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersions;
 import com.liveramp.hank.storage.RemoteDomainCleaner;
 import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.util.*;
 
 public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainCleaner {
 
@@ -52,7 +57,7 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
 
     SortedSet<DomainVersion> sortedVersions = new TreeSet<DomainVersion>();
     for (DomainVersion version : domain.getVersions()) {
-      if(DomainVersions.isClosed(version)){
+      if (DomainVersions.isClosed(version)) {
         sortedVersions.add(version);
       }
     }
@@ -96,15 +101,18 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
       LOG.info("Keeping Version " + version.getVersionNumber() + " of Domain " + domain.getName());
     }
     for (DomainVersion version : sortedVersions) {
-      LOG.info("Deleting Version " + version.getVersionNumber() + " of Domain " + domain.getName());
-      //TODO: not attempt to delete already deleted versions
-      // Set defunct
-      version.setDefunct(true);
-      // Delete remote data
-      remoteDomainVersionDeleter.deleteVersion(version.getVersionNumber());
-      // Delete metadata
-      if(deleteMetadata){
-        domain.deleteVersion(version.getVersionNumber());
+      // Do not delete defunct versions
+      if (!version.isDefunct()) {
+        LOG.info("Deleting Version " + version.getVersionNumber() + " of Domain " + domain.getName());
+        //TODO: not attempt to delete already deleted versions
+        // Set defunct
+        version.setDefunct(true);
+        // Delete remote data
+        remoteDomainVersionDeleter.deleteVersion(version.getVersionNumber());
+        // Delete metadata
+        if (deleteMetadata) {
+          domain.deleteVersion(version.getVersionNumber());
+        }
       }
     }
   }
