@@ -24,6 +24,7 @@ import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.util.CommandLineChecker;
 
 public class RemoteDomainVersionDeletionHelper {
@@ -45,7 +46,13 @@ public class RemoteDomainVersionDeletionHelper {
       throw new RuntimeException("Given domain was not found: " + domainName);
     }
 
+    DomainVersion domainVersion = domain.getVersion(versionNumber);
+    if (domainVersion == null) {
+      throw new RuntimeException("Given version was not found: " + domainName + " version " + versionNumber);
+    }
+
     LOG.info("Deleting remote data for domain " + domainName + " version " + versionNumber);
+    domainVersion.setDefunct(true);
     domain.getStorageEngine().getRemoteDomainVersionDeleter().deleteVersion(versionNumber);
   }
 }
