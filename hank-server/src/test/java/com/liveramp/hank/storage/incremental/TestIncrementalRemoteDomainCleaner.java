@@ -16,47 +16,61 @@
 
 package com.liveramp.hank.storage.incremental;
 
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.coordinator.mock.MockDomain;
-import com.liveramp.hank.coordinator.mock.MockDomainVersion;
-import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.junit.Before;
+import org.junit.Test;
+
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.mock.MockDomain;
+import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
+import com.liveramp.hank.test.BaseTestCase;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
 
-  private static DomainVersion v0 = new MockDomainVersion(0, (long) 0);
-  private static DomainVersion v1 = new MockDomainVersion(1, (long) 0);
-  private static DomainVersion v2 = new MockDomainVersion(2, (long) 0);
-  private static DomainVersion v3 = new MockDomainVersion(3, (long) 0);
-  private static DomainVersion v4 = new MockDomainVersion(4, (long) 0);
-  private static DomainVersion v5 = new MockDomainVersion(5, (long) 0);
+  private DomainVersion v0;
+  private DomainVersion v1;
+  private DomainVersion v2;
+  private DomainVersion v3;
+  private DomainVersion v4;
+  private DomainVersion v5;
 
-  private static SortedSet<DomainVersion> versions = new TreeSet<DomainVersion>() {{
-    add(v0);
-    add(v1);
-    add(v2);
-    add(v3);
-    add(v4);
-    add(v5);
-  }};
+  private SortedSet<DomainVersion> versions;
 
-  private static Domain domain = new MockDomain("domain") {
-    @Override
-    public SortedSet<DomainVersion> getVersions() {
-      return versions;
-    }
-  };
+  private Domain domain;
+
+  @Before
+  public void setUp() {
+    v0 = new MockDomainVersion(0, (long)0);
+    v1 = new MockDomainVersion(1, (long)0);
+    v2 = new MockDomainVersion(2, (long)0);
+    v3 = new MockDomainVersion(3, (long)0);
+    v4 = new MockDomainVersion(4, (long)0);
+    v5 = new MockDomainVersion(5, (long)0);
+    this.versions = new TreeSet<DomainVersion>() {{
+      add(v0);
+      add(v1);
+      add(v2);
+      add(v3);
+      add(v4);
+      add(v5);
+    }};
+    this.domain = new MockDomain("domain") {
+      @Override
+      public SortedSet<DomainVersion> getVersions() {
+        return versions;
+      }
+    };
+  }
 
   private static class MockRemoteDomainVersionDeleter implements RemoteDomainVersionDeleter {
 
@@ -68,7 +82,7 @@ public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
     }
   }
 
-  private static class MockIncrementalRemoteDomainCleaner extends IncrementalRemoteDomainCleaner {
+  private class MockIncrementalRemoteDomainCleaner extends IncrementalRemoteDomainCleaner {
 
     public MockIncrementalRemoteDomainCleaner(Domain domain, int numRemoteLeafVersionsToKeep) {
       super(domain, numRemoteLeafVersionsToKeep);
