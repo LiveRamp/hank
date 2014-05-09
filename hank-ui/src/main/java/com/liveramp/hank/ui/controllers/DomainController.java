@@ -16,11 +16,17 @@
 
 package com.liveramp.hank.ui.controllers;
 
-import com.liveramp.hank.coordinator.*;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.Domains;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.RingGroup;
 
 public class DomainController extends Controller {
 
@@ -112,27 +118,6 @@ public class DomainController extends Controller {
         doUpdateDomain(req, resp);
       }
     });
-    actions.put("cleanup", new Action() {
-      @Override
-      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
-        domain.getStorageEngine().getRemoteDomainVersionDeleter().deleteVersion(Integer.parseInt(req.getParameter("ver")));
-        final DomainVersion domainVersion = domain.getVersion(Integer.parseInt(req.getParameter("ver")));
-        domainVersion.setDefunct(true);
-        redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
-      }
-    });
-    actions.put("clean_domains", new Action() {
-      @Override
-      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        doCleanDomains();
-        redirect("/domains.jsp", resp);
-      }
-    });
-  }
-
-  private void doCleanDomains() throws IOException {
-    Domains.cleanDomains(coordinator.getDomains());
   }
 
   private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {

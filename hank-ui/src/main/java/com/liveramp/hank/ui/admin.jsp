@@ -26,12 +26,6 @@
   <h2>Create New Domain</h2>
   <a href="new_domain.jsp">Create New Domain</a>
 
-  <h2>Clean All Domains</h2>
-  <form action="/domain/clean_domains" method=post>
-    <input type=submit value="Clean All Domains"
-    onclick="return confirm('Are you sure you want to clean all Domains? This action cannot be undone.');"/>
-  </form>
-
   <h2>Delete Domain</h2>
   <form action="/domain/delete" method=post>
     <select name="name">

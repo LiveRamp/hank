@@ -169,14 +169,6 @@
       </form>
       <% } %>
 
-      <% if (DomainVersions.isClosed(version) && !version.isDefunct()) { %>
-      <form action="/domain/cleanup" method="post">
-        <input type=hidden name="n" value="<%= domain.getName() %>" />
-        <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
-        <input type=submit value="Delete from remote storage"
-          onclick="return confirm('Are you sure you want to delete data of version <%= version.getVersionNumber() %> from remote storage? This action cannot be undone!');"/>
-      </form>
-      <% } %>
     </td>
   </tr>
   <% } %>
