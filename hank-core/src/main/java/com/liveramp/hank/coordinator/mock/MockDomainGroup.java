@@ -15,17 +15,24 @@
  */
 package com.liveramp.hank.coordinator.mock;
 
-import com.liveramp.hank.coordinator.*;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.liveramp.hank.coordinator.AbstractDomainGroup;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainAndVersion;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainGroupListener;
 
 public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup {
 
   private final String name;
   private Set<DomainAndVersion> domainVersions = new HashSet<DomainAndVersion>();
   private Collection<DomainGroupListener> listeners
-      = new TreeSet<DomainGroupListener>();
+      = new HashSet<DomainGroupListener>();
 
   public MockDomainGroup(String name) {
     this.name = name;
