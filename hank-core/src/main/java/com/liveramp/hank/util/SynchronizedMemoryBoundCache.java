@@ -16,16 +16,21 @@
 
 package com.liveramp.hank.util;
 
-public class SynchronizedMemoryBoundCache<K extends ManagedBytes, V extends ManagedBytes> {
+import com.liveramp.commons.collections.MemoryBoundLruHashMap;
+import com.liveramp.commons.util.MemoryUsageEstimator;
 
-  private final MemoryBoundLruHashMap<K, V> cache;
+public class SynchronizedMemoryBoundCache<K, V> {
+
+  private final com.liveramp.commons.collections.MemoryBoundLruHashMap<K, V> cache;
 
   // A disabled cache will not add any synchronization overhead
   public SynchronizedMemoryBoundCache(boolean isEnabled,
                                       long numBytesCapacity,
-                                      int numItemsCapacity) {
+                                      int numItemsCapacity,
+                                      MemoryUsageEstimator keyEstimator,
+                                      MemoryUsageEstimator valueEstimator) {
     if (isEnabled) {
-      cache = new MemoryBoundLruHashMap<K, V>(numBytesCapacity, numItemsCapacity);
+      cache = new MemoryBoundLruHashMap<K, V>(numItemsCapacity, numBytesCapacity, keyEstimator, valueEstimator);
     } else {
       cache = null;
     }
@@ -51,7 +56,7 @@ public class SynchronizedMemoryBoundCache<K extends ManagedBytes, V extends Mana
         throw new IllegalArgumentException("Value to put in cache should not be null.");
       }
       synchronized (cache) {
-        cache.put(key, value);
+        cache.putAndEvict(key, value);
       }
     }
   }

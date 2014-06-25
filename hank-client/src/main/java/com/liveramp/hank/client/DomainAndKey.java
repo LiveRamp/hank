@@ -16,12 +16,13 @@
 
 package com.liveramp.hank.client;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 
+import com.liveramp.commons.util.MemoryUsageEstimator;
 import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.util.ManagedBytes;
 
-class DomainAndKey implements ManagedBytes {
+class DomainAndKey {
 
   private final Domain domain;
   private final ByteBuffer key;
@@ -40,7 +41,7 @@ class DomainAndKey implements ManagedBytes {
       return false;
     }
 
-    DomainAndKey that = (DomainAndKey) o;
+    DomainAndKey that = (DomainAndKey)o;
 
     if (!domain.equals(that.domain)) {
       return false;
@@ -59,11 +60,18 @@ class DomainAndKey implements ManagedBytes {
     return result;
   }
 
-  @Override
-  public long getNumManagedBytes() {
+  private long getNumManagedBytes() {
     if (key.capacity() != key.remaining()) {
       throw new IllegalStateException("getNumManagedBytes can only be called on keys (ByteBuffer) for which remaining: " + key.remaining() + " equals capacity: " + key.capacity());
     }
     return key.remaining();
+  }
+
+  public static class DomainAndKeyMemoryUsageEstimator implements MemoryUsageEstimator<DomainAndKey>, Serializable {
+
+    @Override
+    public long estimateMemorySize(DomainAndKey item) {
+      return item.getNumManagedBytes();
+    }
   }
 }

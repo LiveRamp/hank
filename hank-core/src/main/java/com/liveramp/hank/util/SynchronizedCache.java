@@ -16,6 +16,8 @@
 
 package com.liveramp.hank.util;
 
+import com.liveramp.commons.collections.LruHashMap;
+
 public class SynchronizedCache<K, V> {
 
   private final LruHashMap<K, V> cache;

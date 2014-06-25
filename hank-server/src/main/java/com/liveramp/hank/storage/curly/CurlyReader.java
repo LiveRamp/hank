@@ -24,13 +24,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 
+import com.liveramp.commons.util.ByteBufferMemoryUsageEstimator;
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.compression.Decompressor;
 import com.liveramp.hank.storage.CacheStatistics;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
-import com.liveramp.hank.util.ByteBufferManagedBytes;
 import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.SynchronizedMemoryBoundCache;
 import com.liveramp.hank.util.UnsafeByteArrayOutputStream;
@@ -42,7 +42,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final FileChannel recordFile;
   private final int versionNumber;
   private final int bufferReuseMaxSize;
-  private SynchronizedMemoryBoundCache<ByteBufferManagedBytes, ByteBufferManagedBytes> cache;
+  private SynchronizedMemoryBoundCache<ByteBuffer, ByteBuffer> cache;
   private final CompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
@@ -125,7 +125,12 @@ public class CurlyReader implements Reader, ICurlyReader {
     this.offsetNumBytes = offsetNumBytes;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
     this.cacheLastDecompressedBlock = cacheLastDecompressedBlock;
-    this.cache = new SynchronizedMemoryBoundCache<ByteBufferManagedBytes, ByteBufferManagedBytes>(cacheNumBytesCapacity > 0 || cacheNumItemsCapacity > 0, cacheNumBytesCapacity, cacheNumItemsCapacity);
+    this.cache = new SynchronizedMemoryBoundCache<ByteBuffer, ByteBuffer>(
+        cacheNumBytesCapacity > 0 || cacheNumItemsCapacity > 0,
+        cacheNumBytesCapacity,
+        cacheNumItemsCapacity,
+        new ByteBufferMemoryUsageEstimator(),
+        new ByteBufferMemoryUsageEstimator());
     // Check that key file is at the same version
     if (keyFileReader != null &&
         keyFileReader.getVersionNumber() != null &&
@@ -304,14 +309,14 @@ public class CurlyReader implements Reader, ICurlyReader {
 
   // Note: location should already be a deep copy that won't get modified
   private void addValueToCache(ByteBuffer location, ByteBuffer value) {
-    cache.put(new ByteBufferManagedBytes(location), new ByteBufferManagedBytes(BytesUtils.byteBufferDeepCopy(value)));
+    cache.put(location, BytesUtils.byteBufferDeepCopy(value));
   }
 
   // Return true if managed to read the corresponding value from the cache and into result
   private boolean loadValueFromCache(ByteBuffer location, ReaderResult result) {
-    ByteBufferManagedBytes value = cache.get(new ByteBufferManagedBytes(location));
+    ByteBuffer value = cache.get(location);
     if (value != null) {
-      result.deepCopyIntoResultBuffer(value.getBuffer());
+      result.deepCopyIntoResultBuffer(value);
       result.found();
       result.setL2CacheHit(true);
       return true;

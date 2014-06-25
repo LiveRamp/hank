@@ -27,6 +27,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.config.HankSmartClientConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -44,11 +47,10 @@ import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.util.AtomicLongCollection;
 import com.liveramp.hank.util.FormatUtils;
+import com.liveramp.hank.util.HankResponseMemoryUsageEstimator;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.SynchronizedMemoryBoundCacheExpiring;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import static com.liveramp.hank.client.HostConnectionPool.getHostListShuffleSeed;
 
@@ -81,7 +83,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
 
-  private final SynchronizedMemoryBoundCacheExpiring<DomainAndKey, HankResponseManagedBytes> responseCache;
+  private final SynchronizedMemoryBoundCacheExpiring<DomainAndKey, HankResponse> responseCache;
   // 0: num queries
   // 1: num cache hits
   private final AtomicLongCollection requestsCounters;
@@ -153,11 +155,13 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     this.establishConnectionTimeoutMs = options.getEstablishConnectionTimeoutMs();
     this.queryTimeoutMs = options.getQueryTimeoutMs();
     this.bulkQueryTimeoutMs = options.getBulkQueryTimeoutMs();
-    this.responseCache = new SynchronizedMemoryBoundCacheExpiring<DomainAndKey, HankResponseManagedBytes>(
+    this.responseCache = new SynchronizedMemoryBoundCacheExpiring<DomainAndKey, HankResponse>(
         options.getResponseCacheEnabled(),
         options.getResponseCacheNumBytesCapacity(),
         options.getResponseCacheNumItemsCapacity(),
-        options.getResponseCacheExpirationSeconds());
+        options.getResponseCacheExpirationSeconds(),
+        new DomainAndKey.DomainAndKeyMemoryUsageEstimator(),
+        new HankResponseMemoryUsageEstimator());
     this.requestsCounters = new AtomicLongCollection(2, new long[]{0, 0});
 
     // This creates a thread pool executor with a specific maximum number of threads.
@@ -436,11 +440,11 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     }
 
     // Attempt to load from cache
-    HankResponseManagedBytes cachedResponse = responseCache.get(new DomainAndKey(domain, key));
+    HankResponse cachedResponse = responseCache.get(new DomainAndKey(domain, key));
     if (cachedResponse != null) {
       // One request, in cache
       requestsCounters.increment(1, 1);
-      return cachedResponse.getResponse();
+      return cachedResponse;
     } else {
       try {
         // Determine HostConnectionPool to use
@@ -471,7 +475,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         if (responseCache.isEnabled() && response.is_set_not_found() || response.is_set_value()) {
           responseCache.put(
               new DomainAndKey(domain, BytesUtils.byteBufferDeepCopy(key)),
-              new HankResponseManagedBytes(response.deepCopy()));
+              response.deepCopy());
         }
         if (response.is_set_xception()) {
           LOG.error(getLogPrefix() + "Failed to perform get: domain " + domain.getName() + ", partition " + partition + ", key: " + BytesUtils.bytesToHexString(key) + ", partitioner: " + domain.getPartitioner() + ", response: " + response);

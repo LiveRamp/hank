@@ -16,6 +16,17 @@
 
 package com.liveramp.hank.storage.cueball;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.coordinator.Domain;
@@ -27,16 +38,6 @@ import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;

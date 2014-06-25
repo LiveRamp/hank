@@ -15,19 +15,19 @@
  */
 package com.liveramp.hank.storage.curly;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+
+import com.liveramp.commons.collections.LruHashMap;
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.IOStreamUtils;
-import com.liveramp.hank.util.LruHashMap;
-
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
 
 public class CurlyWriter implements Writer {
 
