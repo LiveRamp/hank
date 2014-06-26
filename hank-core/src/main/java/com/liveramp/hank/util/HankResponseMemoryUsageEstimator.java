@@ -1,5 +1,5 @@
 /**
- *  Copyright 2013 LiveRamp
+ *  Copyright 2011 LiveRamp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,7 +16,18 @@
 
 package com.liveramp.hank.util;
 
-public interface ManagedBytes {
+import java.io.Serializable;
 
-  public long getNumManagedBytes();
+import com.liveramp.commons.util.MemoryUsageEstimator;
+import com.liveramp.hank.generated.HankResponse;
+
+public class HankResponseMemoryUsageEstimator implements MemoryUsageEstimator<HankResponse>, Serializable {
+  @Override
+  public long estimateMemorySize(HankResponse item) {
+    if (item.is_set_value()) {
+      return item.get_value().length;
+    } else {
+      return 1;
+    }
+  }
 }

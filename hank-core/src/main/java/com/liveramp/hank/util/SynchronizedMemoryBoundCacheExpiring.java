@@ -16,7 +16,10 @@
 
 package com.liveramp.hank.util;
 
-public class SynchronizedMemoryBoundCacheExpiring<K extends ManagedBytes, V extends ManagedBytes> {
+import com.liveramp.commons.collections.MemoryBoundLruHashMap;
+import com.liveramp.commons.util.MemoryUsageEstimator;
+
+public class SynchronizedMemoryBoundCacheExpiring<K, V> {
 
   private final MemoryBoundLruHashMap<K, ValueAndTimestamp<V>> cache;
   private final long expirationPeriodMs;
@@ -25,9 +28,15 @@ public class SynchronizedMemoryBoundCacheExpiring<K extends ManagedBytes, V exte
   public SynchronizedMemoryBoundCacheExpiring(boolean isEnabled,
                                               long numBytesCapacity,
                                               int numItemsCapacity,
-                                              long expirationPeriodSeconds) {
+                                              long expirationPeriodSeconds,
+                                              MemoryUsageEstimator<K> keyEstimator,
+                                              MemoryUsageEstimator<V> valueEstimator) {
     if (isEnabled) {
-      cache = new MemoryBoundLruHashMap<K, ValueAndTimestamp<V>>(numBytesCapacity, numItemsCapacity);
+      cache = new MemoryBoundLruHashMap<K, ValueAndTimestamp<V>>(
+          numItemsCapacity,
+          numBytesCapacity,
+          keyEstimator,
+          new ValueAndTimestampMemoryUsageEstimator(valueEstimator));
     } else {
       cache = null;
     }
@@ -66,7 +75,7 @@ public class SynchronizedMemoryBoundCacheExpiring<K extends ManagedBytes, V exte
         throw new IllegalArgumentException("Value to put in cache should not be null.");
       }
       synchronized (cache) {
-        cache.put(key, new ValueAndTimestamp<V>(value, System.currentTimeMillis()));
+        cache.putAndEvict(key, new ValueAndTimestamp<V>(value, System.currentTimeMillis()));
       }
     }
   }
@@ -95,7 +104,7 @@ public class SynchronizedMemoryBoundCacheExpiring<K extends ManagedBytes, V exte
     return (System.currentTimeMillis() - valueAndTimestamp.getTimestamp()) >= expirationPeriodMs;
   }
 
-  private static class ValueAndTimestamp<V extends ManagedBytes> implements ManagedBytes {
+  private static class ValueAndTimestamp<V> {
 
     private final V value;
     private final long timestamp;
@@ -112,10 +121,18 @@ public class SynchronizedMemoryBoundCacheExpiring<K extends ManagedBytes, V exte
     public long getTimestamp() {
       return timestamp;
     }
+  }
+
+  private static class ValueAndTimestampMemoryUsageEstimator<T> implements MemoryUsageEstimator<ValueAndTimestamp<T>> {
+    MemoryUsageEstimator<T> valueEstimator;
+
+    public ValueAndTimestampMemoryUsageEstimator(MemoryUsageEstimator<T> valueEstimator) {
+      this.valueEstimator = valueEstimator;
+    }
 
     @Override
-    public long getNumManagedBytes() {
-      return value.getNumManagedBytes();
+    public long estimateMemorySize(ValueAndTimestamp<T> item) {
+      return valueEstimator.estimateMemorySize(item.getValue());
     }
   }
 }
