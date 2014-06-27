@@ -36,7 +36,7 @@ public class SynchronizedMemoryBoundCacheExpiring<K, V> {
           numItemsCapacity,
           numBytesCapacity,
           keyEstimator,
-          new ValueAndTimestampMemoryUsageEstimator(valueEstimator));
+          new ValueAndTimestampMemoryUsageEstimator<V>(valueEstimator));
     } else {
       cache = null;
     }
