@@ -7,9 +7,9 @@
     <%@page import="com.liveramp.hank.util.*" %>
     <%@page import="java.util.*" %>
     <%@page import="java.text.DecimalFormat" %>
-    <%@page import="java.text.SimpleDateFormat" %>
+    <%@page import="org.joda.time.format.DateTimeFormat" %>
 
-      <%
+  <%
   Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
   RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
   Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("r")));
@@ -139,7 +139,7 @@
       <% if (upSince == null) { %>
     undefined
       <% } else { %>
-    Started <%= new SimpleDateFormat().format(new Date(upSince)) %>
+    Started <%= DateTimeFormat.forStyle("SS").print(upSince) %>
     (online for <%= FormatUtils.formatSecondsDuration((System.currentTimeMillis() - upSince) / 1000) %>)
       <% } %>
     </td>

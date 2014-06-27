@@ -14,7 +14,7 @@
     <%@page import="org.apache.thrift.*" %>
     <%@page import="org.apache.commons.lang.StringEscapeUtils" %>
     <%@page import="java.text.DecimalFormat" %>
-    <%@page import="java.text.SimpleDateFormat" %>
+    <%@page import="org.joda.time.format.DateTimeFormat" %>
 
       <%
 
@@ -532,7 +532,7 @@ Collections.sort(clients, new ClientMetadataComparator());
       <%= FormatUtils.formatSecondsDuration((System.currentTimeMillis() - client.get_connected_at()) / 1000) %>
     </td>
     <td>
-      <%= new SimpleDateFormat().format(new Date(client.get_connected_at())) %>
+      <%= DateTimeFormat.forStyle("SS").print(client.get_connected_at()) %>
     </td>
     <td><%= client.get_type() %></td>
     <td><%= client.get_version() %></td>

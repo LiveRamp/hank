@@ -1,16 +1,31 @@
 package com.liveramp.hank.ui;
 
-import com.liveramp.hank.coordinator.*;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainAndVersion;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.UpdateProgress;
+import com.liveramp.hank.coordinator.UpdateProgressAggregator;
 import com.liveramp.hank.partition_server.DoublePopulationStatisticsAggregator;
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
 import com.liveramp.hank.util.FormatUtils;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 public class UiUtils {
 
@@ -18,7 +33,7 @@ public class UiUtils {
   }
 
   private static final int BAR_SIZE = 100;
-  private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
+  private static DateTimeFormatter dateFormat = DateTimeFormat.forPattern("d MMM yyyy HH:mm:ss");
 
   public static String hostStateToClass(HostState state) throws IOException {
     switch (state) {
@@ -133,7 +148,7 @@ public class UiUtils {
     if (closedAt == null) {
       return "-";
     } else {
-      return dateFormat.format(new Date(closedAt));
+      return dateFormat.print(closedAt);
     }
   }
 
