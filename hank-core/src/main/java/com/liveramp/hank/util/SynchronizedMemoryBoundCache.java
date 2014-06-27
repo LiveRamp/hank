@@ -27,8 +27,8 @@ public class SynchronizedMemoryBoundCache<K, V> {
   public SynchronizedMemoryBoundCache(boolean isEnabled,
                                       long numBytesCapacity,
                                       int numItemsCapacity,
-                                      MemoryUsageEstimator keyEstimator,
-                                      MemoryUsageEstimator valueEstimator) {
+                                      MemoryUsageEstimator<K> keyEstimator,
+                                      MemoryUsageEstimator<V> valueEstimator) {
     if (isEnabled) {
       cache = new MemoryBoundLruHashMap<K, V>(numItemsCapacity, numBytesCapacity, keyEstimator, valueEstimator);
     } else {
