@@ -25,7 +25,7 @@ public class SynchronizedCache<K, V> {
   // A disabled cache will not add any synchronization overhead
   public SynchronizedCache(boolean isEnabled, int cacheCapacity) {
     if (isEnabled) {
-      cache = new LruHashMap<K, V>(0, cacheCapacity);
+      cache = new LruHashMap<K, V>(cacheCapacity, 0);
     } else {
       cache = null;
     }
