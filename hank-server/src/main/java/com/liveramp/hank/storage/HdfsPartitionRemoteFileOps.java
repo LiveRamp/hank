@@ -16,20 +16,26 @@
 
 package com.liveramp.hank.storage;
 
-import com.liveramp.cascading_ext.fs.TrashHelper;
-import com.liveramp.hank.util.IOStreamUtils;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
-import java.io.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import com.liveramp.cascading_ext.fs.TrashHelper;
+import com.liveramp.hank.util.IOStreamUtils;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   private static Logger LOG = Logger.getLogger(HdfsPartitionRemoteFileOps.class);
+  private final boolean useTrash;
 
   public static enum CompressionCodec {
     GZIP
@@ -40,6 +46,14 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     @Override
     public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
       return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, null);
+    }
+  }
+
+  public static class NoTrashFactory implements PartitionRemoteFileOpsFactory {
+
+    @Override
+    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, false);
     }
   }
 
@@ -57,12 +71,27 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
                                     int partitionNumber) throws IOException {
-    this(remoteDomainRoot, partitionNumber, null);
+    this(remoteDomainRoot, partitionNumber, null, true);
+  }
+
+  public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
+                                    int partitionNumber,
+                                    boolean useTrash) throws IOException {
+    this(remoteDomainRoot, partitionNumber, null, useTrash);
   }
 
   public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
                                     int partitionNumber,
                                     CompressionCodec compressionCodec) throws IOException {
+    this(remoteDomainRoot, partitionNumber, compressionCodec, true);
+
+  }
+
+  public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
+                                    int partitionNumber,
+                                    CompressionCodec compressionCodec,
+                                    boolean useTrash) throws IOException {
+    this.useTrash = useTrash;
     this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
     Path partitionRootPath = new Path(partitionRoot);
     this.fs = FileSystem.get(new Configuration());
@@ -128,7 +157,12 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
-      TrashHelper.deleteUsingTrashIfEnabled(fs, new Path(getRemoteAbsolutePath(remoteRelativePath)));
+      Path pathToDelete = new Path(getRemoteAbsolutePath(remoteRelativePath));
+      if (useTrash) {
+        TrashHelper.deleteUsingTrashIfEnabled(fs, pathToDelete);
+      } else {
+        fs.delete(pathToDelete, true);
+      }
     }
     return true;
   }
