@@ -16,9 +16,14 @@
 
 package com.liveramp.hank.storage;
 
-import org.apache.commons.io.FileUtils;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import java.io.*;
+import org.apache.commons.io.FileUtils;
 
 public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
