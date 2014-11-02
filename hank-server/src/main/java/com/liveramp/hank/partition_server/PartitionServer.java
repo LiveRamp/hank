@@ -77,6 +77,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private final Host host;
 
   private Thread updateThread;
+  private Thread offlineWatcherThread;
 
   private TThreadedSelectorServer dataServer;
   private Thread dataServerThread;
@@ -127,6 +128,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     // Initialize and process commands
     setStateSynchronized(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
     // Wait for state to propagate
+
+    addServerOfflineWatcher();
+
     while (host.getState() != HostState.IDLE) {
       LOG.info("Waiting for Host state " + HostState.IDLE + " to propagate.");
       Thread.sleep(100);
@@ -158,6 +162,56 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     setStateSynchronized(HostState.OFFLINE); // In case of exception, server will stop and state will be coherent.
     // Remove shutdown hook. We don't need it anymore as we just set the host state to OFFLINE
     removeShutdownHook();
+  }
+
+  private void addServerOfflineWatcher() {
+    Runnable serverOfflineWatcher = new Runnable() {
+      @Override
+      public void run() {
+        //TODO make these configurable
+        long units = 10l;
+        TimeUnit unit = TimeUnit.MINUTES;
+        try {
+          while (true) {
+            HostState state = getStateSafe();
+            if (state == null || HostState.OFFLINE.equals(state)) {
+              startShutDownCountdown(units, unit);
+            }
+            unit.sleep(units);
+          }
+        }catch (Exception e){
+          LOG.error("Watcher thread encountered an error - thread will stop for safety", e);
+        }
+      }
+
+      public HostState getStateSafe() {
+        HostState state;
+        try {
+          state = host.getState();
+        } catch (IOException e) {
+          LOG.error("Offline watcher failed to get state, counting as OFFLINE. Exception: ", e);
+          state = HostState.OFFLINE;
+        }
+        return state;
+      }
+
+      private void startShutDownCountdown(long units, TimeUnit unit) {
+        try {
+          //TODO set these via config
+          unit.sleep(units);
+          HostState state = getStateSafe();
+          if (state == null || HostState.OFFLINE.equals(state)) {
+            LOG.info("Partition Server was OFFLINE for " + units + " " + unit.toString());
+            stopSynchronized();
+          }
+        } catch (InterruptedException e) {
+          LOG.error("Interrupted while performing shutdown countdown", e);
+        }
+      }
+    };
+
+    offlineWatcherThread = new Thread(serverOfflineWatcher, "Server Offline Watcher");
+    offlineWatcherThread.start();
   }
 
   // Stop the partition server. Can be called from another thread.
