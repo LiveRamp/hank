@@ -197,12 +197,12 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
       private void startShutDownCountdown(long units, TimeUnit unit) {
         try {
-          //TODO set these via config
           unit.sleep(units);
           HostState state = getStateSafe();
           if (state == null || HostState.OFFLINE.equals(state)) {
             LOG.info("Partition Server was OFFLINE for " + units + " " + unit.toString());
-            stopSynchronized();
+            LOG.error("Would have shutdown");
+            //stopSynchronized();
           }
         } catch (InterruptedException e) {
           LOG.error("Interrupted while performing shutdown countdown", e);
@@ -211,6 +211,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     };
 
     offlineWatcherThread = new Thread(serverOfflineWatcher, "Server Offline Watcher");
+    offlineWatcherThread.setDaemon(true);
     offlineWatcherThread.start();
   }
 
