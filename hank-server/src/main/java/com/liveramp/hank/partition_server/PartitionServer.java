@@ -174,7 +174,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         try {
           while (true) {
             HostState state = getStateSafe();
+            LOG.info("Current state: "+state);
             if (state == null || HostState.OFFLINE.equals(state)) {
+              LOG.info("OFFLINE.  Starting shutdown countdown");
               startShutDownCountdown(units, unit);
             }
             unit.sleep(units);
