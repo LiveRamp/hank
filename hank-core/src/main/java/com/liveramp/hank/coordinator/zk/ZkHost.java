@@ -470,7 +470,7 @@ public class ZkHost extends AbstractHost {
   protected Domain getDomain(int domainId) {
     Domain domain = coordinator.getDomainById(domainId);
     if (domain == null) {
-      throw new RuntimeException(String.format("Could not load domain #%d from Coordinator.", domainId));
+      LOG.warn("Domain "+domainId+" not found!");
     }
     return domain;
   }
