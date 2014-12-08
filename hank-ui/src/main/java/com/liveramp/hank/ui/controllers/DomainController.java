@@ -24,8 +24,10 @@ import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainGroup;
 import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.coordinator.Domains;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 
 public class DomainController extends Controller {
@@ -121,20 +123,40 @@ public class DomainController extends Controller {
   }
 
   private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    final Domain domain = coordinator.getDomain(req.getParameter("name"));
-    boolean isInUse = false;
-    // check if this domain is in use anywhere
-    for (RingGroup rg : coordinator.getRingGroups()) {
-      DomainGroup dg = rg.getDomainGroup();
-      if (dg.getDomains().contains(domain)) {
-        isInUse = true;
-        break;
-      }
-    }
-    if (!isInUse) {
+    String domainName = req.getParameter("name");
+    final Domain domain = coordinator.getDomain(domainName);
+
+    if (!isInUse(domain)) {
       coordinator.deleteDomain(domain.getName());
     }
     resp.sendRedirect("/domains.jsp");
+  }
+
+  private boolean isInUse(Domain domain) throws IOException {
+    String domainName = domain.getName();
+
+    for (RingGroup rg : coordinator.getRingGroups()) {
+
+      for (Ring ring : rg.getRings()) {
+        for (Host host : ring.getHosts()) {
+          for (HostDomain hostDomain : host.getAssignedDomains()) {
+            if(hostDomain.getDomain().getName().equals(domainName)){
+              return true;
+            }
+          }
+        }
+      }
+
+      DomainGroup dg = rg.getDomainGroup();
+      for (Domain dgd : dg.getDomains()) {
+        if(dgd.getName().equals(domainName)){
+          return true;
+        }
+      }
+
+    }
+
+    return false;
   }
 
   private void doUpdateDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
