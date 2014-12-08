@@ -126,8 +126,14 @@ public class DomainController extends Controller {
     String domainName = req.getParameter("name");
     final Domain domain = coordinator.getDomain(domainName);
 
-    boolean isInUse = false;
-    // check if this domain is in use anywhere
+    if (!isInUse(domain)) {
+      coordinator.deleteDomain(domain.getName());
+    }
+    resp.sendRedirect("/domains.jsp");
+  }
+
+  private boolean isInUse(Domain domain) throws IOException {
+    String domainName = domain.getName();
 
     for (RingGroup rg : coordinator.getRingGroups()) {
 
@@ -135,8 +141,7 @@ public class DomainController extends Controller {
         for (Host host : ring.getHosts()) {
           for (HostDomain hostDomain : host.getAssignedDomains()) {
             if(hostDomain.getDomain().getName().equals(domainName)){
-              isInUse = true;
-              break;
+              return true;
             }
           }
         }
@@ -144,17 +149,14 @@ public class DomainController extends Controller {
 
       DomainGroup dg = rg.getDomainGroup();
       for (Domain dgd : dg.getDomains()) {
-        if(dgd.getName().equals(domain.getName())){
-          isInUse = true;
-          break;
+        if(dgd.getName().equals(domainName)){
+          return true;
         }
       }
 
     }
-    if (!isInUse) {
-      coordinator.deleteDomain(domain.getName());
-    }
-    resp.sendRedirect("/domains.jsp");
+
+    return false;
   }
 
   private void doUpdateDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
