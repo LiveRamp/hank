@@ -16,17 +16,19 @@
 
 package com.liveramp.hank.coordinator;
 
-import com.liveramp.hank.storage.RemoteDomainCleaner;
-import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
-import com.liveramp.hank.storage.StorageEngine;
-import com.liveramp.hank.util.ReverseComparator;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import org.apache.log4j.Logger;
+
+import com.liveramp.hank.storage.RemoteDomainCleaner;
+import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
+import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.liveramp.hank.util.ReverseComparator;
 
 public final class Domains {
 
@@ -63,11 +65,37 @@ public final class Domains {
     SortedSet<DomainVersion> versions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
     versions.addAll(originalVersions);
     for (DomainVersion version : versions) {
-      if (DomainVersions.isClosed(version) && !version.isDefunct()) {
+      if (isCompleteToBase(version, domain)) {
         return version;
       }
     }
+
     return null;
+  }
+
+  private static boolean isCompleteToBase(DomainVersion version, Domain domain) throws IOException {
+
+    if (!DomainVersions.isClosed(version) || version.isDefunct()) {
+      return false;
+    }
+
+    if (isBase(version)) {
+      return true;
+    }
+
+    //  TODO is there ever going to be a different impl of props?
+    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties)version.getProperties();
+
+    return isCompleteToBase(
+        domain.getVersion(properties.getParentVersionNumber()),
+        domain
+    );
+
+  }
+
+  private static boolean isBase(DomainVersion version) throws IOException {
+    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties)version.getProperties();
+    return properties.isBase();
   }
 
   public static void cleanDomains(Collection<Domain> domains) throws IOException {
