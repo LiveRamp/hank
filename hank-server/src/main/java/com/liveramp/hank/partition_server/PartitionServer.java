@@ -202,8 +202,10 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
           unit.sleep(units);
           HostState state = getStateSafe();
           if (state == null || HostState.OFFLINE.equals(state)) {
-            LOG.info("Partition Server was OFFLINE for " + units + " " + unit.toString());
+            LOG.error("Partition Server was OFFLINE for " + units + " " + unit.toString());
             stopSynchronized();
+          }else{
+            LOG.error("Shutdown cancelled, state is currently: " + state);
           }
         } catch (InterruptedException e) {
           LOG.error("Interrupted while performing shutdown countdown", e);
