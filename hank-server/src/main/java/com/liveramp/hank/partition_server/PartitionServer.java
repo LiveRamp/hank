@@ -162,6 +162,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     setStateSynchronized(HostState.OFFLINE); // In case of exception, server will stop and state will be coherent.
     // Remove shutdown hook. We don't need it anymore as we just set the host state to OFFLINE
     removeShutdownHook();
+    // Disconnect from zookeeper
+    coordinator.close();
   }
 
   private void addServerOfflineWatcher() {
