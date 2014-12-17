@@ -29,6 +29,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.log4j.Logger;
+
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -48,7 +51,6 @@ import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
-import org.apache.log4j.Logger;
 
 /**
  * Implements the actual data serving logic of the PartitionServer
@@ -275,6 +277,11 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     if (domainAccessor == null) {
       return NO_SUCH_DOMAIN;
     }
+
+    if(System.currentTimeMillis() % 1000 == 0){
+      LOG.info("Req: "+ new String(Hex.encodeHex(BytesUtils.byteBufferToByteArray(key)))+" domain: "+domainId);
+    }
+
     try {
       return domainAccessor.get(key, result);
     } catch (IOException e) {
