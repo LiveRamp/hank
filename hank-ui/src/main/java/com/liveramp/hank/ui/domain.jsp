@@ -133,7 +133,7 @@
       Open - <%= version.getPartitionsMetadata().size() %>/<%= domain.getNumParts() %> complete
       <% } %>
     </td>
-    <td><%= FileUtils.byteCountToDisplaySize(DomainVersions.getTotalNumBytes(version)) %></td>
+    <td><%= DomainVersions.getTotalNumBytes(version)/1000000 %> MB</td>
     <td><%= String.format("%,d", DomainVersions.getTotalNumRecords(version)) %></td>
     <td>
       <% if (DomainVersions.isClosed(version) && !version.isDefunct()) { %>
