@@ -75,12 +75,12 @@ public final class Domains {
 
   private static boolean isCompleteToBase(DomainVersion version, Domain domain) throws IOException {
 
-    if (!DomainVersions.isClosed(version) || version.isDefunct()) {
+    if (!DomainVersions.isClosed(version)) {
       return false;
     }
 
     if (isBase(version)) {
-      return true;
+      return !version.isDefunct();
     }
 
     //  TODO is there ever going to be a different impl of props?
