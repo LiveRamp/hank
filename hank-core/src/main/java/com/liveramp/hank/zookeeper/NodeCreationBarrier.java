@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 
 public class NodeCreationBarrier implements Watcher {
 
@@ -12,19 +11,19 @@ public class NodeCreationBarrier implements Watcher {
 
   private boolean waiting = true;
   private final String nodePath;
-  private final ZooKeeper zk;
+  private final ZooKeeperPlus zk;
 
   // Will block until specified node is created or connection is lost
-  public static void block(ZooKeeper zk, String nodePath) throws InterruptedException, KeeperException {
+  public static void block(ZooKeeperPlus zk, String nodePath) throws InterruptedException, KeeperException {
     new NodeCreationBarrier(zk, nodePath).block();
   }
 
   // Will block until specified node is created or connection is lost or timeout is exceeded
-  public static void block(ZooKeeper zk, String nodePath, int timeoutMS) throws InterruptedException, KeeperException {
+  public static void block(ZooKeeperPlus zk, String nodePath, int timeoutMS) throws InterruptedException, KeeperException {
     new NodeCreationBarrier(zk, nodePath).block(timeoutMS);
   }
 
-  public NodeCreationBarrier(ZooKeeper zk, String nodePath) throws InterruptedException, KeeperException {
+  public NodeCreationBarrier(ZooKeeperPlus zk, String nodePath) throws InterruptedException, KeeperException {
     this.nodePath = nodePath;
     this.zk = zk;
   }
