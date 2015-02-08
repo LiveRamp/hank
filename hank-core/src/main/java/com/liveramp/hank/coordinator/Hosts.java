@@ -134,8 +134,8 @@ public final class Hosts {
             if (partition.getCurrentDomainVersion() == null ||
                 (!allowMoreRecentDomainVersions && partition.getCurrentDomainVersion() != domainAndVersion.getVersionNumber()) ||
                 (allowMoreRecentDomainVersions && (partition.getCurrentDomainVersion() < domainAndVersion.getVersionNumber()))) {
-              LOG.info("Host " + host + " is not up to date for domain " + domain + " and version " + domainAndVersion.getVersionNumber());
-              LOG.info("Host " + host + " has a partition on domain " + domain + " at version " + partition.getCurrentDomainVersion());
+              LOG.info("Host " + host.getAddress().getHostName() + " is not up to date for domain " + domain.getName() + " and version " + domainAndVersion.getVersionNumber());
+              LOG.info("Host " + host.getAddress().getHostName() + " has a partition on domain " + domain.getName() + " at version " + partition.getCurrentDomainVersion());
               return false;
             }
           }
