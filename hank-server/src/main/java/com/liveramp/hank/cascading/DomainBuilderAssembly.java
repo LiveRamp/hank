@@ -67,6 +67,7 @@ public class DomainBuilderAssembly extends SubAssembly {
                                String valueFieldName,
                                boolean shouldPartitionAndSortInput,
                                Integer partitionToBuild) {
+    super(outputPipe);
 
     Pipe partitionMarkersPipe = new Pipe(getPartitionMarkersPipeName(domainName));
 
