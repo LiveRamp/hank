@@ -18,6 +18,7 @@ package com.liveramp.hank.coordinator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -218,11 +219,11 @@ public final class RingGroups {
   /**
    * The set of hosts in {@param ring} that aren't up to date on the domains in {@param domainGroup}.
    */
-  public Set<Host> getHostsNotUpToDate(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
+  public static Set<Host> getHostsNotUpToDate(RingGroup ringGroup, Collection<DomainAndVersion> versions) throws IOException {
     Set<Host> outOfDateHosts = Sets.newHashSet();
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
-        if (!Hosts.isUpToDateOrMoreRecent(host, domainGroup.getDomainVersions())) {
+        if (!Hosts.isUpToDateOrMoreRecent(host, versions)) {
           outOfDateHosts.add(host);
         }
       }
