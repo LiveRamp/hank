@@ -23,8 +23,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -94,6 +96,20 @@ public final class Hosts {
     }
 
     return true;
+  }
+
+  /**
+   * The set of hosts in {@param ring} that aren't up to date on the domains in {@param group}.
+   */
+  public Set<Host> getHostsNotUpToDate(Ring ring, DomainGroup group) throws IOException {
+    Set<Host> outOfDateHosts = Sets.newHashSet();
+    for (Host host : ring.getHosts()) {
+      if (!allPartitionsUpToDate(host, group.getDomainVersions(), true)) {
+        outOfDateHosts.add(host);
+      }
+    }
+
+    return outOfDateHosts;
   }
 
   public static boolean isUpToDateOrMoreRecent(Host host, List<DomainAndVersion> domainVersions) throws IOException {
