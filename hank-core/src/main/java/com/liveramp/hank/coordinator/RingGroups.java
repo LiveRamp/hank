@@ -27,6 +27,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.google.common.collect.Sets;
+
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
 
@@ -211,5 +213,21 @@ public final class RingGroups {
     } else {
       return new FilesystemStatisticsAggregator();
     }
+  }
+
+  /**
+   * The set of hosts in {@param ring} that aren't up to date on the domains in {@param domainGroup}.
+   */
+  public Set<Host> getHostsNotUpToDate(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
+    Set<Host> outOfDateHosts = Sets.newHashSet();
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+        if (!Hosts.isUpToDateOrMoreRecent(host, domainGroup.getDomainVersions())) {
+          outOfDateHosts.add(host);
+        }
+      }
+    }
+
+    return outOfDateHosts;
   }
 }
