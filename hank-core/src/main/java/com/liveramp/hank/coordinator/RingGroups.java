@@ -18,6 +18,7 @@ package com.liveramp.hank.coordinator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +27,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import com.google.common.collect.Sets;
 
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
@@ -211,5 +214,21 @@ public final class RingGroups {
     } else {
       return new FilesystemStatisticsAggregator();
     }
+  }
+
+  /**
+   * The set of hosts in {@param ring} that aren't up to date on the domains in {@param domainGroup}.
+   */
+  public static Set<Host> getHostsNotUpToDate(RingGroup ringGroup, Collection<DomainAndVersion> versions) throws IOException {
+    Set<Host> outOfDateHosts = Sets.newHashSet();
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+        if (!Hosts.isUpToDateOrMoreRecent(host, versions)) {
+          outOfDateHosts.add(host);
+        }
+      }
+    }
+
+    return outOfDateHosts;
   }
 }

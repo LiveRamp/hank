@@ -96,7 +96,7 @@ public final class Hosts {
     return true;
   }
 
-  public static boolean isUpToDateOrMoreRecent(Host host, List<DomainAndVersion> domainVersions) throws IOException {
+  public static boolean isUpToDateOrMoreRecent(Host host, Collection<DomainAndVersion> domainVersions) throws IOException {
     if (!allPartitionsUpToDate(host, domainVersions, true)) {
       return false;
     }
