@@ -16,6 +16,10 @@
 
 package com.liveramp.hank.hadoop.test;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
@@ -27,11 +31,8 @@ import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.hadoop.DomainBuilderProperties;
 import com.liveramp.hank.partitioner.Partitioner;
+import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.map.MapStorageEngine;
-
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 // Configuration used for testing.
 public class MapStorageEngineCoordinator extends MockCoordinator {
@@ -71,7 +72,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
         this.numPartitions,
         new ModPartitioner(),
         new MapStorageEngine(domainName),
-        domainOptions, new MockDomainVersion(0, null));
+        domainOptions, new MockDomainVersion(0, 0l, new IncrementalDomainVersionProperties(null)));
   }
 
   static public CoordinatorConfigurator getConfigurator(int numPartitions) {
