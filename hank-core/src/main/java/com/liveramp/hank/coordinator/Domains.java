@@ -73,6 +73,10 @@ public final class Domains {
     return null;
   }
 
+  public static boolean hasOpenDelta(Domain domain) throws IOException {
+    return !isCompleteToBase(getLatestVersion(domain), domain);
+  }
+
   private static boolean isCompleteToBase(DomainVersion version, Domain domain) throws IOException {
 
     if (!DomainVersions.isClosed(version)) {
