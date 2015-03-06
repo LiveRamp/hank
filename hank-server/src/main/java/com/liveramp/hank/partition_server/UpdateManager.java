@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Domain;
@@ -62,7 +62,7 @@ public class UpdateManager implements IUpdateManager {
   private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE = 10;
   private static final TimeUnit UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
-  private static final Logger LOG = Logger.getLogger(UpdateManager.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpdateManager.class);
 
   private final class PartitionUpdateTaskStatisticsAggregator {
 
@@ -243,7 +243,7 @@ public class UpdateManager implements IUpdateManager {
               domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
         }
       } catch (Throwable t) {
-        LOG.fatal(String.format("Failed to complete partition update of domain %s partition %d.",
+        LOG.error(String.format("Failed to complete partition update of domain %s partition %d.",
             domain.getName(), partition.getPartitionNumber()), t);
         encounteredThrowables.add(t);
       } finally {
@@ -423,10 +423,10 @@ public class UpdateManager implements IUpdateManager {
 
       // Detect failures
       if (!encounteredThrowables.isEmpty()) {
-        LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", encounteredThrowables.size()));
+        LOG.error(String.format("%d exceptions encountered while running partition update tasks:", encounteredThrowables.size()));
         int i = 0;
         for (Throwable t : encounteredThrowables) {
-          LOG.fatal(String.format("Exception %d/%d:", ++i, encounteredThrowables.size()), t);
+          LOG.error(String.format("Exception %d/%d:", ++i, encounteredThrowables.size()), t);
         }
         throw new IOException(String.format(
             "Failed to complete update: %d exceptions encountered while running partition update tasks.",

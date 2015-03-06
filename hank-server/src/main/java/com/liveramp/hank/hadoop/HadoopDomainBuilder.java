@@ -24,7 +24,7 @@ import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
@@ -33,7 +33,7 @@ import com.liveramp.hank.util.CommandLineChecker;
 
 public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
 
-  private static final Logger LOG = Logger.getLogger(HadoopDomainBuilder.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HadoopDomainBuilder.class);
 
   private final String inputPath;
   private final Class<? extends InputFormat> inputFormatClass;

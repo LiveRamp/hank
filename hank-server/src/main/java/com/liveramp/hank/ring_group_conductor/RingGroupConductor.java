@@ -17,7 +17,7 @@ package com.liveramp.hank.ring_group_conductor;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
@@ -29,7 +29,7 @@ import com.liveramp.hank.util.CommandLineChecker;
 
 public class RingGroupConductor {
 
-  private static final Logger LOG = Logger.getLogger(RingGroupConductor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RingGroupConductor.class);
 
   private final RingGroupConductorConfigurator configurator;
   private final String ringGroupName;
@@ -89,7 +89,7 @@ public class RingGroupConductor {
         LOG.info("Attempted to claim Ring Group Conductor status, but there was already a lock in place!");
       }
     } catch (Throwable t) {
-      LOG.fatal("unexpected exception!", t);
+      LOG.error("unexpected exception!", t);
     } finally {
       releaseIfClaimed();
     }

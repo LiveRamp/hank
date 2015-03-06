@@ -29,7 +29,7 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Before;
@@ -49,7 +49,7 @@ import static org.junit.Assert.assertTrue;
 
 public class TestHostConnectionPool extends BaseTestCase {
 
-  private static final Logger LOG = Logger.getLogger(TestHostConnectionPool.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestHostConnectionPool.class);
 
   private static final ByteBuffer KEY_1 = ByteBuffer.wrap("1".getBytes());
   private static final HankResponse RESPONSE_1 = HankResponse.value(KEY_1);

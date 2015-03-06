@@ -22,7 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
@@ -51,7 +51,7 @@ import static org.junit.Assert.fail;
 
 public class TestHostConnection extends BaseTestCase {
 
-  private static final Logger LOG = Logger.getLogger(TestHostConnection.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestHostConnection.class);
 
   private static final PartitionServerAddress partitionServerAddress = new PartitionServerAddress("localhost", 50004);
 

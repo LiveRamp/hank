@@ -27,7 +27,7 @@ import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.List;
 
 public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
 
-  private static final Logger LOG = Logger.getLogger(CurlyFastPartitionUpdater.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CurlyFastPartitionUpdater.class);
 
   private final int keyHashSize;
   private final int offsetNumBytes;

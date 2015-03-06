@@ -25,7 +25,7 @@ import com.liveramp.hank.storage.PartitionUpdater;
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +34,7 @@ import java.util.UUID;
 
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater, CloseCoordinatorOpportunistically {
 
-  private static final Logger LOG = Logger.getLogger(IncrementalPartitionUpdater.class);
+  private static final Logger LOG = LoggerFactory.getLogger(IncrementalPartitionUpdater.class);
 
   public static final String FETCH_ROOT_PREFIX = "_fetch_";
   public static final String UPDATE_WORK_ROOT_PREFIX = "_update_work_";

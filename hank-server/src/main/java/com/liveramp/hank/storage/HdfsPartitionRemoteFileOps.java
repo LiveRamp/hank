@@ -27,14 +27,14 @@ import java.util.zip.GZIPOutputStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.cascading_ext.fs.TrashHelper;
 import com.liveramp.hank.util.IOStreamUtils;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
-  private static Logger LOG = Logger.getLogger(HdfsPartitionRemoteFileOps.class);
+  private static Logger LOG = LoggerFactory.getLogger(HdfsPartitionRemoteFileOps.class);
   private final boolean useTrash;
 
   public static enum CompressionCodec {

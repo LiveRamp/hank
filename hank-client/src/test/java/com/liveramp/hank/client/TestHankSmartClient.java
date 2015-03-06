@@ -41,7 +41,7 @@ import com.liveramp.hank.test.coordinator.MockRingGroup;
 import com.liveramp.hank.test.partitioner.MapPartitioner;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
@@ -67,7 +67,7 @@ import static org.junit.Assert.fail;
 
 public class TestHankSmartClient extends BaseTestCase {
 
-  private static final Logger LOG = Logger.getLogger(TestHankSmartClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestHankSmartClient.class);
 
   private static class ServerRunnable implements Runnable {
     private final TServer server;

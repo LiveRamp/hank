@@ -20,13 +20,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.storage.CacheStatistics;
 
 public class RuntimeStatisticsAggregator {
 
-  private static Logger LOG = Logger.getLogger(RuntimeStatisticsAggregator.class);
+  private static Logger LOG = LoggerFactory.getLogger(RuntimeStatisticsAggregator.class);
 
   private double throughputTotal;
   private double responseDataThroughputTotal;

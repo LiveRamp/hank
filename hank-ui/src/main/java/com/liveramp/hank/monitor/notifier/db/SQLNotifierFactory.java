@@ -3,12 +3,12 @@ package com.liveramp.hank.monitor.notifier.db;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.monitor.notifier.AbstractNotifierFactory;
 import com.liveramp.hank.monitor.notifier.NotifierFactory;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 public class SQLNotifierFactory extends AbstractNotifierFactory implements NotifierFactory {
-  private static Logger LOG = Logger.getLogger(SQLNotifierFactory.class);
+  private static Logger LOG = LoggerFactory.getLogger(SQLNotifierFactory.class);
 
   protected static final String DRIVER = "driver";
   protected static final String CONNECTION_URL = "connection_url";

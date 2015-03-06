@@ -29,7 +29,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -91,7 +91,7 @@ public abstract class DomainBuilderAbstractOutputFormat
   // Base class of record writers used to build domains.
   protected abstract static class DomainBuilderRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
 
-    private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
+    private Logger LOG = LoggerFactory.getLogger(DomainBuilderRecordWriter.class);
 
     private final JobConf jobConf;
     private final CoordinatorConfigurator configurator;

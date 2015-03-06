@@ -18,14 +18,14 @@ package com.liveramp.hank.client;
 
 import java.util.concurrent.FutureTask;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 
 public class FutureGet extends FutureTask<Object> {
 
-  private static final Logger LOG = Logger.getLogger(FutureGet.class);
+  private static final Logger LOG = LoggerFactory.getLogger(FutureGet.class);
 
   GetTaskRunnableIface runnable;
 

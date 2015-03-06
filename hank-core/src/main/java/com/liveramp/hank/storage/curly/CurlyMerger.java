@@ -17,7 +17,7 @@ package com.liveramp.hank.storage.curly;
 
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.util.IOStreamUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,7 +27,7 @@ import java.util.List;
 
 public class CurlyMerger implements ICurlyMerger {
 
-  private static final Logger LOG = Logger.getLogger(CurlyMerger.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CurlyMerger.class);
 
   @Override
   public long[] merge(final CurlyFilePath base,

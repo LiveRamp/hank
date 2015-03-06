@@ -25,7 +25,7 @@ import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdater;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
 import com.liveramp.hank.util.HankTimer;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,7 @@ import java.util.*;
 
 public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
 
-  private static final Logger LOG = Logger.getLogger(CueballPartitionUpdater.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CueballPartitionUpdater.class);
 
   private final PartitionRemoteFileOps partitionRemoteFileOps;
   private final int keyHashSize;

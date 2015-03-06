@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -60,7 +60,7 @@ import static com.liveramp.hank.util.LocalHostUtils.getHostName;
 
 public class PartitionServer implements HostCommandQueueChangeListener, WatchedNodeListener<HostCommand> {
 
-  private static final Logger LOG = Logger.getLogger(PartitionServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PartitionServer.class);
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
   private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 2 * 60 * 1000;
 
@@ -383,19 +383,19 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
           updateManager.update();
           LOG.info("Update succeeded.");
         } catch (Throwable e) {
-          LOG.fatal("Update failed. Updater encountered a fatal error:", e);
+          LOG.error("Update failed. Updater encountered a fatal error:", e);
         }
         // Go back to IDLE even in case of failure
         try {
           setStateSynchronized(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
         } catch (IOException e) {
-          LOG.fatal("Failed to record state change.", e);
+          LOG.error("Failed to record state change.", e);
         }
         // Move on to next command
         try {
           nextCommandSynchronized(); // In case of exception, server will stop and state will be coherent.
         } catch (IOException e) {
-          LOG.fatal("Failed to move on to next command.", e);
+          LOG.error("Failed to move on to next command.", e);
         }
         // Signal that update thread is done.
         updateThread = null;
@@ -458,7 +458,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
           startThriftServer();
         } catch (Throwable t) {
           // Data server is probably going down unexpectedly, stop the partition server
-          LOG.fatal("Data server thread encountered a fatal throwable and is stopping.", t);
+          LOG.error("Data server thread encountered a fatal throwable and is stopping.", t);
           // Stop waiting for data server
           waitForDataServer = false;
           // Stop partition server main thread

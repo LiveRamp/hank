@@ -1,14 +1,5 @@
 package com.liveramp.hank.loadtest;
 
-import com.liveramp.hank.client.HankSmartClient;
-import com.liveramp.hank.client.HankSmartClientOptions;
-import com.liveramp.hank.config.ClientConfigurator;
-import com.liveramp.hank.config.yaml.YamlClientConfigurator;
-import com.liveramp.hank.generated.HankResponse;
-import com.liveramp.hank.util.CommandLineChecker;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +7,20 @@ import java.util.Random;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.log4j.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.liveramp.hank.client.HankSmartClient;
+import com.liveramp.hank.client.HankSmartClientOptions;
+import com.liveramp.hank.config.ClientConfigurator;
+import com.liveramp.hank.config.yaml.YamlClientConfigurator;
+import com.liveramp.hank.generated.HankResponse;
+import com.liveramp.hank.util.CommandLineChecker;
+
 public class RandomSaturator {
 
-  private static final Logger LOG = Logger.getLogger(RandomSaturator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RandomSaturator.class);
 
   public static class LoadThread extends Thread {
     private final HankSmartClient client;
@@ -91,7 +93,7 @@ public class RandomSaturator {
         "bulk query timeout ms"};
     CommandLineChecker.check(args, expectedArguments, RandomSaturator.class);
 
-    Logger.getLogger("org.apache.zookeeper").setLevel(Level.ERROR);
+    org.apache.log4j.Logger.getLogger("org.apache.zookeeper").setLevel(Level.ERROR);
 
     // parse opts
     ClientConfigurator configurator = new YamlClientConfigurator(args[0]);

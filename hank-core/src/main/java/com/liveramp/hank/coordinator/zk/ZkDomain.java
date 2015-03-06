@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.yaml.snakeyaml.Yaml;
@@ -30,7 +30,7 @@ import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomain extends AbstractDomain implements Domain {
 
-  private static final Logger LOG = Logger.getLogger(ZkDomain.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ZkDomain.class);
 
   protected static final String VERSIONS_PATH = "v";
 

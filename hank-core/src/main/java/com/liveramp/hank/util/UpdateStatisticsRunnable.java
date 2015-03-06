@@ -16,14 +16,14 @@
 
 package com.liveramp.hank.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class UpdateStatisticsRunnable implements Runnable {
 
-  private static final Logger LOG = Logger.getLogger(UpdateStatisticsRunnable.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpdateStatisticsRunnable.class);
 
   private final AtomicBoolean cancelled = new AtomicBoolean(false);
   private final int updateStatisticsThreadSleepTimeMS;

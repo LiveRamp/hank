@@ -30,6 +30,15 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.log4j.Level;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
@@ -71,13 +80,6 @@ import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
@@ -133,7 +135,7 @@ public class IntegrationTest extends ZkTestCase {
         daemon = new RingGroupConductor(configurator);
         daemon.run();
       } catch (Exception e) {
-        LOG.fatal("crap, some exception", e);
+        LOG.error("crap, some exception", e);
       }
     }
 
@@ -181,7 +183,7 @@ public class IntegrationTest extends ZkTestCase {
         server = new PartitionServer(configurator, "localhost");
         server.run();
       } catch (Throwable t) {
-        LOG.fatal("crap, some exception...", t);
+        LOG.error("crap, some exception...", t);
         throwable = t;
       }
     }
@@ -191,7 +193,7 @@ public class IntegrationTest extends ZkTestCase {
     }
   }
 
-  private static final Logger LOG = Logger.getLogger(IntegrationTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
   private final String DOMAIN_0_DATAFILES = localTmpDir + "/domain0_datafiles";
   private final String DOMAIN_1_DATAFILES = localTmpDir + "/domain1_datafiles";
 
@@ -208,9 +210,9 @@ public class IntegrationTest extends ZkTestCase {
 
   @Test
   public void testItAll() throws Throwable {
-    Logger.getLogger("com.liveramp.hank.coordinator.zk").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("com.liveramp.hank.coordinator.zk").setLevel(Level.INFO);
     // Logger.getLogger("com.liveramp.hank.partition_server").setLevel(Level.INFO);
-    Logger.getLogger("com.liveramp.hank.storage").setLevel(Level.TRACE);
+    org.apache.log4j.Logger.getLogger("com.liveramp.hank.storage").setLevel(Level.TRACE);
     create(domainsRoot);
     create(domainGroupsRoot);
     create(ringGroupsRoot);

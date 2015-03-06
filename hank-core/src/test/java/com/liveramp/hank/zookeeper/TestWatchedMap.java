@@ -1,22 +1,21 @@
 package com.liveramp.hank.zookeeper;
 
-import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
-import com.liveramp.hank.zookeeper.WatchedMap.CompletionAwaiter;
-import com.liveramp.hank.zookeeper.WatchedMap.CompletionDetector;
-import com.liveramp.hank.zookeeper.WatchedMap.ElementLoader;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.liveramp.hank.test.ZkTestCase;
+import com.liveramp.hank.util.Condition;
+import com.liveramp.hank.util.WaitUntil;
+import com.liveramp.hank.zookeeper.WatchedMap.CompletionAwaiter;
+import com.liveramp.hank.zookeeper.WatchedMap.CompletionDetector;
+import com.liveramp.hank.zookeeper.WatchedMap.ElementLoader;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -35,7 +34,6 @@ public class TestWatchedMap extends ZkTestCase {
 
   @Test
   public void testIt() throws Exception {
-    Logger.getLogger("org.apache.zookeeper").setLevel(Level.ALL);
 
     final ZooKeeperPlus zk = getZk();
     final String colRoot = ZkPath.append(getRoot(), "collection");

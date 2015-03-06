@@ -24,7 +24,7 @@ import com.liveramp.hank.monitor.notification.StringNotification;
 import com.liveramp.hank.monitor.notifier.Notification;
 import com.liveramp.hank.monitor.notifier.Notifier;
 import com.liveramp.hank.util.LocalHostUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -34,7 +34,7 @@ import java.util.List;
 
 public class Monitor {
 
-  private static final Logger LOG = Logger.getLogger(Monitor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Monitor.class);
 
   private final List<Notifier> globalNotifiers;
   private final List<Notifier> ringGroupNotifiers = new ArrayList<Notifier>();

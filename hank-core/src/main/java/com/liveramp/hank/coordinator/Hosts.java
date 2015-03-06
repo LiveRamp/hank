@@ -26,13 +26,13 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
 
 public final class Hosts {
-  private static final Logger LOG = Logger.getLogger(Hosts.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Hosts.class);
 
   public static final String ALL_FLAGS_EXPRESSION = "*";
 

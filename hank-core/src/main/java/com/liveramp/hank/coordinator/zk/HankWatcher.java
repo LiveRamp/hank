@@ -1,6 +1,6 @@
 package com.liveramp.hank.coordinator.zk;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -20,7 +20,7 @@ import org.apache.zookeeper.Watcher;
  * notifications and watch-setting.
  */
 abstract class HankWatcher implements Watcher {
-  private static final Logger LOG = Logger.getLogger(HankWatcher.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HankWatcher.class);
 
   private boolean cancelled = false;
 

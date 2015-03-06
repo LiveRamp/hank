@@ -19,7 +19,7 @@ package com.liveramp.hank.monitor.notifier.email;
 import com.liveramp.hank.monitor.notification.NotificationFormatter;
 import com.liveramp.hank.monitor.notifier.Notification;
 import com.liveramp.hank.monitor.notifier.Notifier;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -35,7 +35,7 @@ import java.util.Set;
 
 public class EmailSummaryNotifier implements Notifier {
 
-  private static final Logger LOG = Logger.getLogger(EmailSummaryNotifier.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EmailSummaryNotifier.class);
   private static final int EMAIL_SUMMARY_FREQUENCY = 60 * 1000; // 1 minute in ms
 
   private final String name;

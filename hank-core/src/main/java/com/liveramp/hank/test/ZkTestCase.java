@@ -15,26 +15,6 @@
  */
 package com.liveramp.hank.test;
 
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
-import com.liveramp.hank.zookeeper.ZkPath;
-import com.liveramp.hank.zookeeper.ZooKeeperPlus;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.ZooKeeper.States;
-import org.apache.zookeeper.server.NIOServerCnxnFactory;
-import org.apache.zookeeper.server.ZooKeeperServer;
-import org.junit.After;
-import org.junit.Before;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -47,11 +27,32 @@ import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper.States;
+import org.apache.zookeeper.server.NIOServerCnxnFactory;
+import org.apache.zookeeper.server.ZooKeeperServer;
+import org.junit.After;
+import org.junit.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.liveramp.hank.util.Condition;
+import com.liveramp.hank.util.WaitUntil;
+import com.liveramp.hank.zookeeper.ZkPath;
+import com.liveramp.hank.zookeeper.ZooKeeperPlus;
+
 import static org.junit.Assert.fail;
 
 public abstract class ZkTestCase extends BaseTestCase {
 
-  private static final Logger LOG = Logger.getLogger(ZkTestCase.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ZkTestCase.class);
 
   private static final int TICK_TIME = 2000;
   private static final int CONNECTION_TIMEOUT = 30000;
@@ -105,7 +106,6 @@ public abstract class ZkTestCase extends BaseTestCase {
 
   @Before
   public final void setUpZk() throws Exception {
-    Logger.getLogger("org.apache.zookeeper").setLevel(Level.WARN);
 
     setupZkServer();
 

@@ -29,6 +29,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -48,14 +51,13 @@ import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
-import org.apache.log4j.Logger;
 
 /**
  * Implements the actual data serving logic of the PartitionServer
  */
 public class PartitionServerHandler implements IfaceWithShutdown {
 
-  private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
+  private final static Logger LOG = LoggerFactory.getLogger(PartitionServerHandler.class);
 
   private final Host host;
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
@@ -264,7 +266,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       return bulkResponse;
     } catch (Throwable t) {
       String errMsg = "Throwable during GET BULK";
-      LOG.fatal(errMsg, t);
+      LOG.error(errMsg, t);
       return HankBulkResponse.xception(
           HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
     }
@@ -286,7 +288,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
           HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
     } catch (Throwable t) {
       String errMsg = "Throwable during GET";
-      LOG.fatal(errMsg, t);
+      LOG.error(errMsg, t);
       return HankResponse.xception(
           HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
     }

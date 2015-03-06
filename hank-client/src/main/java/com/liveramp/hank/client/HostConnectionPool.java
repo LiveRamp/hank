@@ -22,7 +22,7 @@ import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -63,7 +63,7 @@ import java.util.*;
  */
 public class HostConnectionPool {
 
-  private static Logger LOG = Logger.getLogger(HostConnectionPool.class);
+  private static Logger LOG = LoggerFactory.getLogger(HostConnectionPool.class);
 
   private ArrayList<List<HostConnectionAndHostIndex>> hostToConnections
       = new ArrayList<List<HostConnectionAndHostIndex>>();
