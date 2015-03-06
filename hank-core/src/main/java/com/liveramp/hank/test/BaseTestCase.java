@@ -15,22 +15,22 @@
  */
 package com.liveramp.hank.test;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.log4j.Level;
+import org.junit.Before;
+
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostCommand;
 import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.FsUtils;
 import com.liveramp.hank.util.WaitUntil;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.junit.Before;
-
-import java.io.File;
-import java.io.IOException;
 
 public abstract class BaseTestCase {
   static {
-    Logger.getRootLogger().setLevel(Level.ALL);
+    org.apache.log4j.Logger.getRootLogger().setLevel(Level.ALL);
   }
 
   protected final String localTmpDir = System.getProperty("tmpDir", "/tmp/hank_local_file_system");
