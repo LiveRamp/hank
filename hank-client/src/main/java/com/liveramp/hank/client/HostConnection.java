@@ -22,7 +22,7 @@ import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.generated.PartitionServer;
 import com.liveramp.hank.zookeeper.WatchedNodeListener;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -39,7 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class HostConnection implements WatchedNodeListener<HostState> {
 
-  private static final Logger LOG = Logger.getLogger(HostConnection.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HostConnection.class);
 
   private final int tryLockTimeoutMs;
   private final int establishConnectionTimeoutMs;

@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainAndVersion;
@@ -39,7 +39,7 @@ import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 
 public abstract class AbstractMappingPartitionAssigner implements PartitionAssigner {
 
-  private static final Logger LOG = Logger.getLogger(AbstractMappingPartitionAssigner.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractMappingPartitionAssigner.class);
 
   private Set<DomainAndVersion> domainVersions;
   private RingGroupConductorMode ringGroupConductorMode;

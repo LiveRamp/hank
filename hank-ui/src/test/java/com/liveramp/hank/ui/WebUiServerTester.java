@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.junit.Test;
 
@@ -60,7 +59,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
   @Test
   public void testIt() throws Exception {
-    Logger.getLogger("com.liveramp.hank.zookeeper").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("com.liveramp.hank.zookeeper").setLevel(Level.INFO);
 
     final SmartClient.Iface mockClient = new SmartClient.Iface() {
       private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>() {

@@ -24,7 +24,7 @@ import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.HankTimerEventAggregator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,7 +36,7 @@ public class DomainAccessor {
 
   private static final HankResponse WRONG_HOST = HankResponse.xception(HankException.wrong_host(true));
 
-  private static final Logger LOG = Logger.getLogger(DomainAccessor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DomainAccessor.class);
   private final HostDomain hostDomain;
   private final PartitionAccessor[] partitionAccessors;
   private final Partitioner partitioner;

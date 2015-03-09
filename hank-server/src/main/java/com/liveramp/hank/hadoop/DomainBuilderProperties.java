@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import cascading.flow.FlowProcess;
 
@@ -39,7 +39,7 @@ public class DomainBuilderProperties {
   private String randomTmpOutputPathId;
   private boolean shouldPartitionAndSortInput = true;
 
-  private static final Logger LOG = Logger.getLogger(DomainBuilderProperties.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DomainBuilderProperties.class);
 
   // With a default output format
   // Get output path from the Coordinator

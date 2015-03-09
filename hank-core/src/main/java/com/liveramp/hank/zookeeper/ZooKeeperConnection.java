@@ -18,7 +18,7 @@ package com.liveramp.hank.zookeeper;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
@@ -30,7 +30,7 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
  * subclasses to take action upon these three notable events.
  */
 public class ZooKeeperConnection implements Watcher {
-  private static final Logger LOG = Logger.getLogger(ZooKeeperConnection.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ZooKeeperConnection.class);
 
   public static final int DEFAULT_SESSION_TIMEOUT = 30000;
   public static final int DEFAULT_MAX_ATTEMPTS = 5;
@@ -93,7 +93,7 @@ public class ZooKeeperConnection implements Watcher {
       connect(maxConnectAttempts);
     } catch (IOException e) {
       // If we can't connect, then die so that someone can reconfigure.
-      LOG.fatal("Failed to connect to the ZooKeeper service", e);
+      LOG.error("Failed to connect to the ZooKeeper service", e);
       throw new RuntimeException(e);
     }
     connectedSignal.await();
@@ -173,7 +173,7 @@ public class ZooKeeperConnection implements Watcher {
             LOG.info("Attempting ZooKeeper reconnect");
             connect(maxConnectAttempts);
           } catch (IOException e) {
-            LOG.fatal("Failed to connect to the ZooKeeper service", e);
+            LOG.error("Failed to connect to the ZooKeeper service", e);
             throw new RuntimeException("Couldn't connect to the ZooKeeper service", e);
           }
           break;

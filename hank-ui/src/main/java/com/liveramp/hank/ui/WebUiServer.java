@@ -5,7 +5,7 @@ import java.net.URL;
 import java.util.EnumSet;
 
 import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -28,7 +28,7 @@ import com.liveramp.hank.util.CommandLineChecker;
 
 public class WebUiServer {
   @SuppressWarnings("unused")
-  private static final Logger LOG = Logger.getLogger(WebUiServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WebUiServer.class);
 
   private final Coordinator coordinator;
   private final int port;
@@ -86,7 +86,7 @@ public class WebUiServer {
   public static void main(String[] args) throws Exception {
     CommandLineChecker.check(args, new String[]{"web_ui_configuration_file_path", "monitor_configuration_file_path",
         "port"}, WebUiServer.class);
-    Logger.getLogger("com.liveramp.hank").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("com.liveramp.hank").setLevel(Level.INFO);
     String clientConfigPath = args[0];
     String monitorConfigPath = args[1];
     int port = Integer.parseInt(args[2]);

@@ -32,13 +32,13 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileOutputCommitter;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobContext;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.cascading_ext.fs.TrashHelper;
 
 public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
-  private static final Logger LOG = Logger.getLogger(DomainBuilderOutputCommitter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DomainBuilderOutputCommitter.class);
 
   // TODO: Make these configurable
   private static final int N_THREADS = 10;

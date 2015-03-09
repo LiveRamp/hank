@@ -19,7 +19,7 @@ package com.liveramp.hank.partition_server;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.coordinator.HostDomainPartition;
 import com.liveramp.hank.generated.HankResponse;
@@ -36,7 +36,7 @@ import com.liveramp.hank.util.HankTimer;
 public class PartitionAccessor {
 
   private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
-  private static final Logger LOG = Logger.getLogger(PartitionAccessor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PartitionAccessor.class);
 
   private final HostDomainPartition partition;
   private final Reader reader;

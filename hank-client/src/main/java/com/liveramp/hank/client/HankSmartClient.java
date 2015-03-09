@@ -27,7 +27,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 
 import com.liveramp.commons.util.BytesUtils;
@@ -72,7 +72,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private static final int UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS = 3;
   private static final long UPDATE_RUNTIME_STATISTICS_MEASUREMENT_SLEEP_TIME_MS = 1000;
 
-  private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HankSmartClient.class);
 
   private final RingGroup ringGroup;
   private final Coordinator coordinator;

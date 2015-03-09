@@ -17,11 +17,11 @@
 package com.liveramp.hank.util;
 
 import com.liveramp.hank.partition_server.DoublePopulationStatisticsAggregator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 public class HankTimerEventAggregator {
 
-  private static Logger LOG = Logger.getLogger(HankTimerEventAggregator.class);
+  private static Logger LOG = LoggerFactory.getLogger(HankTimerEventAggregator.class);
 
   private final String name;
   private double[] durations;

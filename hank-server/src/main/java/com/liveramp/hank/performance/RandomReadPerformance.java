@@ -19,7 +19,7 @@ package com.liveramp.hank.performance;
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.HankTimerEventAggregator;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,7 +31,7 @@ import java.util.Random;
 
 public class RandomReadPerformance {
 
-  private static final Logger LOG = Logger.getLogger(RandomReadPerformance.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RandomReadPerformance.class);
 
   private static final int NUM_RANDOM_READS = 8 << 10;
   private static final int NUM_RANDOM_READ_THREADS = 8;

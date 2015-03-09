@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
@@ -53,7 +53,7 @@ import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator {
 
   private static final String KEY_DOMAIN_ID_COUNTER = ".domain_id_counter";
-  private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ZooKeeperCoordinator.class);
 
   /**
    * Used to instantiate a ZooKeeperCoordinator generically.

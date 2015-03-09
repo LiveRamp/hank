@@ -20,14 +20,14 @@ import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.util.CommandLineChecker;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 
 public class MigrationHelper {
 
-  private static Logger LOG = Logger.getLogger(MigrationHelper.class);
+  private static Logger LOG = LoggerFactory.getLogger(MigrationHelper.class);
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException, InterruptedException, KeeperException {
     CommandLineChecker.check(args, new String[]{"configuration"},

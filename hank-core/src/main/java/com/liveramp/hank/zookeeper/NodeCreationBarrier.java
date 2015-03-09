@@ -1,13 +1,13 @@
 package com.liveramp.hank.zookeeper;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
 public class NodeCreationBarrier implements Watcher {
 
-  private static final Logger LOG = Logger.getLogger(NodeCreationBarrier.class);
+  private static final Logger LOG = LoggerFactory.getLogger(NodeCreationBarrier.class);
 
   private boolean waiting = true;
   private final String nodePath;

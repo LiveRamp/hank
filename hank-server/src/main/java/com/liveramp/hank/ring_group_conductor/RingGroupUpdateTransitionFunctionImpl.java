@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainAndVersion;
@@ -39,7 +39,7 @@ import com.liveramp.hank.partition_assigner.PartitionAssigner;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
-  private static Logger LOG = Logger.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
+  private static Logger LOG = LoggerFactory.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
 
   private final PartitionAssigner partitionAssigner;
   private final int minRingFullyServingObservations;

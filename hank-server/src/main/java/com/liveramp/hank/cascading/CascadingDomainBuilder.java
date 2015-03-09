@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import cascading.cascade.Cascades;
 import cascading.flow.Flow;
@@ -36,7 +36,7 @@ import com.liveramp.hank.hadoop.DomainVersionNumberAndNumPartitions;
 
 public class CascadingDomainBuilder {
 
-  private final static Logger LOG = Logger.getLogger(CascadingDomainBuilder.class);
+  private final static Logger LOG = LoggerFactory.getLogger(CascadingDomainBuilder.class);
 
   private Tap outputTap = null;
   private final DomainBuilderProperties properties;

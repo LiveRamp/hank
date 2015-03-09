@@ -15,12 +15,8 @@
  */
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.config.SmartClientDaemonConfigurator;
-import com.liveramp.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.liveramp.hank.coordinator.Coordinator;
-import com.liveramp.hank.generated.SmartClient;
-import com.liveramp.hank.util.CommandLineChecker;
-import org.apache.log4j.Logger;
+import java.io.IOException;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -28,15 +24,21 @@ import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import com.liveramp.hank.config.SmartClientDaemonConfigurator;
+import com.liveramp.hank.config.yaml.YamlSmartClientDaemonConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.generated.SmartClient;
+import com.liveramp.hank.util.CommandLineChecker;
 
 /**
  * Run a HankSmartClient inside a Thrift server so non-Java clients can
  * communicate with Hank.
  */
 public class SmartClientDaemon {
-  private static final Logger LOG = Logger.getLogger(SmartClientDaemon.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SmartClientDaemon.class);
 
   private final SmartClientDaemonConfigurator configurator;
   private final Coordinator coordinator;
@@ -96,7 +98,7 @@ public class SmartClientDaemon {
           serve();
         } catch (Throwable t) {
           serverReasonFailed = t;
-          LOG.fatal("Unexpected error in smart client server", t);
+          LOG.error("Unexpected error in smart client server", t);
         }
       }
     };

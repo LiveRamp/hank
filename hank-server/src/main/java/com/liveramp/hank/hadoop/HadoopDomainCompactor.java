@@ -45,7 +45,7 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -56,7 +56,7 @@ import java.util.UUID;
 
 public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
-  private static final Logger LOG = Logger.getLogger(HadoopDomainCompactor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HadoopDomainCompactor.class);
 
   public HadoopDomainCompactor() {
     super();

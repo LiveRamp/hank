@@ -16,14 +16,14 @@
 
 package com.liveramp.hank.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DurationAggregator {
 
-  private static Logger LOG = Logger.getLogger(DurationAggregator.class);
+  private static Logger LOG = LoggerFactory.getLogger(DurationAggregator.class);
 
   private final String name;
   private List<Long> durationsMs;

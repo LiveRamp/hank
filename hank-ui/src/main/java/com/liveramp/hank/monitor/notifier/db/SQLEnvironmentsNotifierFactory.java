@@ -4,13 +4,13 @@ import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.yaml.YamlConfigurator;
 import com.liveramp.hank.monitor.notifier.AbstractNotifierFactory;
 import com.liveramp.hank.monitor.notifier.NotifierFactory;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.util.Map;
 
 public class SQLEnvironmentsNotifierFactory extends AbstractNotifierFactory implements NotifierFactory {
-  private static Logger LOG = Logger.getLogger(SQLEnvironmentsNotifierFactory.class);
+  private static Logger LOG = LoggerFactory.getLogger(SQLEnvironmentsNotifierFactory.class);
 
   protected static final String ENVIRONMENT_CONFIG_FILE = "environment_config_file";
   protected static final String DATABASES_CONFIG_FILE = "database_config_file";

@@ -2,14 +2,14 @@ package com.liveramp.hank.monitor.notifier.db;
 
 import com.liveramp.hank.monitor.notifier.Notification;
 import com.liveramp.hank.monitor.notifier.Notifier;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class SQLNotifier implements Notifier {
-  private static Logger LOG = Logger.getLogger(SQLNotifier.class);
+  private static Logger LOG = LoggerFactory.getLogger(SQLNotifier.class);
 
   private Connection connection;
   private ISQLNotifierConfiguration configuration;

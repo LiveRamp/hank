@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -38,7 +38,7 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 
 public class WatchedMap<T> extends AbstractMap<String, T> {
 
-  private static final Logger LOG = Logger.getLogger(WatchedMap.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WatchedMap.class);
 
   private static final int NUM_CONCURRENT_COMPLETION_DETECTORS = 16;
   private static final int NUM_NEW_CHILDREN_CONCURRENT_DETECT_COMPLETION_THRESHOLD = 256;

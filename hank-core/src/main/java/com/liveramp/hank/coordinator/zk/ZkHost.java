@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -54,7 +54,7 @@ import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkHost extends AbstractHost {
 
-  private static final Logger LOG = Logger.getLogger(ZkHost.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ZkHost.class);
 
   private static final String STATE_PATH = "s";
   private static final String ASSIGNMENTS_PATH = "a";
@@ -156,7 +156,7 @@ public class ZkHost extends AbstractHost {
     @Override
     public void realProcess(WatchedEvent event) {
       if (LOG.isTraceEnabled()) {
-        LOG.trace(event);
+        LOG.trace("{}", event);
       }
       switch (event.getType()) {
         case NodeCreated:

@@ -17,7 +17,7 @@
 package com.liveramp.hank.zookeeper;
 
 import com.liveramp.hank.util.ExponentialBackoff;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -30,7 +30,7 @@ import java.util.Set;
 
 public abstract class WatchedNode<T> {
 
-  private static final Logger LOG = Logger.getLogger(WatchedNode.class);
+  private static final Logger LOG = LoggerFactory.getLogger(WatchedNode.class);
 
   private T value;
   private Long previousVersion = null;

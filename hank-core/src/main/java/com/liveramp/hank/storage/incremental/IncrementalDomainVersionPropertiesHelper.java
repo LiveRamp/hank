@@ -22,13 +22,13 @@ import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.util.CommandLineChecker;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class IncrementalDomainVersionPropertiesHelper {
 
-  private static Logger LOG = Logger.getLogger(IncrementalDomainVersionPropertiesHelper.class);
+  private static Logger LOG = LoggerFactory.getLogger(IncrementalDomainVersionPropertiesHelper.class);
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
     CommandLineChecker.check(args, new String[]{"configuration", "domain name", "domain version number",
