@@ -34,40 +34,33 @@
     </dependency>
 
     <!--prevent hadoop deps from being pulled in transitively, since they're provided by the platform and not everyone uses
-              CDH 4.1.2 -->
+              CDH 4.7.1 -->
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>2.0.0-mr1-cdh4.1.2</version>
+      <version>2.0.0-mr1-cdh4.7.1</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>2.0.0-cdh4.1.2</version>
+      <version>2.0.0-cdh4.7.1</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
-      <version>2.0.0-cdh4.1.2</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-minicluster</artifactId>
-      <version>2.0.0-cdh4.1.2</version>
+      <version>2.0.0-cdh4.7.1</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-test</artifactId>
-      <version>2.0.0-mr1-cdh4.1.2</version>
+      <version>2.0.0-mr1-cdh4.7.1</version>
       <scope>test</scope>
     </dependency>
 
