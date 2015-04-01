@@ -81,6 +81,11 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   }
 
   @Override
+  public long getUpdateFailureCooldown() {
+    return 0;
+  }
+
+  @Override
   public int getBufferReuseMaxSize() {
     return 0;
   }

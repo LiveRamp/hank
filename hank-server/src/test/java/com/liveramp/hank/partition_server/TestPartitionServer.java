@@ -15,6 +15,16 @@
  */
 package com.liveramp.hank.partition_server;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.thrift.TException;
+import org.apache.thrift.transport.TTransportException;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostCommand;
@@ -31,15 +41,6 @@ import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
-import org.apache.thrift.TException;
-import org.apache.thrift.transport.TTransportException;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

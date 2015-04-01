@@ -63,7 +63,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private static final Logger LOG = LoggerFactory.getLogger(PartitionServer.class);
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
   private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 2 * 60 * 1000;
-  private static final long UPDATE_FAILURE_COOLDOWN_MS = 5*60*1000; // 5 minute cooldown
 
   private static final int NUM_WARMUP_QUERIES_PER_THREAD = 100;
 
@@ -386,8 +385,12 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         } catch (Throwable e) {
           LOG.error("Update failed. Updater encountered a fatal error:", e);
           try {
-            LOG.error("Will retry update in "+UPDATE_FAILURE_COOLDOWN_MS+ "ms.");
-            Thread.sleep(UPDATE_FAILURE_COOLDOWN_MS);
+
+            long cooldown = configurator.getUpdateFailureCooldown();
+
+            LOG.error("Will retry update in "+cooldown+ "ms.");
+            Thread.sleep(cooldown);
+
           } catch (InterruptedException e1) {
             //  no op
           }

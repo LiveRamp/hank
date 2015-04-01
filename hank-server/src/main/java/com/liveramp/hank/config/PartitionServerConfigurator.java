@@ -34,5 +34,7 @@ public interface PartitionServerConfigurator extends CoordinatorConfigurator, Re
 
   public int getGetTimerAggregatorWindow();
 
+  public long getUpdateFailureCooldown();
+
   public ReaderConfigurator getReaderConfigurator(int numTotalPartitions);
 }
