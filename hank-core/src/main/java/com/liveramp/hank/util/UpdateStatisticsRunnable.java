@@ -16,10 +16,11 @@
 
 package com.liveramp.hank.util;
 
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class UpdateStatisticsRunnable implements Runnable {
 
@@ -40,7 +41,7 @@ public abstract class UpdateStatisticsRunnable implements Runnable {
       // Run
       try {
         runCore();
-      } catch (IOException e) {
+      } catch (Exception e) {
         LOG.error("Failed to update statistics", e);
       }
       // Sleep a given interval if not cancelled. Interrupt the thread to stop it while it is sleeping
