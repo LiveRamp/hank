@@ -17,11 +17,14 @@
 package com.liveramp.hank.coordinator;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.storage.RemoteDomainCleaner;
@@ -46,6 +49,25 @@ public final class Domains {
       total += DomainVersions.getTotalNumBytes(version);
     }
     return total;
+  }
+
+  public static DomainVersion getLatestDelta(Domain domain) throws IOException {
+    SortedSet<DomainVersion> versions = domain.getVersions();
+    if (versions == null || versions.size() == 0) {
+      return null;
+    } else {
+
+      ArrayList<DomainVersion> list = Lists.newArrayList(versions);
+      Collections.reverse(list);
+
+      for (DomainVersion version : list) {
+        if(!isBase(version)){
+          return version;
+        }
+      }
+
+      return null;
+    }
   }
 
   public static DomainVersion getLatestVersion(Domain domain) throws IOException {
@@ -74,7 +96,7 @@ public final class Domains {
   }
 
   public static boolean hasOpenDelta(Domain domain) throws IOException {
-    return !isCompleteToBase(getLatestVersion(domain), domain);
+    return !isCompleteToBase(getLatestDelta(domain), domain);
   }
 
   private static boolean isCompleteToBase(DomainVersion version, Domain domain) throws IOException {
