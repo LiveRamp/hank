@@ -101,6 +101,10 @@ public final class Domains {
 
   private static boolean isCompleteToBase(DomainVersion version, Domain domain) throws IOException {
 
+    if(version == null){
+      return true;
+    }
+
     if (!DomainVersions.isClosed(version)) {
       return false;
     }
