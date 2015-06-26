@@ -18,7 +18,9 @@ package com.liveramp.hank.test;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
 import org.junit.Before;
 
 import com.liveramp.hank.coordinator.Host;
@@ -29,11 +31,33 @@ import com.liveramp.hank.util.FsUtils;
 import com.liveramp.hank.util.WaitUntil;
 
 public abstract class BaseTestCase {
+
   static {
-    org.apache.log4j.Logger.getRootLogger().setLevel(Level.ALL);
+    // this prevents the default log4j.properties (hidden inside the hadoop jar)
+    // from being loaded automatically.
+    System.setProperty("log4j.defaultInitOverride", "true");
   }
 
   protected final String localTmpDir = System.getProperty("tmpDir", "/tmp/hank_local_file_system");
+
+  public BaseTestCase() {
+
+    org.apache.log4j.Logger rootLogger = org.apache.log4j.Logger.getRootLogger();
+
+    rootLogger.setLevel(Level.ALL);
+    org.apache.log4j.Logger.getLogger("org.apache.hadoop").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("cascading").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("org.eclipse.jetty").setLevel(Level.ERROR);
+
+    // Reconfigure the logger to ensure things are working
+
+    ConsoleAppender consoleAppender = new ConsoleAppender(new PatternLayout("%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n"), ConsoleAppender.SYSTEM_ERR);
+    consoleAppender.setName("test-console-appender");
+    consoleAppender.setFollow(true);
+
+    rootLogger.removeAppender("test-console-appender");
+    rootLogger.addAppender(consoleAppender);
+  }
 
   @Before
   public final void setUpBase() throws Exception {
