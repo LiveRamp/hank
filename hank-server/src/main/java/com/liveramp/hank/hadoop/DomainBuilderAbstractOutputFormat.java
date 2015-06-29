@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -29,8 +28,10 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -63,9 +64,8 @@ public abstract class DomainBuilderAbstractOutputFormat
       throws IOException {
     String outputPath = getJobOutputPath(conf);
 
-    if (fs == null) {
-      fs = FileSystem.get(new Configuration());
-    }
+    //  ignore filesystem coming
+    fs = FileSystemHelper.getFileSystemForPath(outputPath);
 
     if (fs.exists(new Path(outputPath))) {
       throw new RuntimeException("Output path already exists: " + outputPath);
