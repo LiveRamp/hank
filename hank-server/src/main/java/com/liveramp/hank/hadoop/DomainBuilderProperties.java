@@ -136,6 +136,10 @@ public class DomainBuilderProperties {
     if (numPartitions > numPartitionsPrevious) {
       properties.setProperty("mapred.reduce.tasks", String.valueOf(numPartitions));
     }
+
+    //  this fixes hank domain building on YARN
+    properties.setProperty("mapreduce.fileoutputcommitter.algorithm.version", "2");
+
     return properties;
   }
 
@@ -159,8 +163,13 @@ public class DomainBuilderProperties {
     conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_VERSION_NUMBER),
         Integer.toString(versionNumber));
+
+    //  this fixes hank domain building on YARN
+    conf.set("mapreduce.fileoutputcommitter.algorithm.version", "2");
+
     return conf;
   }
+
 
   // TODO: maybe refactor and move the flow process stuff to the cascading package
 
