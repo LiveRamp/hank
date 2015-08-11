@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
@@ -97,6 +98,11 @@ public final class Domains {
 
   public static boolean hasOpenDelta(Domain domain) throws IOException {
     return !isCompleteToBase(getLatestDelta(domain), domain);
+  }
+
+  public static Optional<DomainVersion> getLatestOpenDeltaIfExists(Domain domain) throws IOException {
+    final DomainVersion latestDelta = getLatestDelta(domain);
+    return hasOpenDelta(domain) ? Optional.fromNullable(latestDelta) : Optional.<DomainVersion>absent();
   }
 
   private static boolean isCompleteToBase(DomainVersion version, Domain domain) throws IOException {
