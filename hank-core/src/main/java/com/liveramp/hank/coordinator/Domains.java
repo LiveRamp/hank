@@ -101,7 +101,8 @@ public final class Domains {
   }
 
   public static boolean hasOpenDeltaAfterLastValidBase(Domain domain) throws IOException {
-    if (isBase(getLatestVersionNotOpenNotDefunct(domain))) {
+    final DomainVersion latestVersion = getLatestVersion(domain);
+    if (isCompleteToBase(latestVersion, domain)) {
       return false;
     } else {
       return hasOpenDelta(domain);
