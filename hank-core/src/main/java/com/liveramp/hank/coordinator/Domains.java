@@ -100,6 +100,14 @@ public final class Domains {
     return !isCompleteToBase(getLatestDelta(domain), domain);
   }
 
+  public static boolean hasOpenDeltaAfterLastValidBase(Domain domain) throws IOException {
+    if (isBase(getLatestVersionNotOpenNotDefunct(domain))) {
+      return false;
+    } else {
+      return hasOpenDelta(domain);
+    }
+  }
+
   public static Optional<DomainVersion> getLatestOpenDeltaIfExists(Domain domain) throws IOException {
     final DomainVersion latestDelta = getLatestDelta(domain);
     return hasOpenDelta(domain) ? Optional.fromNullable(latestDelta) : Optional.<DomainVersion>absent();
