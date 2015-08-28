@@ -1,12 +1,11 @@
 package com.liveramp.hank.client;
 
+import java.nio.ByteBuffer;
+import java.util.List;
+
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.generated.SmartClient;
-import org.apache.thrift.TException;
-
-import java.nio.ByteBuffer;
-import java.util.List;
 
 public interface HankSmartClientIface extends HankClientIface, SmartClient.Iface {
 

@@ -28,7 +28,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-import org.apache.thrift.TException;
 
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.config.HankSmartClientConfigurator;
@@ -123,7 +122,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   }
 
   public HankSmartClient(Coordinator coordinator,
-                         HankSmartClientConfigurator configurator) throws IOException, TException {
+                         HankSmartClientConfigurator configurator) throws IOException {
     this(coordinator, configurator.getRingGroupName(), new HankSmartClientOptions()
         .setNumConnectionsPerHost(configurator.getNumConnectionsPerHost())
         .setQueryMaxNumTries(configurator.getQueryNumMaxTries())
@@ -133,13 +132,13 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         .setBulkQueryTimeoutMs(configurator.getBulkQueryTimeoutMs()));
   }
 
-  public HankSmartClient(Coordinator coordinator, String ringGroupName) throws IOException, TException {
+  public HankSmartClient(Coordinator coordinator, String ringGroupName) throws IOException {
     this(coordinator, ringGroupName, new HankSmartClientOptions());
   }
 
   public HankSmartClient(Coordinator coordinator,
                          String ringGroupName,
-                         HankSmartClientOptions options) throws IOException, TException {
+                         HankSmartClientOptions options) throws IOException {
     this.coordinator = coordinator;
     ringGroup = coordinator.getRingGroup(ringGroupName);
 
@@ -190,7 +189,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     connectionCacheUpdaterThread.start();
   }
 
-  private void updateConnectionCache() throws IOException, TException {
+  private void updateConnectionCache() throws IOException {
     LOG.info(getLogPrefix() + "Loading Hank's smart client metadata cache and connections.");
 
     // Create new empty cache
@@ -272,7 +271,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private void buildNewConnectionCache(
       final Map<HostAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool,
       final Map<Integer, Map<Integer, HostConnectionPool>> newDomainToPartitionToConnectionPool)
-      throws IOException, TException {
+      throws IOException {
 
     final Map<Integer, Map<Integer, List<HostAddress>>> newDomainToPartitionToPartitionServerAddressList
         = new HashMap<Integer, Map<Integer, List<HostAddress>>>();

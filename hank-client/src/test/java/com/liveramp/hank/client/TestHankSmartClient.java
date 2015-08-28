@@ -15,6 +15,26 @@
  */
 package com.liveramp.hank.client;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TNonblockingServerTransport;
+import org.apache.thrift.transport.TTransportException;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainAndVersion;
@@ -41,25 +61,6 @@ import com.liveramp.hank.test.coordinator.MockRingGroup;
 import com.liveramp.hank.test.partitioner.MapPartitioner;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.THsHaServer.Args;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TNonblockingServerTransport;
-import org.apache.thrift.transport.TTransportException;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -103,7 +104,7 @@ public class TestHankSmartClient extends BaseTestCase {
     }
 
     @Override
-    public HankResponse get(int domainId, ByteBuffer key) throws TException {
+    public HankResponse get(int domainId, ByteBuffer key) {
       applyMode();
       ++numRequests;
       if (key.equals(KEY_NOT_FOUND)) {
@@ -114,7 +115,7 @@ public class TestHankSmartClient extends BaseTestCase {
     }
 
     @Override
-    public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
+    public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) {
       applyMode();
       numRequests += keys.size();
       return bulkResponse;

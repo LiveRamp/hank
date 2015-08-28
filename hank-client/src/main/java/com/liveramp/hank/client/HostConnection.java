@@ -16,13 +16,12 @@
 
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.coordinator.Host;
-import com.liveramp.hank.coordinator.HostState;
-import com.liveramp.hank.generated.HankBulkResponse;
-import com.liveramp.hank.generated.HankResponse;
-import com.liveramp.hank.generated.PartitionServer;
-import com.liveramp.hank.zookeeper.WatchedNodeListener;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -30,12 +29,15 @@ import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.generated.HankBulkResponse;
+import com.liveramp.hank.generated.HankResponse;
+import com.liveramp.hank.generated.PartitionServer;
+import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
 public class HostConnection implements WatchedNodeListener<HostState> {
 
@@ -56,7 +58,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
                         int tryLockTimeoutMs,
                         int establishConnectionTimeoutMs,
                         int queryTimeoutMs,
-                        int bulkQueryTimeoutMs) throws TException, IOException {
+                        int bulkQueryTimeoutMs) throws IOException {
     this.host = host;
     this.tryLockTimeoutMs = tryLockTimeoutMs;
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;

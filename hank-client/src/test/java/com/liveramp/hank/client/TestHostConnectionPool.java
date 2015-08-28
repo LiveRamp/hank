@@ -16,6 +16,20 @@
 
 package com.liveramp.hank.client;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostState;
@@ -29,19 +43,6 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-import org.apache.thrift.TException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -78,14 +79,14 @@ public class TestHostConnectionPool extends BaseTestCase {
       numCompletedGets = 0;
     }
 
-    protected abstract HankResponse getCore(int domain_id, ByteBuffer key) throws TException;
+    protected abstract HankResponse getCore(int domain_id, ByteBuffer key);
 
     @Override
     public void shutDown() throws InterruptedException {
     }
 
     @Override
-    public HankResponse get(int domain_id, ByteBuffer key) throws TException {
+    public HankResponse get(int domain_id, ByteBuffer key) {
       ++numGets;
       HankResponse result = getCore(domain_id, key);
       ++numCompletedGets;
@@ -93,7 +94,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     }
 
     @Override
-    public HankBulkResponse getBulk(int domain_id, List<ByteBuffer> keys) throws TException {
+    public HankBulkResponse getBulk(int domain_id, List<ByteBuffer> keys) {
       return null;
     }
   }
@@ -101,7 +102,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   private static class Response1Iface extends MockIface {
 
     @Override
-    public HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
+    public HankResponse getCore(int domain_id, ByteBuffer key) {
       return RESPONSE_1;
     }
   }
@@ -115,7 +116,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     }
 
     @Override
-    public HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
+    public HankResponse getCore(int domain_id, ByteBuffer key) {
       try {
         this.semaphore.acquire();
       } catch (InterruptedException e) {
@@ -128,7 +129,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   private class HankExceptionIface extends MockIface {
 
     @Override
-    protected HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
+    protected HankResponse getCore(int domain_id, ByteBuffer key) {
       return HankResponse.xception(HankException.internal_error("Internal Error"));
     }
   }
@@ -146,7 +147,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   }
 
   @Test
-  public void testBothUp() throws IOException, TException, InterruptedException {
+  public void testBothUp() throws IOException, InterruptedException {
 
     MockIface iface1 = new Response1Iface();
     MockIface iface2 = new Response1Iface();
@@ -228,7 +229,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   }
 
   @Test
-  public void testOneHankExceptions() throws IOException, TException, InterruptedException {
+  public void testOneHankExceptions() throws IOException, InterruptedException {
 
     MockIface iface1 = new Response1Iface();
     MockIface iface2 = new HankExceptionIface();
@@ -289,7 +290,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   }
 
   @Test
-  public void testOneHanging() throws IOException, TException, InterruptedException {
+  public void testOneHanging() throws IOException, InterruptedException {
     Semaphore semaphore = new Semaphore(0);
     final MockIface iface1 = new HangingIface(semaphore);
     final MockIface iface2 = new Response1Iface();
@@ -388,7 +389,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   }
 
   @Test
-  public void testDeterministicHostListShuffling() throws IOException, TException, InterruptedException {
+  public void testDeterministicHostListShuffling() throws IOException, InterruptedException {
 
     MockIface iface1 = new Response1Iface();
     MockIface iface2 = new Response1Iface();

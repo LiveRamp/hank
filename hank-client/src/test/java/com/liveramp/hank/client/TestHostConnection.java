@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
@@ -67,12 +66,12 @@ public class TestHostConnection extends BaseTestCase {
     }
 
     @Override
-    public HankResponse get(int domain_id, ByteBuffer key) throws TException {
+    public HankResponse get(int domain_id, ByteBuffer key) {
       return RESPONSE_1;
     }
 
     @Override
-    public HankBulkResponse getBulk(int domain_id, List<ByteBuffer> keys) throws TException {
+    public HankBulkResponse getBulk(int domain_id, List<ByteBuffer> keys) {
       return RESPONSE_BULK_1;
     }
   };
@@ -98,7 +97,7 @@ public class TestHostConnection extends BaseTestCase {
   }
 
   @Test
-  public void testQueryOnlyServingHosts() throws IOException, TException, InterruptedException {
+  public void testQueryOnlyServingHosts() throws IOException, InterruptedException {
 
     int tryLockTimeoutMs = 1000;
     int establishConnectionTimeoutMs = 1000;
@@ -139,7 +138,7 @@ public class TestHostConnection extends BaseTestCase {
   }
 
   @Test
-  public void testGetTimeouts() throws IOException, TException, InterruptedException {
+  public void testGetTimeouts() throws IOException, InterruptedException {
 
     mockHost.setState(HostState.SERVING);
 
@@ -149,7 +148,7 @@ public class TestHostConnection extends BaseTestCase {
       }
 
       @Override
-      public HankResponse get(int domain_id, ByteBuffer key) throws TException {
+      public HankResponse get(int domain_id, ByteBuffer key) {
         try {
           Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -159,7 +158,7 @@ public class TestHostConnection extends BaseTestCase {
       }
 
       @Override
-      public HankBulkResponse getBulk(int domain_id, List<ByteBuffer> keys) throws TException {
+      public HankBulkResponse getBulk(int domain_id, List<ByteBuffer> keys) {
         try {
           Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -206,7 +205,7 @@ public class TestHostConnection extends BaseTestCase {
   }
 
   @Test
-  public void testTryLockTimeout() throws IOException, TException, InterruptedException {
+  public void testTryLockTimeout() throws IOException, InterruptedException {
 
     // Start server
     startMockPartitionServerThread(mockIface, 1);
@@ -315,7 +314,7 @@ public class TestHostConnection extends BaseTestCase {
   private HankResponse get(int tryLockTimeoutMs,
                            int establishConnectionTimeoutMs,
                            int queryTimeoutMs,
-                           int bulkQueryTimeoutMs) throws IOException, TException {
+                           int bulkQueryTimeoutMs) throws IOException {
     return new HostConnection(mockHost, tryLockTimeoutMs, establishConnectionTimeoutMs,
         queryTimeoutMs, bulkQueryTimeoutMs).get(0, KEY_1);
   }
@@ -323,7 +322,7 @@ public class TestHostConnection extends BaseTestCase {
   private HankBulkResponse getBulk(int tryLockTimeoutMs,
                                    int establishConnectionTimeoutMs,
                                    int queryTimeoutMs,
-                                   int bulkQueryTimeoutMs) throws IOException, TException {
+                                   int bulkQueryTimeoutMs) throws IOException {
     return new HostConnection(mockHost, tryLockTimeoutMs, establishConnectionTimeoutMs,
         queryTimeoutMs, bulkQueryTimeoutMs).getBulk(0, Collections.singletonList(KEY_1));
   }
