@@ -62,7 +62,7 @@ function stop-component {
   CLASSNAME=$1
   for PID in `jps -ml | grep $CLASSNAME | cut -d ' ' -f 1`; do
     echo "Killing $PID $CLASSNAME"
-    kill $PID
+    kill -9 $PID
   done
 }
 
