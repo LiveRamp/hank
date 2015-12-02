@@ -512,6 +512,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     }
     dataServer = null;
     dataServerThread = null;
+    LOG.info("Data server thread stopped");
   }
 
   private String ignoreIncompatibleCommandMessage(HostCommand command, HostState state) {

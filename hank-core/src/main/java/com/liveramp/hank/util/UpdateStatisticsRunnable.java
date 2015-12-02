@@ -42,6 +42,13 @@ public abstract class UpdateStatisticsRunnable implements Runnable {
       try {
         runCore();
       } catch (Exception e) {
+
+        // ZkHost setEphemeralStatistic eats InterruptedExceptions and wraps them in IOExceptions
+        if(e.getCause() instanceof InterruptedException){
+          LOG.info("Cancelling thread, saw InterruptedException");
+          cancelled.set(true);
+        }
+
         LOG.error("Failed to update statistics", e);
       }
       // Sleep a given interval if not cancelled. Interrupt the thread to stop it while it is sleeping
@@ -49,12 +56,14 @@ public abstract class UpdateStatisticsRunnable implements Runnable {
         try {
           Thread.sleep(updateStatisticsThreadSleepTimeMS);
         } catch (InterruptedException e) {
+          LOG.info("Cancelling thread, saw InterruptedException");
           cancelled.set(true);
         }
       }
     }
     // Finally, clean up
     cleanup();
+    LOG.info("Exiting UpdateStatisticsRunnable");
   }
 
   abstract protected void cleanup();
