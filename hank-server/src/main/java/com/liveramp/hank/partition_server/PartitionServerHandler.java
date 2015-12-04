@@ -178,7 +178,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
         Reader reader;
         try {
           reader = engine.getReader(configurator.getReaderConfigurator(numTotalPartitions), partition.getPartitionNumber());
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
           // Something went wrong when loading this partition's Reader. Set it deletable and signal failure.
           if (!partition.isDeletable()) {
             partition.setDeletable(true);
