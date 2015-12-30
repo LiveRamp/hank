@@ -111,7 +111,7 @@ public class IncrementalDomainVersionProperties implements DomainVersionProperti
         DomainVersion result = domain.getVersion(parentVersionNumber);
         if (result == null) {
           throw new IOException("Failed to get parent Domain Version since specified parent version number ("
-              + parentVersionNumber + ") of Domain " + domain.getName() + " does not correspond to any version.");
+              + parentVersionNumber + ") of version "+version.getVersionNumber()+"of Domain " + domain.getName() + " does not correspond to any version.");
         }
         return result;
       }
