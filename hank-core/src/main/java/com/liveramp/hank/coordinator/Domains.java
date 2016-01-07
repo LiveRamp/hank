@@ -97,7 +97,30 @@ public final class Domains {
   }
 
   public static boolean hasOpenDelta(Domain domain) throws IOException {
-    return !isCompleteToBase(getLatestDelta(domain), domain);
+    return !allDeltasComplete(getLatestDelta(domain), domain);
+  }
+
+  private static boolean allDeltasComplete(DomainVersion version, Domain domain) throws IOException {
+
+    if(version == null){
+      return true;
+    }
+
+    if (isBase(version)) {
+      return true;
+    }
+
+    if (!DomainVersions.isClosed(version)) {
+      return false;
+    }
+
+    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties)version.getProperties();
+
+    return allDeltasComplete(
+        domain.getVersion(properties.getParentVersionNumber()),
+        domain
+    );
+
   }
 
   public static boolean hasOpenDeltaAfterLastValidBase(Domain domain) throws IOException {
