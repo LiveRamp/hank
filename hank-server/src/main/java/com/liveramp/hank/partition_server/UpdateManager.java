@@ -362,6 +362,8 @@ public class UpdateManager implements IUpdateManager {
                 concurrentUpdatesSemaphore));
       }
 
+      LOG.info("Submitting update tasks for "+dataDirectoryToUpdateTasks.size()+" directories.");
+
       // Execute tasks. We execute one task for each data directory and loop around so that the tasks
       // attempt to acquire the semaphore in a reasonable order.
       boolean remaining = true;
@@ -381,22 +383,31 @@ public class UpdateManager implements IUpdateManager {
         }
       }
 
+      LOG.info("All update tasks submitted, shutting down executor services");
+
       // Shutdown executors
       for (ExecutorService executorService : dataDirectoryToExecutorService.values()) {
         executorService.shutdown();
       }
 
+      LOG.info("Waiting for executors to finish.");
+
       // Wait for executors to finish
-      for (ExecutorService executorService : dataDirectoryToExecutorService.values()) {
+      for (Map.Entry<String, ExecutorService> entry : dataDirectoryToExecutorService.entrySet()) {
+        String directory = entry.getKey();
+        ExecutorService executorService = entry.getValue();
+
         boolean keepWaiting = true;
         while (keepWaiting) {
           try {
+            LOG.info("Waiting for updates to complete on data directory: "+directory);
             boolean terminated = executorService.awaitTermination(
                 UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE,
                 UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT);
             if (terminated) {
               // We finished executing all tasks
               // Otherwise, timeout elapsed and current thread was not interrupted. Keep waiting.
+              LOG.info("Finished updates for directory: "+directory);
               keepWaiting = false;
             }
             // Record update ETA
@@ -416,10 +427,14 @@ public class UpdateManager implements IUpdateManager {
         }
       }
 
+      LOG.info("All executors have finished updates");
+
       // Shutdown all executors
       for (ExecutorService executorService : dataDirectoryToExecutorService.values()) {
         executorService.shutdownNow();
       }
+
+      LOG.info("Finished with "+encounteredThrowables.size()+" errors.");
 
       // Detect failures
       if (!encounteredThrowables.isEmpty()) {
