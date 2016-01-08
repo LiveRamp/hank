@@ -37,6 +37,7 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
 
+import com.liveramp.cascading_ext.flow.NoOpListener;
 import com.liveramp.hank.hadoop.DomainBuilderProperties;
 import com.liveramp.hank.hadoop.HadoopTestCase;
 import com.liveramp.hank.hadoop.IntStringKeyStorageEngineCoordinator;
@@ -140,7 +141,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_A_NAME + "/1/other"));
 
     new CascadingDomainBuilder(properties, null, pipe, "key", "value")
-        .build(new Properties(), "pipe", inputTap);
+        .build(new NoOpListener(), new Properties(), "pipe", inputTap);
 
     // Check output
     String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
@@ -220,7 +221,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_C_NAME + "/1/other"));
 
     new CascadingDomainBuilder(properties, null, pipe, "key", "value")
-        .build(new Properties(), "pipe", inputTap);
+        .build(new NoOpListener(), new Properties(), "pipe", inputTap);
 
     // Check output
     String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_C, 0, "0.base"));
@@ -241,7 +242,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     Pipe pipe = getPipe("pipe");
 
     new CascadingDomainBuilder(properties, null, pipe, "key", "value")
-        .build(new Properties(), "pipe", inputTap);
+        .build(new NoOpListener(), new Properties(), "pipe", inputTap);
 
     // Check output
     String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
@@ -265,7 +266,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
 
     try {
       new CascadingDomainBuilder(properties, null, pipe, "key", "value")
-          .build(new Properties(), "pipe", inputTap);
+          .build(new NoOpListener(), new Properties(), "pipe", inputTap);
       fail("Should have failed because input is not sorted");
     } catch (Exception e) {
       // Correct behavior
@@ -285,7 +286,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     Pipe pipe = getPipe("pipe");
 
     new CascadingDomainBuilder(properties, null, pipe, "key", "value")
-        .build(new Properties(), "pipe", inputTap);
+        .build(new NoOpListener(), new Properties(), "pipe", inputTap);
 
     // Check output
     String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
@@ -307,7 +308,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     Pipe pipe = getPipe("pipe");
 
     new CascadingDomainBuilder(properties, null, pipe, "key", "value")
-        .build(new Properties(), "pipe", inputTap);
+        .build(new NoOpListener(), new Properties(), "pipe", inputTap);
 
     // Check output
     String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
@@ -329,7 +330,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     Pipe pipe = getPipe("pipe");
 
     new CascadingDomainBuilder(properties, null, pipe, "key", "value")
-        .build(new Properties(), "pipe", inputTap);
+        .build(new NoOpListener(), new Properties(), "pipe", inputTap);
 
     // Check output
     String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));

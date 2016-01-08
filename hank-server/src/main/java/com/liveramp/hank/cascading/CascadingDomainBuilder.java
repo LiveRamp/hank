@@ -1,17 +1,17 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.liveramp.hank.cascading;
@@ -22,10 +22,12 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.hadoop.mapred.JobConf;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cascading.cascade.Cascades;
 import cascading.flow.Flow;
+import cascading.flow.FlowStepListener;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
 
@@ -81,19 +83,22 @@ public class CascadingDomainBuilder {
   }
 
   // Build a single domain using one source
-  public Flow build(Properties cascadingProperties,
+  public Flow build(FlowStepListener listener,
+                    Properties cascadingProperties,
                     String sourcePipeName,
                     Tap source) throws IOException {
-    return build(cascadingProperties, Cascades.tapsMap(sourcePipeName, source));
+    return build(listener, cascadingProperties, Cascades.tapsMap(sourcePipeName, source));
   }
 
-  public Flow build(Properties cascadingProperties,
+  public Flow build(FlowStepListener listener,
+                    Properties cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
-    return build(new HadoopFlowConnectorFactory(cascadingProperties), sources);
+    return build(listener, new HadoopFlowConnectorFactory(cascadingProperties), sources);
   }
 
   // Build a single domain
-  public Flow build(FlowConnectorFactory flowConnectorFactory,
+  public Flow build(FlowStepListener listener,
+                    FlowConnectorFactory flowConnectorFactory,
                     Map<String, Tap> sources) throws IOException {
 
     pipe = new DomainBuilderAssembly(properties.getDomainName(),
@@ -114,6 +119,9 @@ public class CascadingDomainBuilder {
 
       // Set up job
       DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getConfig());
+
+      // Attach listener callback to get updates about job progress
+      flow.addStepListener(listener);
 
       // Complete flow
       flow.complete();
@@ -271,16 +279,18 @@ public class CascadingDomainBuilder {
   }
 
   // Build a single domain using a single source
-  public Flow build(Map<Object, Object> cascadingProperties,
+  public Flow build(FlowStepListener listener,
+                    Map<Object, Object> cascadingProperties,
                     String sourcePipeName,
                     Tap source) throws IOException {
-    return build(mapToProperties(cascadingProperties), sourcePipeName, source);
+    return build(listener, mapToProperties(cascadingProperties), sourcePipeName, source);
   }
 
   // Build a single domain using a multiple sources
-  public Flow build(Map<Object, Object> cascadingProperties,
+  public Flow build(FlowStepListener listener,
+                    Map<Object, Object> cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
-    return build(mapToProperties(cascadingProperties), sources);
+    return build(listener, mapToProperties(cascadingProperties), sources);
   }
 
   // Build multiple domains
