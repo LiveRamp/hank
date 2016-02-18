@@ -16,14 +16,29 @@
 
 package com.liveramp.hank.ui;
 
-import com.google.common.base.CaseFormat;
-import com.liveramp.hank.coordinator.*;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.common.base.CaseFormat;
+
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainAndVersion;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.DomainVersionProperties;
+import com.liveramp.hank.coordinator.DomainVersions;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.RingGroups;
+import com.liveramp.hank.coordinator.ServingStatus;
 
 /**
  * This class does all the logic for the HankApiServlet.
@@ -114,6 +129,7 @@ public class HankApiHelper {
     public PartitionServerAddress address;
     public HostState state;
     public boolean isOnline;
+    public String statisticsString;
   }
 
   private final Coordinator coordinator;
@@ -166,6 +182,7 @@ public class HankApiHelper {
     data.address = host.getAddress();
     data.isOnline = Hosts.isOnline(host);
     data.state = host.getState();
+    data.statisticsString = host.getStatistic(Hosts.RUNTIME_STATISTICS_KEY);
     return data;
   }
 

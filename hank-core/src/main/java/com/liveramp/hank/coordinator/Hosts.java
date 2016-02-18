@@ -38,7 +38,7 @@ public final class Hosts {
 
   private static final String UPDATE_ETA_STATISTIC_KEY = "update_eta";
   private static final String FILESYSTEM_STATISTICS_KEY = "filesystem_statistics";
-  private static final String RUNTIME_STATISTICS_KEY = "runtime_statistics";
+  public static final String RUNTIME_STATISTICS_KEY = "runtime_statistics";
 
   private Hosts() {
   }
