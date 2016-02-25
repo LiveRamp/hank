@@ -60,7 +60,7 @@ function start-component {
 
 function stop-component {
   CLASSNAME=$1
-  for PID in `jps -ml | grep $CLASSNAME | cut -d ' ' -f 1`; do
+  for PID in `pgrep -f $CLASSNAME`; do
     echo "Killing $PID $CLASSNAME"
     kill -9 $PID
   done
