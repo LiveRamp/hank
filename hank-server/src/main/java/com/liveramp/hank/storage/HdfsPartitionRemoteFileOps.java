@@ -200,6 +200,6 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   @Override
   public String toString() {
-    return "hdfs://" + partitionRoot;
+    return partitionRoot;
   }
 }
