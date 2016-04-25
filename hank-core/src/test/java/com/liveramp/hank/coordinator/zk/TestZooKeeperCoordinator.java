@@ -15,6 +15,14 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainGroup;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
@@ -27,13 +35,6 @@ import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
@@ -155,7 +156,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   private ZooKeeperCoordinator getCoord() throws Exception {
-    return new ZooKeeperCoordinator(getZkConnectString(), 100000000, domains_root, domain_groups_root, ring_groups_root);
+    return new ZooKeeperCoordinator(getZkConnectString(), 100000000, domains_root, domain_groups_root, ring_groups_root, 5);
   }
 
   @After

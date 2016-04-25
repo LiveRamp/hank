@@ -64,15 +64,17 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     private static final String DOMAINS_ROOT_KEY = "domains_root";
     private static final String SESSION_TIMEOUT_KEY = "session_timeout";
     private static final String CONNECT_STRING_KEY = "connect_string";
-    private static final List<String> REQUIRED_KEYS = Arrays.asList(RING_GROUPS_ROOT_KEY, DOMAIN_GROUPS_ROOT_KEY, DOMAINS_ROOT_KEY, SESSION_TIMEOUT_KEY, CONNECT_STRING_KEY);
+    private static final String MAX_CONNECTION_ATTEMPTS_KEY = "max_connection_attempts";
+    private static final List<String> REQUIRED_KEYS = Arrays.asList(RING_GROUPS_ROOT_KEY, DOMAIN_GROUPS_ROOT_KEY, DOMAINS_ROOT_KEY, SESSION_TIMEOUT_KEY, CONNECT_STRING_KEY, MAX_CONNECTION_ATTEMPTS_KEY);
 
-    public static Map<String, Object> requiredOptions(String zkConnectString, int sessionTimeoutMs, String domainsRoot, String domainGroupsRoot, String ringGroupsRoot) {
+    public static Map<String, Object> requiredOptions(String zkConnectString, int sessionTimeoutMs, String domainsRoot, String domainGroupsRoot, String ringGroupsRoot, Integer maxConnectionAttempts) {
       Map<String, Object> opts = new HashMap<String, Object>();
       opts.put(CONNECT_STRING_KEY, zkConnectString);
       opts.put(SESSION_TIMEOUT_KEY, sessionTimeoutMs);
       opts.put(DOMAINS_ROOT_KEY, domainsRoot);
       opts.put(DOMAIN_GROUPS_ROOT_KEY, domainGroupsRoot);
       opts.put(RING_GROUPS_ROOT_KEY, ringGroupsRoot);
+      opts.put(MAX_CONNECTION_ATTEMPTS_KEY, maxConnectionAttempts);
       return opts;
     }
 
@@ -80,7 +82,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     public Coordinator getCoordinator(Map<String, Object> options) {
       validateOptions(options);
       try {
-        return new ZooKeeperCoordinator((String)options.get(CONNECT_STRING_KEY), (Integer)options.get(SESSION_TIMEOUT_KEY), (String)options.get(DOMAINS_ROOT_KEY), (String)options.get(DOMAIN_GROUPS_ROOT_KEY), (String)options.get(RING_GROUPS_ROOT_KEY));
+        return new ZooKeeperCoordinator(
+            (String)options.get(CONNECT_STRING_KEY),
+            (Integer)options.get(SESSION_TIMEOUT_KEY),
+            (String)options.get(DOMAINS_ROOT_KEY),
+            (String)options.get(DOMAIN_GROUPS_ROOT_KEY),
+            (String)options.get(RING_GROUPS_ROOT_KEY),
+            (Integer)options.get(MAX_CONNECTION_ATTEMPTS_KEY));
       } catch (Exception e) {
         throw new RuntimeException("Couldn't make a ZooKeeperCoordinator from options "
             + options, e);
@@ -139,9 +147,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
                        int sessionTimeoutMs,
                        String domainsRoot,
                        String domainGroupsRoot,
-                       String ringGroupsRoot)
+                       String ringGroupsRoot,
+                       int maxConnectAttempts)
       throws InterruptedException, KeeperException, IOException {
-    super(zkConnectString, sessionTimeoutMs);
+    super(zkConnectString, sessionTimeoutMs, maxConnectAttempts);
     this.domainsRoot = domainsRoot;
     this.domainGroupsRoot = domainGroupsRoot;
     this.ringGroupsRoot = ringGroupsRoot;
