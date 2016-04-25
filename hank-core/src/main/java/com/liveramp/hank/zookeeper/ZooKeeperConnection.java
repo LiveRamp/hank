@@ -90,7 +90,9 @@ public class ZooKeeperConnection implements Watcher {
     this.sessionTimeout = sessionTimeout;
     this.maxConnectAttempts = maxConnectAttempts;
     try {
-      connect(maxConnectAttempts);
+      //  TODO not sure what the right way to do this is.  by using a finite limit here, we avoid hanging for eternity on startup,
+      //  but then on KeeperState.Expired, don't give up.
+      connect(DEFAULT_MAX_ATTEMPTS);
     } catch (IOException e) {
       // If we can't connect, then die so that someone can reconfigure.
       LOG.error("Failed to connect to the ZooKeeper service", e);
