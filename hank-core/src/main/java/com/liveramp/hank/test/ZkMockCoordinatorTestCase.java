@@ -37,7 +37,8 @@ public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
         ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000,
             ZkPath.append(getRoot(), "domains"),
             ZkPath.append(getRoot(), "domain_groups"),
-            ZkPath.append(getRoot(), "ring_groups"))
+            ZkPath.append(getRoot(), "ring_groups"),
+            5)
     );
   }
 
