@@ -226,6 +226,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("    domains_root: " + domainsRoot);
     pw.println("    domain_groups_root: " + domainGroupsRoot);
     pw.println("    ring_groups_root: " + ringGroupsRoot);
+    pw.println("    max_connection_attempts: 5");
     pw.close();
 
     CoordinatorConfigurator config = new YamlClientConfigurator(clientConfigYml);
@@ -683,5 +684,6 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("    domains_root: " + domainsRoot);
     pw.println("    domain_groups_root: " + domainGroupsRoot);
     pw.println("    ring_groups_root: " + ringGroupsRoot);
+    pw.println("    max_connection_attempts: 5");
   }
 }
