@@ -80,6 +80,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     @Override
     public Coordinator getCoordinator(Map<String, Object> options) {
+      LOG.info("Creating Coordinator with options: "+options);
+
       validateOptions(options);
       try {
         //  TODO temporary until clean upusages
@@ -172,6 +174,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     this.domainsRoot = domainsRoot;
     this.domainGroupsRoot = domainGroupsRoot;
     this.ringGroupsRoot = ringGroupsRoot;
+
+    LOG.info("ZooKeeperCoordinator.domainsRoot: ",domainsRoot);
+    LOG.info("ZooKeeperCoordinator.domainGroupsRoot: ",domainGroupsRoot);
+    LOG.info("ZooKeeperCoordinator.ringGroupsRoot: ",ringGroupsRoot);
 
     // Domains
     zk.ensureCreated(domainsRoot, null);
