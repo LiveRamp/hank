@@ -89,6 +89,11 @@ public class ZooKeeperConnection implements Watcher {
     this.connectString = connectString;
     this.sessionTimeout = sessionTimeout;
     this.maxConnectAttempts = maxConnectAttempts;
+
+    LOG.info("ZooKeeperConnection.connectString = "+connectString);
+    LOG.info("ZooKeeperConnection.sessionTimeout = "+sessionTimeout);
+    LOG.info("ZooKeeperConnection.maxConnectionAttempts = "+maxConnectAttempts);
+
     try {
       //  TODO not sure what the right way to do this is.  by using a finite limit here, we avoid hanging for eternity on startup,
       //  but then on KeeperState.Expired, don't give up.
