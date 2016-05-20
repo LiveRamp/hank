@@ -19,12 +19,11 @@ package com.liveramp.hank.ui;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -57,9 +56,6 @@ public class HankApiHelper {
           String name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
           if (field.getType() == Map.class) {
             map.put(name, generify((Map)field.get(this)));
-          } else if (HankApiData.class.isAssignableFrom(field.getType())) {
-            HankApiData data = (HankApiData)field.get(this);
-            map.put(name, data.asMap());
           } else {
             map.put(name, field.get(this));
           }
@@ -129,7 +125,7 @@ public class HankApiHelper {
     public int numPartitions;
     public int numPartitionsServedAndUpToDate;
     public Map<Integer, RingData> ringsMap;
-    public List<ConnectedHostData> clients;
+    public Map<String, ConnectedHostData> clients;
   }
 
   public static class ConnectedHostData extends HankApiData {
@@ -185,9 +181,9 @@ public class HankApiHelper {
     }
     data.ringsMap = ringsMap;
 
-    data.clients = Lists.newArrayList();
+    data.clients = Maps.newHashMap();
     for (ClientMetadata clientData : ringGroup.getClients()) {
-      data.clients.add(new ConnectedHostData(
+      data.clients.put(clientData.get_host(), new ConnectedHostData(
           clientData.get_host(),
           Long.toString(clientData.get_connected_at()),
           clientData.get_type(),
