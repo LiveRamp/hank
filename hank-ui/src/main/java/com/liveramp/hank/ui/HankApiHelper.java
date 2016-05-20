@@ -19,10 +19,12 @@ package com.liveramp.hank.ui;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.Lists;
 
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -39,6 +41,7 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroups;
 import com.liveramp.hank.coordinator.ServingStatus;
+import com.liveramp.hank.generated.ClientMetadata;
 
 /**
  * This class does all the logic for the HankApiServlet.
@@ -53,7 +56,7 @@ public class HankApiHelper {
         try {
           String name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
           if (field.getType() == Map.class) {
-            map.put(name, generify((Map) field.get(this)));
+            map.put(name, generify((Map)field.get(this)));
           } else {
             map.put(name, field.get(this));
           }
@@ -123,6 +126,21 @@ public class HankApiHelper {
     public int numPartitions;
     public int numPartitionsServedAndUpToDate;
     public Map<Integer, RingData> ringsMap;
+    public List<ConnectedHostData> clients;
+  }
+
+  public static class ConnectedHostData extends HankApiData {
+    public String host;
+    public String connectedAt;
+    public String type;
+    public String version;
+
+    public ConnectedHostData(String host, String connectedAt, String type, String version) {
+      this.host = host;
+      this.connectedAt = connectedAt;
+      this.type = type;
+      this.version = version;
+    }
   }
 
   public static class HostData extends HankApiData {
@@ -141,8 +159,8 @@ public class HankApiHelper {
   private static Map<String, Object> generify(Map map) {
     Map<String, Object> gMap = new HashMap<String, Object>();
     for (Object obj : map.entrySet()) {
-      Map.Entry entry = (Map.Entry) obj;
-      Object value = entry.getValue() instanceof HankApiData ? ((HankApiData) entry.getValue()).asMap() : entry.getValue();
+      Map.Entry entry = (Map.Entry)obj;
+      Object value = entry.getValue() instanceof HankApiData ? ((HankApiData)entry.getValue()).asMap() : entry.getValue();
       gMap.put(String.valueOf(entry.getKey()), value);
     }
     return gMap;
@@ -163,6 +181,17 @@ public class HankApiHelper {
       ringsMap.put(ring.getRingNumber(), getRingData(ring));
     }
     data.ringsMap = ringsMap;
+
+    data.clients = Lists.newArrayList();
+    for (ClientMetadata clientData : ringGroup.getClients()) {
+      data.clients.add(new ConnectedHostData(
+          clientData.get_host(),
+          Long.toString(clientData.get_connected_at()),
+          clientData.get_type(),
+          clientData.get_version()
+      ));
+    }
+
     return data;
   }
 
