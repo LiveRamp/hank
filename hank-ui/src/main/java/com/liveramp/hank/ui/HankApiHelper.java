@@ -57,6 +57,9 @@ public class HankApiHelper {
           String name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
           if (field.getType() == Map.class) {
             map.put(name, generify((Map)field.get(this)));
+          } else if (HankApiData.class.isAssignableFrom(field.getType())) {
+            HankApiData data = (HankApiData)field.get(this);
+            map.put(name, data.asMap());
           } else {
             map.put(name, field.get(this));
           }
