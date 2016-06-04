@@ -18,10 +18,11 @@ package com.liveramp.hank.zookeeper;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class that should be used by any class intending to connect to the
@@ -169,10 +170,14 @@ public class ZooKeeperConnection implements Watcher {
           onConnect();
           connectedSignal.countDown();
           break;
+
+        //  on disconnect or expire, try to reconnect
         case Disconnected:
           onDisconnect();
-          connectedSignal = new CountDownLatch(1);
-          break;
+          //  don't reconnect if we intentionally closed it (eg, shutdowns)
+          if(zk.isClosed()){
+            break;
+          }
         case Expired:
           onSessionExpire();
           connectedSignal = new CountDownLatch(1);
