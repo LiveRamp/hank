@@ -175,24 +175,29 @@ public class ZooKeeperConnection implements Watcher {
         case Disconnected:
           onDisconnect();
           //  don't reconnect if we intentionally closed it (eg, shutdowns)
-          if(zk.isClosed()){
-            break;
+          if(!zk.isClosed()){
+            attemptReconnect();
           }
+          break;
         case Expired:
           onSessionExpire();
-          connectedSignal = new CountDownLatch(1);
-          try {
-            LOG.info("Attempting ZooKeeper reconnect");
-            connect(maxConnectAttempts);
-          } catch (IOException e) {
-            LOG.error("Failed to connect to the ZooKeeper service", e);
-            throw new RuntimeException("Couldn't connect to the ZooKeeper service", e);
-          }
+          attemptReconnect();
           break;
       }
       // Return because we are done processing this event; do not let subclasses
       // process.
       return;
+    }
+  }
+
+  private void attemptReconnect(){
+    connectedSignal = new CountDownLatch(1);
+    try {
+      LOG.info("Attempting ZooKeeper reconnect");
+      connect(maxConnectAttempts);
+    } catch (IOException e) {
+      LOG.error("Failed to connect to the ZooKeeper service", e);
+      throw new RuntimeException("Couldn't connect to the ZooKeeper service", e);
     }
   }
 
