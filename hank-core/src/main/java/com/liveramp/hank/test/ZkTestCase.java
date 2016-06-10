@@ -112,8 +112,7 @@ public abstract class ZkTestCase extends BaseTestCase {
     final Object lock = new Object();
     final AtomicBoolean connected = new AtomicBoolean(false);
 
-    zk = new ZooKeeperPlus();
-    zk.reconnect("127.0.0.1:" + zkClientPort, 1000000, new Watcher() {
+    zk = new ZooKeeperPlus("127.0.0.1:" + zkClientPort, 1000000, new Watcher() {
       @Override
       public void process(WatchedEvent event) {
         switch (event.getType()) {
@@ -128,6 +127,7 @@ public abstract class ZkTestCase extends BaseTestCase {
         LOG.debug(event.toString());
       }
     });
+    zk.reconnect();
 
     synchronized (lock) {
       lock.wait(2000);
