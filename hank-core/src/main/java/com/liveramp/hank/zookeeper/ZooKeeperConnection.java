@@ -18,11 +18,10 @@ package com.liveramp.hank.zookeeper;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Base class that should be used by any class intending to connect to the
@@ -170,34 +169,25 @@ public class ZooKeeperConnection implements Watcher {
           onConnect();
           connectedSignal.countDown();
           break;
-
-        //  on disconnect or expire, try to reconnect
         case Disconnected:
           onDisconnect();
-          //  don't reconnect if we intentionally closed it (eg, shutdowns)
-          if(!zk.isClosed()){
-            attemptReconnect();
-          }
+          connectedSignal = new CountDownLatch(1);
           break;
         case Expired:
           onSessionExpire();
-          attemptReconnect();
+          connectedSignal = new CountDownLatch(1);
+          try {
+            LOG.info("Attempting ZooKeeper reconnect");
+            connect(maxConnectAttempts);
+          } catch (IOException e) {
+            LOG.error("Failed to connect to the ZooKeeper service", e);
+            throw new RuntimeException("Couldn't connect to the ZooKeeper service", e);
+          }
           break;
       }
       // Return because we are done processing this event; do not let subclasses
       // process.
       return;
-    }
-  }
-
-  private void attemptReconnect(){
-    connectedSignal = new CountDownLatch(1);
-    try {
-      LOG.info("Attempting ZooKeeper reconnect");
-      connect(maxConnectAttempts);
-    } catch (IOException e) {
-      LOG.error("Failed to connect to the ZooKeeper service", e);
-      throw new RuntimeException("Couldn't connect to the ZooKeeper service", e);
     }
   }
 
