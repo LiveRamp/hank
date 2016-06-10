@@ -35,7 +35,6 @@ public class ZooKeeperPlus {
   private static final CreateMode DEFAULT_CREATE_MODE = CreateMode.PERSISTENT;
 
   private ZKPCore conn;
-  private boolean isClosed = false;
 
   public void reconnect(String connectString, int sessionTimeout, Watcher watcher) throws IOException {
     conn = new ZKPCore(connectString, sessionTimeout, watcher);
@@ -59,6 +58,7 @@ public class ZooKeeperPlus {
 
   public void create(final String path, byte data[], List<ACL> acl, CreateMode createMode,  AsyncCallback.StringCallback cb, Object ctx){
     conn.create(path, data, acl, createMode, cb, ctx);
+
   }
 
 
@@ -217,12 +217,7 @@ public class ZooKeeperPlus {
   }
 
   public synchronized void close() throws InterruptedException {
-    isClosed = true;
     conn.close();
-  }
-
-  public boolean isClosed() {
-    return isClosed;
   }
 
   public ZooKeeper.States getState() {
