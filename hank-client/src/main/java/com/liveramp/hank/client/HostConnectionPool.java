@@ -16,17 +16,25 @@
 
 package com.liveramp.hank.client;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.*;
 
 /**
  * HostConnectionPool manages a collection of connections to Hosts. For a given
@@ -34,19 +42,19 @@ import java.util.*;
  * multiple established connections to each of these Hosts. This class
  * implements the strategy used to select which connection to use when
  * performing a query, and takes care of managing retries when queries fail.
- * <p/>
+ *
  * The strategy is as follows:
- * <p/>
+ *
  * Connections are organized by Host (the server they correspond to). The list
  * of connections to a Host is initially randomized, so that different
  * HostConnectionPool instances will attempt to use connections in a different
  * order.
- * <p/>
+ *
  * HostConnectionPool maintains an internal indicator of what Host was used
  * last by any query. To distribute load, the next query will attempt to
  * connect to the next Host, and so on. Note that initially, this Host iterator
  * is randomized.
- * <p/>
+ *
  * When performing a query, HostConnectionPool first loops over all hosts and
  * connections (starting from the last used host iterator) looking for an
  * unused connection. An unused connection is a connection that no client is
@@ -55,7 +63,7 @@ import java.util.*;
  * Otherwise, HostConnectionPool loops over all hosts again, looking for a
  * random available connection (one for which the Host is serving) to use. If
  * it cannot, an error is returned.
- * <p/>
+ *
  * When the connection to use has been determined, the query is performed. In
  * case of failure, HostConnectionPool will re-attempt a given number of times,
  * each time determining a new connection to use as described earlier. (And

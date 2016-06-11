@@ -147,13 +147,13 @@ public class ZooKeeperConnection implements Watcher {
   /**
    * Listens for notifications from the ZooKeeper service telling that we have
    * been connected, disconnected, or our session has expired.
-   * <p/>
+   *
    * Upon connection, we first make a call to {@link #onConnect()}, and then we
    * release all threads that are blocking on {@link #waitForConnection()}.
-   * <p/>
+   *
    * Upon disconnection, we call {@link #onDisconnect()}, and then we reset the
    * latch to block any threads that call {@link #waitForConnection()}.
-   * <p/>
+   *
    * On session expiry, we call {@link #onSessionExpire()}, reset the latch, and
    * then manually try to reconnect to the ZooKeeper service.
    *

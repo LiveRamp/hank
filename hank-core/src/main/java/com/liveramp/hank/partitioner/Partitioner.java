@@ -22,9 +22,7 @@ import java.nio.ByteBuffer;
  */
 public interface Partitioner {
   /**
-   * The returned partition number must be:
-   * - >= 0
-   * - deterministic
+   * The returned partition number must be geq 0 and deterministic
    * @param key
    * @return
    */

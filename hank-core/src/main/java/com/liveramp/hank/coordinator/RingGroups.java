@@ -216,9 +216,6 @@ public final class RingGroups {
     }
   }
 
-  /**
-   * The set of hosts in {@param ring} that aren't up to date on the domains in {@param domainGroup}.
-   */
   public static Set<Host> getHostsNotUpToDate(RingGroup ringGroup, Collection<DomainAndVersion> versions) throws IOException {
     Set<Host> outOfDateHosts = Sets.newHashSet();
     for (Ring ring : ringGroup.getRings()) {
