@@ -28,20 +28,67 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ZooKeeperPlus {
+  private static final Logger LOG = LoggerFactory.getLogger(ZooKeeperPlus.class);
 
   private static final List<ACL> DEFAULT_ACL = Ids.OPEN_ACL_UNSAFE;
   private static final CreateMode DEFAULT_CREATE_MODE = CreateMode.PERSISTENT;
 
   private ZKPCore conn;
 
-  public void reconnect(String connectString, int sessionTimeout, Watcher watcher) throws IOException {
-    conn = new ZKPCore(connectString, sessionTimeout, watcher);
+  private final String reconnectString;
+  private final int sessionTimeout;
+  private final Watcher watcher;
+  private final Thread reconnectWatcher;
+
+  public ZooKeeperPlus(String reconnectString, int sessionTimeout, Watcher watcher){
+    this.reconnectString = reconnectString;
+    this.sessionTimeout = sessionTimeout;
+    this.watcher = watcher;
+
+    this.reconnectWatcher = new Thread(new ReconnectWatcher());
+    this.reconnectWatcher.setDaemon(true);
+    this.reconnectWatcher.start();
   }
 
-  public void reconnect(String connectString, int sessionTimeout, Watcher watcher, long sessionId, byte[] sessionPasswd) throws IOException {
-    conn = new ZKPCore(connectString, sessionTimeout, watcher, sessionId, sessionPasswd);
+  public synchronized void reconnect() throws IOException {
+    conn = new ZKPCore(reconnectString, sessionTimeout, watcher);
+  }
+
+  public class ReconnectWatcher implements Runnable {
+
+    private static final long POLL_INTERVAL = 30000;  // 30s
+
+    @Override
+    public void run() {
+
+      try {
+
+        while(true) {
+          Thread.sleep(POLL_INTERVAL);
+          //  don't start reconnect until we explicitly connect for the first time
+          if (conn != null && conn.getState() != ZooKeeper.States.CONNECTED) {
+            LOG.info("ZooKeeper is not connected.  Closing connection");
+            close();
+            try {
+              LOG.info("Reconnecting");
+              reconnect();
+              LOG.info("Reconnected");
+            } catch (IOException e) {
+              LOG.error("Error reconnecting to ZooKeeper", e);
+            }
+          }
+        }
+
+      } catch (InterruptedException e) {
+        LOG.error("Interrupting watcher sleep", e);
+      }
+
+    }
+
   }
 
   public void create(String path, byte[] data, CreateMode createMode) throws KeeperException, InterruptedException {
@@ -218,6 +265,7 @@ public class ZooKeeperPlus {
 
   public synchronized void close() throws InterruptedException {
     conn.close();
+    reconnectWatcher.interrupt();
   }
 
   public ZooKeeper.States getState() {

@@ -37,7 +37,7 @@ public class ZooKeeperConnection implements Watcher {
   public static final int CONNECT_DELAY = 100; // ms
   public static final int MAX_CONNECT_DELAY = 7500; // ms
 
-  protected ZooKeeperPlus zk = new ZooKeeperPlus();
+  protected ZooKeeperPlus zk;
 
   /**
    * Used to block while disconnected. Use {@link #waitForConnection()} in
@@ -46,7 +46,6 @@ public class ZooKeeperConnection implements Watcher {
   private CountDownLatch connectedSignal = new CountDownLatch(1);
 
   private String connectString;
-  private int sessionTimeout;
   private int maxConnectAttempts;
 
   /**
@@ -87,12 +86,13 @@ public class ZooKeeperConnection implements Watcher {
    */
   public ZooKeeperConnection(String connectString, int sessionTimeout, int maxConnectAttempts) throws InterruptedException {
     this.connectString = connectString;
-    this.sessionTimeout = sessionTimeout;
     this.maxConnectAttempts = maxConnectAttempts;
 
     LOG.info("ZooKeeperConnection.connectString = "+connectString);
     LOG.info("ZooKeeperConnection.sessionTimeout = "+sessionTimeout);
     LOG.info("ZooKeeperConnection.maxConnectionAttempts = "+maxConnectAttempts);
+
+    this.zk = new ZooKeeperPlus(connectString, sessionTimeout, this);
 
     try {
       //  TODO not sure what the right way to do this is.  by using a finite limit here, we avoid hanging for eternity on startup,
@@ -121,7 +121,7 @@ public class ZooKeeperConnection implements Watcher {
     while (true) {
       try {
         LOG.info("Attempting ZooKeeperReconnect");
-        zk.reconnect(connectString, sessionTimeout, this);
+        zk.reconnect();
         // We return as soon as the assignment has succeeded.
         return;
       } catch (IOException e) {
