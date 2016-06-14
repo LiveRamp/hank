@@ -80,6 +80,8 @@ public class ZooKeeperPlus {
             } catch (IOException e) {
               LOG.error("Error reconnecting to ZooKeeper", e);
             }
+          }else{
+            LOG.info("ZooKeeper is connected, sleeping for "+POLL_INTERVAL+"ms");
           }
         }
 
