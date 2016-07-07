@@ -389,7 +389,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
                               int domainVersionNumber,
                               int partitionNumber) throws IOException {
     Set<String> result = new HashSet<String>();
-    result.add(assignment.getDisk(partitionNumber) + "/" + getName(domainVersionNumber, true));
+    result.add(getTargetDirectory(assignment, partitionNumber) + "/" + getName(domainVersionNumber, true));
     return result;
   }
 
