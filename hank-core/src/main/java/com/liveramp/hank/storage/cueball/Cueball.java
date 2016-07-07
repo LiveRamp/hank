@@ -1,17 +1,17 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.liveramp.hank.storage.cueball;
@@ -20,14 +20,20 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
@@ -37,6 +43,7 @@ import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.hasher.IdentityHasher;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
@@ -177,9 +184,9 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException {
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber, DiskPartitionAssignment assignment) throws IOException {
     return new CueballReader(
-        getTargetDirectory(configurator, partitionNumber),
+        getTargetDirectory(assignment, partitionNumber),
         keyHashSize,
         hasher,
         valueSize,
@@ -227,8 +234,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    String localDir = getTargetDirectory(configurator, partitionNumber);
+  public PartitionUpdater getUpdater(DiskPartitionAssignment assignment, int partitionNumber) throws IOException {
+    String localDir = getTargetDirectory(assignment, partitionNumber);
     return new CueballPartitionUpdater(domain,
         getPartitionRemoteFileOps(partitionNumber),
         new CueballMerger(),
@@ -240,7 +247,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+  public Compactor getCompactor(DiskPartitionAssignment configurator,
                                 int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
@@ -278,8 +285,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    String localDir = getTargetDirectory(configurator, partitionNumber);
+  public Deleter getDeleter(DiskPartitionAssignment assignment, int partitionNumber) throws IOException {
+    String localDir = getTargetDirectory(assignment, partitionNumber);
     return new CueballDeleter(localDir);
   }
 
@@ -339,33 +346,50 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     return new CueballRemoteDomainCleaner(domain, numRemoteLeafVersionsToKeep);
   }
 
-  public static int getDataDirectoryIndex(int numDataDirectories, int numDomainPartitions, int partitionNumber) {
-    // Distribute partitions across data directories by considering them as buckets. The low numbered partitions
-    // are assigned to the first data directory, etc, the high numbered partitions are assigned to the last data directory.
-    double partitionsPerDataDirectory = (double)numDomainPartitions / (double)numDataDirectories;
-    return (int)Math.floor((double)partitionNumber / partitionsPerDataDirectory);
+  @Override
+  public DiskPartitionAssignment getDataDirectoryPerPartition(DataDirectoriesConfigurator configurator, Collection<Integer> partitionNumbers) {
+    return getDataDirectoryAssignments(configurator, partitionNumbers);
   }
 
-  public static String getDataDirectory(DataDirectoriesConfigurator configurator, Domain domain, int partitionNumber) {
+  public static DiskPartitionAssignment getDataDirectoryAssignments(DataDirectoriesConfigurator configurator, Collection<Integer> partitionNumbers) {
+
     ArrayList<String> sortedDataDirectories = new ArrayList<String>(configurator.getDataDirectories());
     Collections.sort(sortedDataDirectories);
-    int partitionDataDirectoryIndex = getDataDirectoryIndex(sortedDataDirectories.size(), domain.getNumParts(), partitionNumber);
-    return sortedDataDirectories.get(partitionDataDirectoryIndex);
+
+    LinkedList<Integer> sortedPartitions = new LinkedList<>(partitionNumbers);
+    Collections.sort(sortedPartitions);
+
+    //  TODO we can make this dynamic based on disk size, but not urgent
+    int numPartitionsPerDisk = (int)Math.ceil((double)partitionNumbers.size() / sortedDataDirectories.size());
+
+    Multimap<String, Integer> partitionsPerDisk = HashMultimap.create();
+    for (String dataDirectory : sortedDataDirectories) {
+      while (
+          !sortedPartitions.isEmpty() &&
+          partitionsPerDisk.get(dataDirectory).size() < numPartitionsPerDisk) {
+        partitionsPerDisk.put(dataDirectory, sortedPartitions.pop());
+      }
+    }
+
+    Map<Integer, String> inverse = Maps.newHashMap();
+    for (Map.Entry<String, Integer> entry : partitionsPerDisk.entries()) {
+      inverse.put(entry.getValue(), entry.getKey());
+    }
+
+    return new DiskPartitionAssignment(inverse);
   }
 
-  private String getTargetDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return getDataDirectory(configurator, partitionNumber) + "/" + domain.getName() + "/" + partitionNumber;
+  private String getTargetDirectory(DiskPartitionAssignment assignment,
+                                    int partitionNumber) {
+    return assignment.getDisk(partitionNumber) + "/" + domain.getName() + "/" + partitionNumber;
   }
 
   @Override
-  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return getDataDirectory(configurator, domain, partitionNumber);
-  }
-
-  @Override
-  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int domainVersionNumber, int partitionNumber) throws IOException {
+  public Set<String> getFiles(DiskPartitionAssignment assignment,
+                              int domainVersionNumber,
+                              int partitionNumber) throws IOException {
     Set<String> result = new HashSet<String>();
-    result.add(getTargetDirectory(configurator, partitionNumber) + "/" + getName(domainVersionNumber, true));
+    result.add(assignment.getDisk(partitionNumber) + "/" + getName(domainVersionNumber, true));
     return result;
   }
 

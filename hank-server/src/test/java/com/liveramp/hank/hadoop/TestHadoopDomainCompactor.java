@@ -16,22 +16,23 @@
 
 package com.liveramp.hank.hadoop;
 
+import java.io.IOException;
+import java.util.Collections;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.liveramp.hank.config.CoordinatorConfigurator;
-import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.mock.MockStorageEngine;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
@@ -80,7 +81,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
           return new MockDomain(domainName, 0, 2, null,
               new MockStorageEngine() {
                 @Override
-                public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+                public Compactor getCompactor(DiskPartitionAssignment configurator,
                                               int partitionNumber) throws IOException {
                   return compactor;
                 }

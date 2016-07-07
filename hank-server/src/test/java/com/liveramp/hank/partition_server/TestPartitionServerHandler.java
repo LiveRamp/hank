@@ -144,7 +144,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
         K5, 4);
     MockStorageEngine storageEngine = new MockStorageEngine() {
       @Override
-      public Reader getReader(ReaderConfigurator configurator, int partitionNumber)
+      public Reader getReader(ReaderConfigurator configurator, int partitionNumber, DiskPartitionAssignment assignment)
           throws IOException {
         return new MockReader(configurator, partitionNumber, V1, readerVersionNumber) {
           @Override

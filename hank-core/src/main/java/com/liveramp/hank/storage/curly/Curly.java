@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +38,7 @@ import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.hasher.Hasher;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
@@ -232,7 +234,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException {
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber, DiskPartitionAssignment assignment) throws IOException {
 
     // This configurator is used because this reader is composed of 2 underlying readers
     ReaderConfigurator subConfigurator = new BaseReaderConfigurator(
@@ -242,9 +244,9 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         configurator.getBufferReuseMaxSize(),
         2);
 
-    return new CurlyReader(CurlyReader.getLatestBase(getTargetDirectory(configurator, partitionNumber)),
+    return new CurlyReader(CurlyReader.getLatestBase(getTargetDirectory(assignment, partitionNumber)),
         recordFileReadBufferBytes,
-        cueballStorageEngine.getReader(subConfigurator, partitionNumber),
+        cueballStorageEngine.getReader(subConfigurator, partitionNumber, assignment),
         subConfigurator.getCacheNumBytesCapacity(),
         (int)subConfigurator.getCacheNumItemsCapacity(),
         blockCompressionCodec,
@@ -297,8 +299,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    File localDir = new File(getTargetDirectory(configurator, partitionNumber));
+  public PartitionUpdater getUpdater(DiskPartitionAssignment assignment, int partitionNumber) throws IOException {
+    File localDir = new File(getTargetDirectory(assignment, partitionNumber));
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
@@ -306,10 +308,10 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+  public Compactor getCompactor(DiskPartitionAssignment assignment,
                                 int partitionNumber) throws IOException {
-    if (configurator != null) {
-      File localDir = new File(getTargetDirectory(configurator, partitionNumber));
+    if (assignment != null) {
+      File localDir = new File(getTargetDirectory(assignment, partitionNumber));
       if (!localDir.exists() && !localDir.mkdirs()) {
         throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
       }
@@ -367,9 +369,9 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
+  public Deleter getDeleter(DiskPartitionAssignment assignment, int partitionNumber)
       throws IOException {
-    String localDir = getTargetDirectory(configurator, partitionNumber);
+    String localDir = getTargetDirectory(assignment, partitionNumber);
     return new CurlyDeleter(localDir);
   }
 
@@ -440,20 +442,20 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     return new CurlyRemoteDomainCleaner(domain, numRemoteLeafVersionsToKeep);
   }
 
-  private String getTargetDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return getDataDirectory(configurator, partitionNumber) + "/" + domain.getName() + "/" + partitionNumber;
+  @Override
+  public DiskPartitionAssignment getDataDirectoryPerPartition(DataDirectoriesConfigurator configurator, Collection<Integer> partitionNumbers) {
+    return Cueball.getDataDirectoryAssignments(configurator, partitionNumbers);
+  }
+
+  private String getTargetDirectory(DiskPartitionAssignment assignment, int partitionNumber) {
+    return assignment.getDisk(partitionNumber) + "/" + domain.getName() + "/" + partitionNumber;
   }
 
   @Override
-  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return Cueball.getDataDirectory(configurator, domain, partitionNumber);
-  }
-
-  @Override
-  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int domainVersionNumber, int partitionNumber) throws IOException {
+  public Set<String> getFiles(DiskPartitionAssignment assignment, int domainVersionNumber, int partitionNumber) throws IOException {
     Set<String> result = new HashSet<String>();
-    result.addAll(cueballStorageEngine.getFiles(configurator, domainVersionNumber, partitionNumber));
-    result.add(getTargetDirectory(configurator, partitionNumber) + "/" + getName(domainVersionNumber, true));
+    result.addAll(cueballStorageEngine.getFiles(assignment, domainVersionNumber, partitionNumber));
+    result.add(getTargetDirectory(assignment, partitionNumber) + "/" + getName(domainVersionNumber, true));
     return result;
   }
 

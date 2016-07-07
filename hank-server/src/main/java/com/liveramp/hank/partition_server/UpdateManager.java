@@ -1,23 +1,24 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.liveramp.hank.partition_server;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,9 +36,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Domain;
@@ -167,24 +170,26 @@ public class UpdateManager implements IUpdateManager {
     }
   }
 
+
   private final class PartitionUpdateTask implements Runnable, Comparable<PartitionUpdateTask> {
 
     private final HostDomain hostDomain;
     private final Domain domain;
     private final HostDomainPartition partition;
-    private final String dataDirectory;
     private final PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator;
     private final List<Throwable> encounteredThrowables;
+    private final DiskPartitionAssignment assignment;
 
     public PartitionUpdateTask(HostDomain hostDomain,
                                HostDomainPartition partition,
                                PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
-                               List<Throwable> encounteredThrowables) {
+                               List<Throwable> encounteredThrowables,
+                               DiskPartitionAssignment assignment) {
       this.hostDomain = hostDomain;
       this.encounteredThrowables = encounteredThrowables;
       this.domain = hostDomain.getDomain();
       this.partition = partition;
-      this.dataDirectory = domain.getStorageEngine().getDataDirectory(configurator, partition.getPartitionNumber());
+      this.assignment = assignment;
       this.partitionUpdateTaskStatisticsAggregator = partitionUpdateTaskStatisticsAggregator;
       // Register itself in the aggregator
       partitionUpdateTaskStatisticsAggregator.register(this);
@@ -195,7 +200,7 @@ public class UpdateManager implements IUpdateManager {
     }
 
     public String getDataDirectory() {
-      return dataDirectory;
+      return assignment.getDisk(partition.getPartitionNumber());
     }
 
     @Override
@@ -234,7 +239,7 @@ public class UpdateManager implements IUpdateManager {
           LOG.info(String.format(
               "Starting partition update of domain %s partition %d to version %d in %s.",
               domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber(), getDataDirectory()));
-          storageEngine.getUpdater(configurator, partition.getPartitionNumber()).updateTo(targetDomainVersion, statistics);
+          storageEngine.getUpdater(assignment, partition.getPartitionNumber()).updateTo(targetDomainVersion, statistics);
 
           // Record update success
           partition.setCurrentDomainVersion(targetDomainVersion.getVersionNumber());
@@ -250,6 +255,14 @@ public class UpdateManager implements IUpdateManager {
         statistics.setEndTimeMs(System.currentTimeMillis());
         partitionUpdateTaskStatisticsAggregator.recordPartitionUpdateTaskStatistics(this, statistics);
       }
+    }
+
+    private void deletePartition(HostDomain hostDomain,
+                                 HostDomainPartition partition) throws IOException {
+      LOG.info("Deleting Domain " + hostDomain.getDomain().getName() + " partition " + partition.getPartitionNumber());
+      Deleter deleter = hostDomain.getDomain().getStorageEngine().getDeleter(assignment, partition.getPartitionNumber());
+      deleter.delete();
+      hostDomain.removePartition(partition.getPartitionNumber());
     }
 
     @Override
@@ -327,6 +340,8 @@ public class UpdateManager implements IUpdateManager {
   public void update() throws IOException {
     HankTimer timer = new HankTimer();
     try {
+
+
       // Delete unknown files
       deleteUnknownFiles();
       // Perform update
@@ -362,7 +377,7 @@ public class UpdateManager implements IUpdateManager {
                 concurrentUpdatesSemaphore));
       }
 
-      LOG.info("Submitting update tasks for "+dataDirectoryToUpdateTasks.size()+" directories.");
+      LOG.info("Submitting update tasks for " + dataDirectoryToUpdateTasks.size() + " directories.");
 
       // Execute tasks. We execute one task for each data directory and loop around so that the tasks
       // attempt to acquire the semaphore in a reasonable order.
@@ -400,14 +415,14 @@ public class UpdateManager implements IUpdateManager {
         boolean keepWaiting = true;
         while (keepWaiting) {
           try {
-            LOG.info("Waiting for updates to complete on data directory: "+directory);
+            LOG.info("Waiting for updates to complete on data directory: " + directory);
             boolean terminated = executorService.awaitTermination(
                 UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE,
                 UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT);
             if (terminated) {
               // We finished executing all tasks
               // Otherwise, timeout elapsed and current thread was not interrupted. Keep waiting.
-              LOG.info("Finished updates for directory: "+directory);
+              LOG.info("Finished updates for directory: " + directory);
               keepWaiting = false;
             }
             // Record update ETA
@@ -434,7 +449,7 @@ public class UpdateManager implements IUpdateManager {
         executorService.shutdownNow();
       }
 
-      LOG.info("Finished with "+encounteredThrowables.size()+" errors.");
+      LOG.info("Finished with " + encounteredThrowables.size() + " errors.");
 
       // Detect failures
       if (!encounteredThrowables.isEmpty()) {
@@ -466,14 +481,21 @@ public class UpdateManager implements IUpdateManager {
       List<Throwable> encounteredThrowables) throws IOException {
     ArrayList<PartitionUpdateTask> partitionUpdateTasks = new ArrayList<PartitionUpdateTask>();
 
+
     for (HostDomain hostDomain : host.getAssignedDomains()) {
+
+      StorageEngine engine = hostDomain.getDomain().getStorageEngine();
+
+      DiskPartitionAssignment assignments = engine.getDataDirectoryPerPartition(configurator, getPartitionNumbers(hostDomain.getPartitions()));
+
       for (HostDomainPartition partition : hostDomain.getPartitions()) {
         partitionUpdateTasks.add(
             new PartitionUpdateTask(
                 hostDomain,
                 partition,
                 partitionUpdateTaskStatisticsAggregator,
-                encounteredThrowables));
+                encounteredThrowables,
+                assignments));
       }
     }
 
@@ -495,23 +517,18 @@ public class UpdateManager implements IUpdateManager {
     }
   }
 
-  private void deletePartition(HostDomain hostDomain,
-                               HostDomainPartition partition) throws IOException {
-    LOG.info("Deleting Domain " + hostDomain.getDomain().getName() + " partition " + partition.getPartitionNumber());
-    Deleter deleter = hostDomain.getDomain().getStorageEngine().getDeleter(configurator, partition.getPartitionNumber());
-    deleter.delete();
-    hostDomain.removePartition(partition.getPartitionNumber());
-  }
-
   private void deleteUnknownFiles() throws IOException {
     // Compute expected files
     Set<String> expectedFiles = new HashSet<String>();
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       StorageEngine storageEngine = hostDomain.getDomain().getStorageEngine();
+
+      DiskPartitionAssignment assignments = storageEngine.getDataDirectoryPerPartition(configurator, getPartitionNumbers(hostDomain.getPartitions()));
+
       for (HostDomainPartition hostDomainPartition : hostDomain.getPartitions()) {
         Integer versionNumber = hostDomainPartition.getCurrentDomainVersion();
         if (versionNumber != null) {
-          for (String filePath : storageEngine.getFiles(configurator, versionNumber, hostDomainPartition.getPartitionNumber())) {
+          for (String filePath : storageEngine.getFiles(assignments, versionNumber, hostDomainPartition.getPartitionNumber())) {
             File file = new File(filePath);
             // Add the file itself
             expectedFiles.add(file.getCanonicalPath());
@@ -538,5 +555,13 @@ public class UpdateManager implements IUpdateManager {
         }
       }
     }
+  }
+
+  private static Set<Integer> getPartitionNumbers(Collection<HostDomainPartition> partition) {
+    Set<Integer> partitionNumbers = Sets.newHashSet();
+    for (HostDomainPartition hostDomainPartition : partition) {
+      partitionNumbers.add(hostDomainPartition.getPartitionNumber());
+    }
+    return partitionNumbers;
   }
 }

@@ -16,7 +16,17 @@
 
 package com.liveramp.hank.partition_server;
 
-import com.liveramp.hank.config.DataDirectoriesConfigurator;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
@@ -42,16 +52,6 @@ import com.liveramp.hank.test.coordinator.MockHostDomain;
 import com.liveramp.hank.test.coordinator.MockHostDomainPartition;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -111,12 +111,12 @@ public class TestUpdateManager extends BaseTestCase {
       }
 
       @Override
-      public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) {
+      public PartitionUpdater getUpdater(DiskPartitionAssignment assignment, int partitionNumber) {
         return updater;
       }
 
       @Override
-      public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
+      public Deleter getDeleter(DiskPartitionAssignment assignment, int partitionNumber)
           throws IOException {
         return MOCK_DELETER;
       }
