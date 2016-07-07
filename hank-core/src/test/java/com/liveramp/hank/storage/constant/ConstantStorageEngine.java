@@ -17,6 +17,7 @@ package com.liveramp.hank.storage.constant;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
@@ -60,17 +62,17 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException {
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber, DiskPartitionAssignment assignment) throws IOException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) {
+  public PartitionUpdater getUpdater(DiskPartitionAssignment configurator, int partitionNumber) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+  public Compactor getCompactor(DiskPartitionAssignment configurator,
                                 int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
@@ -90,7 +92,7 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
+  public Deleter getDeleter(DiskPartitionAssignment configurator, int partitionNumber)
       throws IOException {
     throw new UnsupportedOperationException();
   }
@@ -121,12 +123,12 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return null;
+  public DiskPartitionAssignment getDataDirectoryPerPartition(DataDirectoriesConfigurator configurator, Collection<Integer> partitionNumbers) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int versionNumber, int partitionNumber) throws IOException {
+  public Set<String> getFiles(DiskPartitionAssignment configurator, int versionNumber, int partitionNumber) throws IOException {
     return Collections.emptySet();
   }
 }

@@ -17,12 +17,14 @@ package com.liveramp.hank.storage.mock;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.HdfsPartitionRemoteFileOps;
@@ -40,7 +42,7 @@ public class MockStorageEngine implements StorageEngine {
   public boolean getReaderCalled;
 
   @Override
-  public Reader getReader(ReaderConfigurator configurator, int partitionNumber)
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber, DiskPartitionAssignment assignment)
       throws IOException {
     getReaderCalled = true;
     return null;
@@ -54,12 +56,12 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) {
+  public PartitionUpdater getUpdater(DiskPartitionAssignment assignment, int partitionNumber) {
     return null;
   }
 
   @Override
-  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+  public Compactor getCompactor(DiskPartitionAssignment assignment,
                                 int partitionNumber) throws IOException {
     return null;
   }
@@ -72,7 +74,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
+  public Deleter getDeleter(DiskPartitionAssignment assignment, int partitionNumber)
       throws IOException {
     return new MockDeleter(partitionNumber);
   }
@@ -103,12 +105,12 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return null;
+  public DiskPartitionAssignment getDataDirectoryPerPartition(DataDirectoriesConfigurator configurator, Collection<Integer> partitionNumbers) {
+    return new DiskPartitionAssignment(Collections.<Integer, String>emptyMap());
   }
 
   @Override
-  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int versionNumber, int partitionNumber) throws IOException {
+  public Set<String> getFiles(DiskPartitionAssignment assignment, int versionNumber, int partitionNumber) throws IOException {
     return Collections.emptySet();
   }
 }

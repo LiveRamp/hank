@@ -1,39 +1,29 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.liveramp.hank.hadoop;
 
-import com.liveramp.cascading_ext.util.LocalityHelper;
-import com.liveramp.hank.config.CoordinatorConfigurator;
-import com.liveramp.hank.config.DataDirectoriesConfigurator;
-import com.liveramp.hank.config.InvalidConfigurationException;
-import com.liveramp.hank.config.SimpleDataDirectoriesConfigurator;
-import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
-import com.liveramp.hank.coordinator.Coordinator;
-import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.coordinator.RunWithCoordinator;
-import com.liveramp.hank.coordinator.RunnableWithCoordinator;
-import com.liveramp.hank.storage.Compactor;
-import com.liveramp.hank.storage.StorageEngine;
-import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
-import com.liveramp.hank.storage.incremental.IncrementalStorageEngine;
-import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
-import com.liveramp.hank.storage.incremental.IncrementalUpdatePlanner;
-import com.liveramp.hank.util.CommandLineChecker;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -45,14 +35,26 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
+import com.liveramp.cascading_ext.util.LocalityHelper;
+import com.liveramp.hank.config.CoordinatorConfigurator;
+import com.liveramp.hank.config.InvalidConfigurationException;
+import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.RunWithCoordinator;
+import com.liveramp.hank.coordinator.RunnableWithCoordinator;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
+import com.liveramp.hank.storage.Compactor;
+import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.liveramp.hank.storage.incremental.IncrementalStorageEngine;
+import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
+import com.liveramp.hank.storage.incremental.IncrementalUpdatePlanner;
+import com.liveramp.hank.util.CommandLineChecker;
 
 public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
@@ -133,9 +135,14 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
           + " Partition " + partitionNumber.get()
           + " in " + localTmpOutput.getAbsolutePath());
       // Get compacting updater
-      DataDirectoriesConfigurator dataDirectoriesConfigurator =
-          new SimpleDataDirectoriesConfigurator(localTmpOutput.getAbsolutePath());
-      Compactor compactor = storageEngine.getCompactor(dataDirectoriesConfigurator, partitionNumber.get());
+
+      DiskPartitionAssignment assignment = new DiskPartitionAssignment(Collections.singletonMap(
+          partitionNumber.get(),
+          localTmpOutput.getAbsolutePath()
+      ));
+
+
+      Compactor compactor = storageEngine.getCompactor(assignment, partitionNumber.get());
       if (compactor == null) {
         throw new RuntimeException("Failed to load compacting updater for domain " + domainName
             + " with storage engine: " + storageEngine);
@@ -230,7 +237,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         // Compute remote partition file paths for this split if possible
         String[] locations = new String[]{};
         if (storageEngine instanceof IncrementalStorageEngine) {
-          IncrementalUpdatePlanner updatePlanner = ((IncrementalStorageEngine) storageEngine).getUpdatePlanner(domain);
+          IncrementalUpdatePlanner updatePlanner = ((IncrementalStorageEngine)storageEngine).getUpdatePlanner(domain);
           IncrementalUpdatePlan updatePlan = updatePlanner.computeUpdatePlan(domainVersionToCompact);
           List<String> paths = updatePlanner.getRemotePartitionFilePaths(updatePlan, storageEngine.getPartitionRemoteFileOps(partition));
           locations = LocalityHelper.getHostsSortedByLocality(paths, conf);
@@ -245,7 +252,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     public RecordReader<Text, IntWritable> getRecordReader(InputSplit inputSplit,
                                                            JobConf conf,
                                                            Reporter reporter) throws IOException {
-      HadoopDomainCompactorInputSplit split = (HadoopDomainCompactorInputSplit) inputSplit;
+      HadoopDomainCompactorInputSplit split = (HadoopDomainCompactorInputSplit)inputSplit;
       return new HadoopDomainCompactorRecordReader(split);
     }
   }
@@ -302,7 +309,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
     CommandLineChecker.check(args, new String[]{
-        "domain name", "version to compact number", "mapred.task.timeout", "config path", "jobjar"},
+            "domain name", "version to compact number", "mapred.task.timeout", "config path", "jobjar"},
         HadoopDomainCompactor.class);
     String domainName = args[0];
     Integer versionToCompactNumber = Integer.valueOf(args[1]);

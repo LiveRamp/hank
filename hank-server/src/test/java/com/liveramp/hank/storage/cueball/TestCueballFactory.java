@@ -15,14 +15,20 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.hasher.Murmur64Hasher;
-import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
-import com.liveramp.hank.test.BaseTestCase;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-import org.junit.Test;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.liveramp.hank.config.SimpleDataDirectoriesConfigurator;
+import com.liveramp.hank.hasher.Murmur64Hasher;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
+import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
+import com.liveramp.hank.test.BaseTestCase;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -59,25 +65,33 @@ public class TestCueballFactory extends BaseTestCase {
 
   @Test
   public void testGetDataDirectory() {
-    // More data directories than partitions
-    assertEquals(0, Cueball.getDataDirectoryIndex(3, 2, 0));
-    assertEquals(1, Cueball.getDataDirectoryIndex(3, 2, 1));
-    // One data directory
-    assertEquals(0, Cueball.getDataDirectoryIndex(1, 10, 0));
-    assertEquals(0, Cueball.getDataDirectoryIndex(1, 10, 1));
-    assertEquals(0, Cueball.getDataDirectoryIndex(1, 10, 2));
-    // Three data directories
-    assertEquals(0, Cueball.getDataDirectoryIndex(3, 11, 0));
-    assertEquals(0, Cueball.getDataDirectoryIndex(3, 11, 1));
-    assertEquals(0, Cueball.getDataDirectoryIndex(3, 11, 2));
-    assertEquals(0, Cueball.getDataDirectoryIndex(3, 11, 3));
-    assertEquals(1, Cueball.getDataDirectoryIndex(3, 11, 4));
-    assertEquals(1, Cueball.getDataDirectoryIndex(3, 11, 5));
-    assertEquals(1, Cueball.getDataDirectoryIndex(3, 11, 6));
-    assertEquals(1, Cueball.getDataDirectoryIndex(3, 11, 7));
-    assertEquals(2, Cueball.getDataDirectoryIndex(3, 11, 8));
-    // Remaining should be distributed evenly across buckets
-    assertEquals(2, Cueball.getDataDirectoryIndex(3, 11, 9));
-    assertEquals(2, Cueball.getDataDirectoryIndex(3, 11, 10));
+
+    SimpleDataDirectoriesConfigurator configurator = new SimpleDataDirectoriesConfigurator(Sets.newHashSet("A", "B", "C"));
+
+    Set<Integer> partitions = Sets.newHashSet(
+      1, 4, 8, 12, 33, 89, 3
+    );
+
+    DiskPartitionAssignment assignments = Cueball.getDataDirectoryAssignments(configurator, partitions);
+
+    assertEquals("A", assignments.getDisk(1));
+    assertEquals("A", assignments.getDisk(3));
+    assertEquals("A", assignments.getDisk(4));
+
+    assertEquals("B", assignments.getDisk(8));
+    assertEquals("B", assignments.getDisk(12));
+    assertEquals("B", assignments.getDisk(33));
+
+    assertEquals("C", assignments.getDisk(89));
+
+    partitions = Sets.newHashSet(
+        1, 33
+    );
+
+    assignments = Cueball.getDataDirectoryAssignments(configurator, partitions);
+
+    assertEquals("A", assignments.getDisk(1));
+    assertEquals("B", assignments.getDisk(33));
+
   }
 }

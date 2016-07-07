@@ -18,12 +18,13 @@ package com.liveramp.hank.storage;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Set;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 
 /**
  * Defines how to read, write, delete, and update the data stored for a given
@@ -31,22 +32,22 @@ import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
  */
 public interface StorageEngine {
 
-  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException;
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber, DiskPartitionAssignment assignment) throws IOException;
 
   public Writer getWriter(DomainVersion domainVersion,
                           PartitionRemoteFileOps partitionRemoteFileOps,
                           int partitionNumber) throws IOException;
 
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
+  public PartitionUpdater getUpdater(DiskPartitionAssignment assignment, int partitionNumber) throws IOException;
 
-  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+  public Compactor getCompactor(DiskPartitionAssignment assignment,
                                 int partitionNumber) throws IOException;
 
   public Writer getCompactorWriter(DomainVersion domainVersion,
                                    PartitionRemoteFileOps partitionRemoteFileOps,
                                    int partitionNumber) throws IOException;
 
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
+  public Deleter getDeleter(DiskPartitionAssignment assignment, int partitionNumber) throws IOException;
 
   public ByteBuffer getComparableKey(ByteBuffer key);
 
@@ -58,7 +59,7 @@ public interface StorageEngine {
 
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException;
 
-  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber);
+  public DiskPartitionAssignment getDataDirectoryPerPartition(DataDirectoriesConfigurator configurator, Collection<Integer> partitionNumbers);
 
-  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int versionNumber, int partitionNumber) throws IOException;
+  public Set<String> getFiles(DiskPartitionAssignment assignment, int versionNumber, int partitionNumber) throws IOException;
 }

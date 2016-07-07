@@ -2,6 +2,7 @@ package com.liveramp.hank.storage.echo;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,7 @@ import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
@@ -57,7 +59,7 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(ReaderConfigurator configurator, int partitionNumber) throws IOException {
+  public Reader getReader(ReaderConfigurator configurator, int partitionNumber, DiskPartitionAssignment assignment) throws IOException {
     return new EchoReader(partitionNumber);
   }
 
@@ -69,12 +71,12 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+  public PartitionUpdater getUpdater(DiskPartitionAssignment configurator, int partitionNumber) throws IOException {
     return new EchoUpdater();
   }
 
   @Override
-  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+  public Compactor getCompactor(DiskPartitionAssignment assignment,
                                 int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
@@ -87,7 +89,7 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
+  public Deleter getDeleter(DiskPartitionAssignment assignment, int partitionNumber)
       throws IOException {
     return new EchoDeleter(partitionNumber);
   }
@@ -107,12 +109,12 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
+  public DiskPartitionAssignment getDataDirectoryPerPartition(DataDirectoriesConfigurator configurator, Collection<Integer> partitionNumbers) {
     return null;
   }
 
   @Override
-  public Set<String> getFiles(DataDirectoriesConfigurator configurator, int versionNumber, int partitionNumber) throws IOException {
+  public Set<String> getFiles(DiskPartitionAssignment assignment, int versionNumber, int partitionNumber) throws IOException {
     return Collections.emptySet();
   }
 }
