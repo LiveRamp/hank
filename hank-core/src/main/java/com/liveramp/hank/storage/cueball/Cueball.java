@@ -360,15 +360,18 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     Collections.sort(sortedPartitions);
 
     //  TODO we can make this dynamic based on disk size, but not urgent
-    int numPartitionsPerDisk = (int)Math.ceil((double)partitionNumbers.size() / sortedDataDirectories.size());
+    double numPartitionsPerDisk = (double)partitionNumbers.size() / sortedDataDirectories.size();
 
     Multimap<String, Integer> partitionsPerDisk = HashMultimap.create();
     for (String dataDirectory : sortedDataDirectories) {
-      while (
-          !sortedPartitions.isEmpty() &&
-          partitionsPerDisk.get(dataDirectory).size() < numPartitionsPerDisk) {
+
+      int numToAssign = (int) Math.ceil(numPartitionsPerDisk * (partitionsPerDisk.keySet().size() + 1))
+          - partitionsPerDisk.values().size();
+
+      for (int i = 0; i < numToAssign && !sortedPartitions.isEmpty(); i++) {
         partitionsPerDisk.put(dataDirectory, sortedPartitions.pop());
       }
+
     }
 
     Map<Integer, String> inverse = Maps.newHashMap();

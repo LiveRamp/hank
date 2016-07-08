@@ -80,8 +80,8 @@ public class TestCueballFactory extends BaseTestCase {
 
     assertEquals("B", assignments.getDisk(8));
     assertEquals("B", assignments.getDisk(12));
-    assertEquals("B", assignments.getDisk(33));
 
+    assertEquals("C", assignments.getDisk(33));
     assertEquals("C", assignments.getDisk(89));
 
     partitions = Sets.newHashSet(
