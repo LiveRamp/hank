@@ -30,10 +30,10 @@ import java.util.Arrays;
 
 /**
  * Note that the current implementation does not support writing partitions with
- * more than 30000 entries per block.
+ * more than 40000 entries per block.
  */
 public class CueballWriter implements Writer {
-  private static final int DEFAULT_NUMBER_OF_ENTRIES = 30000;
+  private static final int DEFAULT_NUMBER_OF_ENTRIES = 40000;
   private final OutputStream stream;
   private final int keyHashSize;
   private final Hasher hasher;
