@@ -8,8 +8,8 @@ import org.junit.Test;
 import com.liveramp.hank.test.ZkMockCoordinatorTestCase;
 import com.liveramp.hank.coordinator.Coordinator;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
 public class TestHankApiHelper extends ZkMockCoordinatorTestCase {

@@ -11,6 +11,7 @@ import java.util.Random;
 
 import org.apache.log4j.Level;
 import org.apache.thrift.TException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.liveramp.hank.Hank;
@@ -42,6 +43,7 @@ import com.liveramp.hank.storage.echo.Echo;
 import com.liveramp.hank.test.ZkMockCoordinatorTestCase;
 import com.liveramp.hank.util.LocalHostUtils;
 
+@Ignore("Should only be run manually")
 public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
   private static final int NUM_RING_GROUPS = 1;

@@ -8,8 +8,8 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class SQLNotifierFactoryTest extends BaseTestCase {
