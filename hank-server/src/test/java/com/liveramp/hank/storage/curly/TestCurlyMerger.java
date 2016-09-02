@@ -19,15 +19,20 @@ package com.liveramp.hank.storage.curly;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.util.FsUtils;
-import junit.framework.TestCase;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class TestCurlyMerger extends TestCase {
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+
+public class TestCurlyMerger {
   private static final String LOCAL_PARTITION_ROOT = "/tmp/TestCurlyMerger/local";
 
+  @Before
   public void setUp() throws Exception {
     FsUtils.rmrf(LOCAL_PARTITION_ROOT);
     new File(LOCAL_PARTITION_ROOT).mkdirs();
@@ -40,6 +45,7 @@ public class TestCurlyMerger extends TestCase {
   private static final String DELTA2 = "00002.delta.curly";
   private static final byte[] DELTA2_DATA = {14, 15, 16};
 
+  @Test
   public void testMerge() throws Exception {
 
     PartitionRemoteFileOps partitionRemoteFileOps = new LocalPartitionRemoteFileOps(LOCAL_PARTITION_ROOT, 0);

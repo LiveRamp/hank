@@ -17,9 +17,12 @@ package com.liveramp.hank.util;
 
 import java.nio.ByteBuffer;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class TestEncodingHelper extends TestCase {
+import static org.junit.Assert.assertEquals;
+
+public class TestEncodingHelper {
+  @Test
   public void testEncodeLittleEndianFixedWidthLong() throws Exception {
     byte[] arr = new byte[3];
     EncodingHelper.encodeLittleEndianFixedWidthLong(1, arr);
@@ -30,6 +33,7 @@ public class TestEncodingHelper extends TestCase {
     assertEquals(ByteBuffer.wrap(new byte[]{-1, 1, 0}), ByteBuffer.wrap(arr));
   }
 
+  @Test
   public void testDecodeLittleEndianFixedWidthLong() throws Exception {
     byte[] arr = new byte[]{1, 0, 0};
     assertEquals(1, EncodingHelper.decodeLittleEndianFixedWidthLong(ByteBuffer.wrap(arr)));
@@ -39,6 +43,7 @@ public class TestEncodingHelper extends TestCase {
     assertEquals(0x0001ff, EncodingHelper.decodeLittleEndianFixedWidthLong(ByteBuffer.wrap(arr)));
   }
 
+  @Test
   public void testEncodeLitteEndianVarInt() throws Exception {
     byte[] buffer = new byte[EncodingHelper.MAX_VARINT_SIZE];
     assertEquals(1, EncodingHelper.encodeLittleEndianVarInt(1, buffer));
@@ -57,6 +62,7 @@ public class TestEncodingHelper extends TestCase {
     assertEquals(ByteBuffer.wrap(new byte[]{-1, -1, -1, -1, 0x07}), ByteBuffer.wrap(buffer, 0, 5));
   }
 
+  @Test
   public void testDecodeLittleEndianVarInt() throws Exception {
     assertEquals(1, EncodingHelper.decodeLittleEndianVarInt(ByteBuffer.wrap(new byte[]{1})));
     assertEquals(10, EncodingHelper.decodeLittleEndianVarInt(ByteBuffer.wrap(new byte[]{10})));

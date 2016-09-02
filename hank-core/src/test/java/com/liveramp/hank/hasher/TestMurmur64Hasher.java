@@ -16,15 +16,19 @@
 package com.liveramp.hank.hasher;
 
 import com.liveramp.commons.util.BytesUtils;
-import junit.framework.TestCase;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class TestMurmur64Hasher extends TestCase {
+import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class TestMurmur64Hasher {
   private Murmur64Hasher hsh = new Murmur64Hasher();
 
+  @Test
   public void testIt() {
     byte[] bufA = new byte[9];
     hsh.hash(ByteBuffer.wrap(new byte[]{1, 2, 3}), bufA.length, bufA);
@@ -35,6 +39,7 @@ public class TestMurmur64Hasher extends TestCase {
     assertEquals(ByteBuffer.wrap(bufA), ByteBuffer.wrap(bufB));
   }
 
+  @Test
   public void testCollision() {
     byte[] hashA = new byte[10];
     hsh.hash(ByteBuffer.wrap(new byte[]{0x28, 0x16, 0x70, 0x69, 0x63, 0x6b, 0x6c, 0x65, 0x73, 0x2e, 0x31, 0x39,
@@ -48,6 +53,7 @@ public class TestMurmur64Hasher extends TestCase {
     assertTrue(0 != comparision);
   }
 
+  @Test
   public void testMultipleOf8() {
     byte[] hash64 = new byte[8];
     byte[] hash128 = new byte[16];
@@ -60,6 +66,7 @@ public class TestMurmur64Hasher extends TestCase {
         (byte) 0x9f, (byte) 0xa8, 0x0d, 0x49, (byte) 0xde, 0x0a, (byte) 0x90, 0x15}, hash128));
   }
 
+  @Test
   public void testNonZeroOffset() {
     byte[] hash64 = new byte[8];
 
