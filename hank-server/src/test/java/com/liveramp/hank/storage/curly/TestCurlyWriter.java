@@ -1,30 +1,36 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.liveramp.hank.storage.curly;
-
-import com.liveramp.commons.util.BytesUtils;
-import com.liveramp.hank.compression.CompressionCodec;
-import com.liveramp.hank.storage.map.MapWriter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class TestCurlyWriter extends AbstractCurlyTestBase {
+import org.junit.Test;
 
+import com.liveramp.commons.util.BytesUtils;
+import com.liveramp.hank.compression.CompressionCodec;
+import com.liveramp.hank.storage.map.MapWriter;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class TestCurlyWriter extends AbstractCurlyTestBase {
+  @Test
   public void testWrite() throws Exception {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
     MapWriter keyfileWriter = new MapWriter();
@@ -51,6 +57,7 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
     assertEquals(ByteBuffer.wrap(EXPECTED_RECORD_FILE), ByteBuffer.wrap(s.toByteArray()));
   }
 
+  @Test
   public void testValueFolding() throws IOException {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
     MapWriter keyfileWriter = new MapWriter();
@@ -104,18 +111,22 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
     assertEquals(ByteBuffer.wrap(expectedBlock), ByteBuffer.wrap(s.toByteArray()));
   }
 
+  @Test
   public void testBlockCompressionSlowNoCompression() throws Exception {
     doTestBlockCompression(CompressionCodec.SLOW_NO_COMPRESSION, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SLOW_NO_COMPRESSION);
   }
 
+  @Test
   public void testBlockCompressionDeflate() throws Exception {
     doTestBlockCompression(CompressionCodec.DEFLATE, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_DEFLATE);
   }
 
+  @Test
   public void testBlockCompressionGzip() throws Exception {
     doTestBlockCompression(CompressionCodec.GZIP, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP);
   }
 
+  @Test
   public void testBlockCompressionSnappy() throws Exception {
     doTestBlockCompression(CompressionCodec.SNAPPY, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SNAPPY);
   }

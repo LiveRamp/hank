@@ -21,9 +21,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import org.junit.Test;
+
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.map.MapReader;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestCurlyReader extends AbstractCurlyTestBase {
   private static final String TMP_TEST_CURLY_READER = "/tmp/TestCurlyReader";
@@ -38,6 +44,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     }
   }
 
+  @Test
   public void testReader() throws Exception {
     new File(TMP_TEST_CURLY_READER).mkdirs();
     OutputStream s = new FileOutputStream(TMP_TEST_CURLY_READER + "/00000.base.curly");
@@ -145,18 +152,22 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     result.clear();
   }
 
+  @Test
   public void testBlockCompressionSlowNoCompression() throws Exception {
     doTestBlockCompression(CompressionCodec.SLOW_NO_COMPRESSION, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SLOW_NO_COMPRESSION);
   }
 
+  @Test
   public void testBlockCompressionDeflate() throws Exception {
     doTestBlockCompression(CompressionCodec.DEFLATE, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_DEFLATE);
   }
 
+  @Test
   public void testBlockCompressionGzip() throws Exception {
     doTestBlockCompression(CompressionCodec.GZIP, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP);
   }
 
+  @Test
   public void testBlockCompressionSnappy() throws Exception {
     doTestBlockCompression(CompressionCodec.SNAPPY, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SNAPPY);
   }
