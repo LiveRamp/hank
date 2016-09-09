@@ -101,12 +101,6 @@
       <version>1.6-SNAPSHOT</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.eclipse.jdt.core.compiler</groupId>
-      <artifactId>ecj</artifactId>
-      <version>4.3.1</version>
-    </dependency>
-            
 
   </dependencies>
 
