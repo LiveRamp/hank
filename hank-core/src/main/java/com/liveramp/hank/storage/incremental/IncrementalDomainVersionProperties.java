@@ -1,29 +1,33 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.liveramp.hank.storage.incremental;
-
-import com.liveramp.hank.config.InvalidConfigurationException;
-import com.liveramp.hank.config.yaml.YamlConfigurator;
-import com.liveramp.hank.coordinator.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.TreeMap;
+
+import com.liveramp.hank.config.InvalidConfigurationException;
+import com.liveramp.hank.config.yaml.YamlConfigurator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.DomainVersionProperties;
+import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
+import com.liveramp.hank.coordinator.Domains;
 
 public class IncrementalDomainVersionProperties implements DomainVersionProperties {
 
@@ -92,7 +96,7 @@ public class IncrementalDomainVersionProperties implements DomainVersionProperti
   }
 
   public static boolean isBase(DomainVersion domainVersion) throws IOException {
-    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties) domainVersion.getProperties();
+    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties)domainVersion.getProperties();
     if (properties == null) {
       throw new RuntimeException("Given Domain Version properties are null.");
     }
@@ -100,7 +104,7 @@ public class IncrementalDomainVersionProperties implements DomainVersionProperti
   }
 
   public static DomainVersion getParentDomainVersion(Domain domain, DomainVersion version) throws IOException {
-    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties) version.getProperties();
+    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties)version.getProperties();
     if (properties == null) {
       throw new IOException("Failed to get parent of Domain Version since corresponding properties are empty: " + version);
     } else {
@@ -111,7 +115,7 @@ public class IncrementalDomainVersionProperties implements DomainVersionProperti
         DomainVersion result = domain.getVersion(parentVersionNumber);
         if (result == null) {
           throw new IOException("Failed to get parent Domain Version since specified parent version number ("
-              + parentVersionNumber + ") of version "+version.getVersionNumber()+"of Domain " + domain.getName() + " does not correspond to any version.");
+              + parentVersionNumber + ") of version " + version.getVersionNumber() + " of Domain " + domain.getName() + " does not correspond to any version.");
         }
         return result;
       }
@@ -162,7 +166,7 @@ public class IncrementalDomainVersionProperties implements DomainVersionProperti
 
     @Override
     public byte[] serializeProperties(DomainVersionProperties propertiesObj) throws IOException {
-      IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties) propertiesObj;
+      IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties)propertiesObj;
       Configurator configurator = new Configurator();
       Map<String, Object> yaml = new TreeMap<String, Object>();
       yaml.put(PARENT_KEY, properties.getParentVersionNumber());
