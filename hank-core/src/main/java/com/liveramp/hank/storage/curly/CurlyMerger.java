@@ -15,15 +15,17 @@
  */
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.storage.PartitionRemoteFileOps;
-import com.liveramp.hank.util.IOStreamUtils;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.liveramp.hank.storage.operations.PartitionServerRemoteFileOps;
+import com.liveramp.hank.util.IOStreamUtils;
 
 public class CurlyMerger implements ICurlyMerger {
 
@@ -32,7 +34,7 @@ public class CurlyMerger implements ICurlyMerger {
   @Override
   public long[] merge(final CurlyFilePath base,
                       final List<String> deltaRemoteFiles,
-                      final PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
+                      final PartitionServerRemoteFileOps partitionRemoteFileOps) throws IOException {
     long[] offsetAdjustments = new long[deltaRemoteFiles.size() + 1];
     offsetAdjustments[0] = 0;
 

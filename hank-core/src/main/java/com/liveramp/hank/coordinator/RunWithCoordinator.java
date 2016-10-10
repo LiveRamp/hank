@@ -16,9 +16,9 @@
 
 package com.liveramp.hank.coordinator;
 
-import com.liveramp.hank.config.CoordinatorConfigurator;
-
 import java.io.IOException;
+
+import com.liveramp.hank.config.CoordinatorConfigurator;
 
 public class RunWithCoordinator {
 

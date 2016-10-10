@@ -16,10 +16,10 @@
 
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.storage.PartitionRemoteFileOps;
-
 import java.io.IOException;
 import java.util.List;
+
+import com.liveramp.hank.storage.operations.PartitionServerRemoteFileOps;
 
 public class MockCurlyMerger implements ICurlyMerger {
 
@@ -29,7 +29,7 @@ public class MockCurlyMerger implements ICurlyMerger {
   @Override
   public long[] merge(CurlyFilePath latestBase,
                       List<String> deltaRemoteFiles,
-                      PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
+                      PartitionServerRemoteFileOps partitionRemoteFileOps) throws IOException {
     this.latestBase = latestBase;
     this.deltaRemoteFiles = deltaRemoteFiles;
     return null;

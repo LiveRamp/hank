@@ -16,26 +16,32 @@
 
 package com.liveramp.hank.storage.cueball;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
-import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdater;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
+import com.liveramp.hank.storage.operations.PartitionServerRemoteFileOps;
 import com.liveramp.hank.util.HankTimer;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
 
   private static final Logger LOG = LoggerFactory.getLogger(CueballPartitionUpdater.class);
 
-  private final PartitionRemoteFileOps partitionRemoteFileOps;
+  private final PartitionServerRemoteFileOps partitionRemoteFileOps;
   private final int keyHashSize;
   private final int valueSize;
   private final ICueballMerger cueballMerger;
@@ -43,7 +49,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   private final int hashIndexBits;
 
   public CueballPartitionUpdater(Domain domain,
-                                 PartitionRemoteFileOps partitionRemoteFileOps,
+                                 PartitionServerRemoteFileOps partitionRemoteFileOps,
                                  ICueballMerger cueballMerger,
                                  int keyHashSize,
                                  int valueSize,
@@ -69,7 +75,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     }
   }
 
-  public static boolean isEmptyVersion(PartitionRemoteFileOps partitionRemoteFileOps,
+  public static boolean isEmptyVersion(PartitionServerRemoteFileOps partitionRemoteFileOps,
                                        DomainVersion domainVersion) throws IOException {
     return !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
         && !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false));

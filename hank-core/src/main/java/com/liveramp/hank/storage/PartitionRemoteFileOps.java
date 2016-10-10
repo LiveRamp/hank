@@ -16,21 +16,7 @@
 
 package com.liveramp.hank.storage;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.liveramp.hank.storage.operations.DomainBuilderRemoteFileOps;
+import com.liveramp.hank.storage.operations.PartitionServerRemoteFileOps;
 
-public interface PartitionRemoteFileOps {
-
-  public InputStream getInputStream(String remoteRelativePath) throws IOException;
-
-  public OutputStream getOutputStream(String remoteRelativePath) throws IOException;
-
-  public boolean exists(String remoteRelativePath) throws IOException;
-
-  public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException;
-
-  public boolean attemptDelete(String remoteRelativePath) throws IOException;
-
-  public String getRemoteAbsolutePath(String remoteRelativePath);
-}
+public interface PartitionRemoteFileOps extends PartitionServerRemoteFileOps, DomainBuilderRemoteFileOps {}

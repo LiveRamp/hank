@@ -16,23 +16,25 @@
 
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
-import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
-import com.liveramp.hank.storage.PartitionRemoteFileOps;
-import com.liveramp.hank.storage.cueball.CueballPartitionUpdater;
-import com.liveramp.hank.storage.cueball.ICueballMerger;
-import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
-import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
-import com.liveramp.hank.util.FormatUtils;
-import com.liveramp.hank.util.HankTimer;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
+import com.liveramp.hank.storage.cueball.CueballPartitionUpdater;
+import com.liveramp.hank.storage.cueball.ICueballMerger;
+import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
+import com.liveramp.hank.storage.operations.PartitionServerRemoteFileOps;
+import com.liveramp.hank.util.FormatUtils;
+import com.liveramp.hank.util.HankTimer;
 
 public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
 
@@ -47,7 +49,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
   private final ICueballMerger cueballMerger;
 
   public CurlyFastPartitionUpdater(Domain domain,
-                                   PartitionRemoteFileOps partitionRemoteFileOps,
+                                   PartitionServerRemoteFileOps partitionRemoteFileOps,
                                    ICurlyMerger curlyMerger,
                                    ICueballMerger cueballMerger,
                                    int keyHashSize,

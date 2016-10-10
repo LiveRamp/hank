@@ -16,33 +16,35 @@
 
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
-import com.liveramp.hank.storage.PartitionRemoteFileOps;
-import com.liveramp.hank.storage.cueball.Cueball;
-import com.liveramp.hank.storage.cueball.CueballFilePath;
-import com.liveramp.hank.storage.cueball.ValueTransformer;
-import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdater;
-import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
-import com.liveramp.hank.util.EncodingHelper;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
+import com.liveramp.hank.storage.cueball.Cueball;
+import com.liveramp.hank.storage.cueball.CueballFilePath;
+import com.liveramp.hank.storage.cueball.ValueTransformer;
+import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdater;
+import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
+import com.liveramp.hank.storage.operations.PartitionServerRemoteFileOps;
+import com.liveramp.hank.util.EncodingHelper;
+
 public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartitionUpdater {
 
   private static final Logger LOG = LoggerFactory.getLogger(CurlyFastPartitionUpdater.class);
 
-  protected final PartitionRemoteFileOps partitionRemoteFileOps;
+  protected final PartitionServerRemoteFileOps partitionRemoteFileOps;
 
   public AbstractCurlyPartitionUpdater(Domain domain,
-                                       PartitionRemoteFileOps partitionRemoteFileOps,
+                                       PartitionServerRemoteFileOps partitionRemoteFileOps,
                                        String localPartitionRoot) throws IOException {
     super(domain, localPartitionRoot, new CurlyUpdatePlanner(domain));
     this.partitionRemoteFileOps = partitionRemoteFileOps;

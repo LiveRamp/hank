@@ -16,15 +16,15 @@
 
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.storage.PartitionRemoteFileOps;
-
 import java.io.IOException;
 import java.util.List;
+
+import com.liveramp.hank.storage.operations.PartitionServerRemoteFileOps;
 
 public interface ICurlyMerger {
 
   public long[] merge(final CurlyFilePath latestBase,
                       final List<String> deltaRemoteFiles,
-                      final PartitionRemoteFileOps partitionRemoteFileOps)
+                      final PartitionServerRemoteFileOps partitionRemoteFileOps)
       throws IOException;
 }
