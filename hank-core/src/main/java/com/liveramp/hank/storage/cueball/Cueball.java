@@ -82,7 +82,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     public static final String NUM_REMOTE_LEAF_VERSIONS_TO_KEEP = "num_remote_leaf_versions_to_keep";
 
     private static final Set<String> REQUIRED_KEYS =
-        new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
+        new HashSet<String>(Arrays.asList(
             HASH_INDEX_BITS_KEY,
             HASHER_KEY,
             VALUE_SIZE_KEY,

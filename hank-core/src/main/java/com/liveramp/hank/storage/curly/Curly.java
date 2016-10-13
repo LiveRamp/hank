@@ -85,7 +85,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     private static final String COMPRESSED_BLOCK_SIZE_THRESHOLD = "compressed_block_size_threshold";
     private static final String OFFSET_IN_BLOCK_NUM_BYTES = "offset_in_block_num_bytes";
 
-    private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
+    private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(
         RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY,
         FILE_OPS_FACTORY_KEY, HASHER_KEY, NUM_REMOTE_LEAF_VERSIONS_TO_KEEP));
 
