@@ -16,17 +16,17 @@
 
 package com.liveramp.hank.storage.map;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.storage.NoOpPartitionRemoteFileOps;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.PartitionRemoteFileOpsFactory;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.mock.MockStorageEngine;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 // Storage engine used for testing. Stores key-value pairs in a static
 // partition map instead of writing them to an output stream. It is not thread
@@ -80,7 +80,7 @@ public class MapStorageEngine extends MockStorageEngine {
   }
 
   @Override
-  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory(RemoteLocation location) {
     return new NoOpPartitionRemoteFileOps.Factory();
   }
 }

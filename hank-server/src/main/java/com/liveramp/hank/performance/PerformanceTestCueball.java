@@ -16,6 +16,13 @@
 
 package com.liveramp.hank.performance;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
@@ -32,13 +39,6 @@ import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.IOStreamUtils;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-
 public class PerformanceTestCueball {
 
   private static final int VALUE_SIZE = 16;
@@ -48,8 +48,9 @@ public class PerformanceTestCueball {
   private static final int NUM_RECORDS_PER_BLOCK = 1000;
 
   private static Cueball getCueball(String localTmpDir) {
+    String root = localTmpDir + "/remote_domain_root";
     return new Cueball(
-        KEY_HASH_SIZE, new KeyHasher(HASH_INDEX_BITS), VALUE_SIZE, HASH_INDEX_BITS, localTmpDir + "/remote_domain_root",
+        KEY_HASH_SIZE, new KeyHasher(HASH_INDEX_BITS), VALUE_SIZE, HASH_INDEX_BITS, root, root,
         new LocalPartitionRemoteFileOps.Factory(), NoCueballCompressionCodec.class, null, 0);
   }
 

@@ -51,9 +51,14 @@ public interface StorageEngine {
 
   public ByteBuffer getComparableKey(ByteBuffer key);
 
-  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory();
+  enum RemoteLocation {
+    DOMAIN_BUILDER,
+    PARTITION_SERVER
+  }
 
-  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) throws IOException;
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory(RemoteLocation filesLocation);
+
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(RemoteLocation files, int partitionNumber) throws IOException;
 
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException;
 

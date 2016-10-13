@@ -174,7 +174,7 @@ public abstract class DomainBuilderAbstractOutputFormat
       writtenPartitions.add(partitionNumber);
       writer = getWriter(storageEngine,
           domainVersion,
-          storageEngine.getPartitionRemoteFileOpsFactory().getPartitionRemoteFileOps(writerOutputPath.toString(), partitionNumber),
+          storageEngine.getPartitionRemoteFileOpsFactory(StorageEngine.RemoteLocation.DOMAIN_BUILDER).getPartitionRemoteFileOps(writerOutputPath.toString(), partitionNumber),
           partitionNumber);
     }
 
