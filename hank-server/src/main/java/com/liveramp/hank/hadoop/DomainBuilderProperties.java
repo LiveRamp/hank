@@ -22,6 +22,7 @@ import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionProperties;
 import com.liveramp.hank.coordinator.RunWithCoordinator;
 import com.liveramp.hank.coordinator.RunnableWithCoordinator;
+import com.liveramp.hank.storage.FileOpsUtil;
 
 public class DomainBuilderProperties {
 
@@ -270,11 +271,8 @@ public class DomainBuilderProperties {
       if (options == null) {
         throw new RuntimeException("Empty options for domain: " + domainName);
       }
-      String result = (String)options.get(REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION);
-      if (result == null) {
-        throw new RuntimeException("Could not load option: " + REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION + " for domain: " + domainName + " from storage engine options.");
-      }
-      this.result = result;
+
+      this.result = FileOpsUtil.getDomainBuilderRoot(options);
     }
   }
 
