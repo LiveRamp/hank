@@ -24,11 +24,12 @@ import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.liveramp.cascading_ext.FileSystemHelper;
 import com.liveramp.cascading_ext.fs.TrashHelper;
 import com.liveramp.hank.util.IOStreamUtils;
 
@@ -94,7 +95,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     this.useTrash = useTrash;
     this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
     Path partitionRootPath = new Path(partitionRoot);
-    this.fs = FileSystem.get(new Configuration());
+    this.fs = FileSystemHelper.getFileSystemForPath(remoteDomainRoot);
     if (!partitionRootPath.isAbsolute()) {
       throw new IOException("Cannot initialize " + this.getClass().getSimpleName()
           + " with a non absolute remote partition root: "

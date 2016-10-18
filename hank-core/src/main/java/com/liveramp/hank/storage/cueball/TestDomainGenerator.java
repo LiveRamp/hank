@@ -1,12 +1,5 @@
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.commons.util.BytesUtils;
-import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
-import com.liveramp.hank.coordinator.mock.MockDomainVersion;
-import com.liveramp.hank.hasher.Hasher;
-import com.liveramp.hank.partitioner.Partitioner;
-import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import com.liveramp.commons.util.BytesUtils;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
+import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.hasher.Hasher;
+import com.liveramp.hank.partitioner.Partitioner;
+import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 
 public class TestDomainGenerator {
 
@@ -56,7 +56,7 @@ public class TestDomainGenerator {
       partitionedKeys.get(partitionNumber).add(hash);
     }
 
-    final Cueball cueball = new Cueball(hashLength, h, valueLength, indexBits, "", null, codecClass, null, 0);
+    final Cueball cueball = new Cueball(hashLength, h, valueLength, indexBits, "", "", null, codecClass, null, 0);
 
     byte[] valueBytes = new byte[valueLength];
     for (Map.Entry<Integer, List<byte[]>> part : partitionedKeys.entrySet()) {

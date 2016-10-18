@@ -46,6 +46,7 @@ import com.liveramp.hank.hasher.IdentityHasher;
 import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
+import com.liveramp.hank.storage.FileOpsUtil;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.PartitionRemoteFileOpsFactory;
 import com.liveramp.hank.storage.PartitionUpdater;
@@ -81,7 +82,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     public static final String NUM_REMOTE_LEAF_VERSIONS_TO_KEEP = "num_remote_leaf_versions_to_keep";
 
     private static final Set<String> REQUIRED_KEYS =
-        new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
+        new HashSet<String>(Arrays.asList(
             HASH_INDEX_BITS_KEY,
             HASHER_KEY,
             VALUE_SIZE_KEY,
@@ -127,7 +128,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
           hasher,
           (Integer)options.get(VALUE_SIZE_KEY),
           (Integer)options.get(HASH_INDEX_BITS_KEY),
-          (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
+          FileOpsUtil.getDomainBuilderRoot(options),
+          FileOpsUtil.getPartitionServerRoot(options),
           fileOpsFactory,
           compressionCodecClass,
           domain,
@@ -151,7 +153,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   private final Hasher hasher;
   private final int valueSize;
   private final int hashIndexBits;
-  private final String remoteDomainRoot;
+  private final String domainBuilderRemoteDomainRoot;
+  private final String partitionServerRemoteDomainRoot;
   private final PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory;
   private final ByteBuffer keyHashBuffer;
   private final int numRemoteLeafVersionsToKeep;
@@ -162,7 +165,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
                  Hasher hasher,
                  int valueSize,
                  int hashIndexBits,
-                 String remoteDomainRoot,
+                 String domainBuilderRemoteDomainRoot,
+                 String partitionServerRemoteDomainRoot,
                  PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                  Class<? extends CueballCompressionCodec> compressionCodecClass,
                  Domain domain,
@@ -171,7 +175,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     this.hasher = hasher;
     this.valueSize = valueSize;
     this.hashIndexBits = hashIndexBits;
-    this.remoteDomainRoot = remoteDomainRoot;
+    this.domainBuilderRemoteDomainRoot = domainBuilderRemoteDomainRoot;
+    this.partitionServerRemoteDomainRoot = partitionServerRemoteDomainRoot;
     this.partitionRemoteFileOpsFactory = partitionRemoteFileOpsFactory;
     this.keyHashBuffer = ByteBuffer.allocate(keyHashSize);
     this.compressionCodecClass = compressionCodecClass;
@@ -237,7 +242,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   public PartitionUpdater getUpdater(DiskPartitionAssignment assignment, int partitionNumber) throws IOException {
     String localDir = getTargetDirectory(assignment, partitionNumber);
     return new CueballPartitionUpdater(domain,
-        getPartitionRemoteFileOps(partitionNumber),
+        getPartitionRemoteFileOps(RemoteLocation.PARTITION_SERVER, partitionNumber),
         new CueballMerger(),
         keyHashSize,
         valueSize,
@@ -275,13 +280,13 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory(RemoteLocation location) {
     return partitionRemoteFileOpsFactory;
   }
 
   @Override
-  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) throws IOException {
-    return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(RemoteLocation location, int partitionNumber) throws IOException {
+    return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(getRoot(location), partitionNumber);
   }
 
   @Override
@@ -338,7 +343,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    return new CueballRemoteDomainVersionDeleter(domain, remoteDomainRoot, partitionRemoteFileOpsFactory);
+    return new CueballRemoteDomainVersionDeleter(domain, domainBuilderRemoteDomainRoot, partitionRemoteFileOpsFactory);
   }
 
   @Override
@@ -365,7 +370,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     Multimap<String, Integer> partitionsPerDisk = HashMultimap.create();
     for (String dataDirectory : sortedDataDirectories) {
 
-      int numToAssign = (int) Math.ceil(numPartitionsPerDisk * (partitionsPerDisk.keySet().size() + 1))
+      int numToAssign = (int)Math.ceil(numPartitionsPerDisk * (partitionsPerDisk.keySet().size() + 1))
           - partitionsPerDisk.values().size();
 
       for (int i = 0; i < numToAssign && !sortedPartitions.isEmpty(); i++) {
@@ -396,17 +401,30 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     return result;
   }
 
+  private final String getRoot(RemoteLocation location) {
+    if (location == RemoteLocation.DOMAIN_BUILDER) {
+      return domainBuilderRemoteDomainRoot;
+    } else if (location == RemoteLocation.PARTITION_SERVER) {
+      return partitionServerRemoteDomainRoot;
+    } else {
+      throw new RuntimeException();
+    }
+  }
+
   @Override
   public String toString() {
-    return "Cueball [compressionCodecClass=" + compressionCodecClass
-        + ", domainName=" + domain.getName()
-        + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
-        + ", hashIndexBits=" + hashIndexBits
-        + ", hasher=" + hasher
-        + ", keyHashSize=" + keyHashSize
-        + ", remoteDomainRoot=" + remoteDomainRoot
-        + ", valueSize=" + valueSize
-        + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
-        + "]";
+    return "Cueball{" +
+        "domain=" + domain +
+        ", keyHashSize=" + keyHashSize +
+        ", hasher=" + hasher +
+        ", valueSize=" + valueSize +
+        ", hashIndexBits=" + hashIndexBits +
+        ", domainBuilderRemoteDomainRoot='" + domainBuilderRemoteDomainRoot + '\'' +
+        ", partitionServerRemoteDomainRoot='" + partitionServerRemoteDomainRoot + '\'' +
+        ", partitionRemoteFileOpsFactory=" + partitionRemoteFileOpsFactory +
+        ", keyHashBuffer=" + keyHashBuffer +
+        ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep +
+        ", compressionCodecClass=" + compressionCodecClass +
+        '}';
   }
 }

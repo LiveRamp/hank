@@ -41,6 +41,7 @@ import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
+import com.liveramp.hank.storage.FileOpsUtil;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.PartitionRemoteFileOpsFactory;
 import com.liveramp.hank.storage.PartitionUpdater;
@@ -84,7 +85,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     private static final String COMPRESSED_BLOCK_SIZE_THRESHOLD = "compressed_block_size_threshold";
     private static final String OFFSET_IN_BLOCK_NUM_BYTES = "offset_in_block_num_bytes";
 
-    private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
+    private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(
         RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY,
         FILE_OPS_FACTORY_KEY, HASHER_KEY, NUM_REMOTE_LEAF_VERSIONS_TO_KEEP));
 
@@ -145,7 +146,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
           maxAllowedPartSize,
           (Integer)options.get(HASH_INDEX_BITS_KEY),
           (Integer)options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
-          (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
+          FileOpsUtil.getDomainBuilderRoot(options),
+          FileOpsUtil.getPartitionServerRoot(options),
           fileOpsFactory,
           compressionCodecClass,
           domain,
@@ -173,7 +175,9 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   private final int recordFileReadBufferBytes;
 
   private final Cueball cueballStorageEngine;
-  private final String remoteDomainRoot;
+  private final String domainBuilderRemoteDomainRoot;
+  private final String partitionServerRemoteDomainRoot;
+
   private final int keyHashSize;
   private final PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory;
   private final int hashIndexBits;
@@ -190,7 +194,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
                long maxAllowedPartSize,
                int hashIndexBits,
                int recordFileReadBufferBytes,
-               String remoteDomainRoot,
+               String domainBuilderRemoteDomainRoot,
+               String partitionServerRemoteDomainRoot,
                PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                Class<? extends CueballCompressionCodec> keyFileCompressionCodecClass,
                Domain domain,
@@ -202,7 +207,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
-    this.remoteDomainRoot = remoteDomainRoot;
+    this.domainBuilderRemoteDomainRoot = domainBuilderRemoteDomainRoot;
+    this.partitionServerRemoteDomainRoot = partitionServerRemoteDomainRoot;
     this.partitionRemoteFileOpsFactory = partitionRemoteFileOpsFactory;
     this.keyFileCompressionCodecClass = keyFileCompressionCodecClass;
     this.domain = domain;
@@ -226,7 +232,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         hasher,
         cueballValueNumBytes,
         hashIndexBits,
-        remoteDomainRoot,
+        domainBuilderRemoteDomainRoot,
+        partitionServerRemoteDomainRoot,
         partitionRemoteFileOpsFactory,
         keyFileCompressionCodecClass,
         domain,
@@ -332,7 +339,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   private Compactor getCompactor(String localDir,
                                  int partitionNumber) throws IOException {
     return new CurlyCompactor(domain,
-        getPartitionRemoteFileOps(partitionNumber),
+        getPartitionRemoteFileOps(RemoteLocation.DOMAIN_BUILDER, partitionNumber),
         localDir,
         new CurlyCompactingMerger(recordFileReadBufferBytes),
         new CueballStreamBufferMergeSort.Factory(keyHashSize, cueballValueNumBytes, hashIndexBits, getCompressionCodec(), null),
@@ -349,7 +356,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
   private CurlyFastPartitionUpdater getFastPartitionUpdater(String localDir, int partNum) throws IOException {
     return new CurlyFastPartitionUpdater(domain,
-        getPartitionRemoteFileOps(partNum),
+        getPartitionRemoteFileOps(RemoteLocation.PARTITION_SERVER, partNum),
         new CurlyMerger(),
         new CueballMerger(),
         keyHashSize,
@@ -381,13 +388,23 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory(RemoteLocation location) {
     return partitionRemoteFileOpsFactory;
   }
 
   @Override
-  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) throws IOException {
-    return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(RemoteLocation location, int partitionNumber) throws IOException {
+    return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(getRoot(location), partitionNumber);
+  }
+
+  private final String getRoot(RemoteLocation location){
+    if(location == RemoteLocation.DOMAIN_BUILDER){
+      return domainBuilderRemoteDomainRoot;
+    }else if(location == RemoteLocation.PARTITION_SERVER) {
+      return partitionServerRemoteDomainRoot;
+    }else{
+      throw new RuntimeException();
+    }
   }
 
   public static int parseVersionNumber(String name) {
@@ -434,7 +451,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    return new CurlyRemoteDomainVersionDeleter(domain, remoteDomainRoot, partitionRemoteFileOpsFactory);
+    return new CurlyRemoteDomainVersionDeleter(domain, domainBuilderRemoteDomainRoot, partitionRemoteFileOpsFactory);
   }
 
   @Override
@@ -461,20 +478,23 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public String toString() {
-    return "Curly [compressionCodecClass=" + keyFileCompressionCodecClass
-        + ", cueballStorageEngine=" + cueballStorageEngine
-        + ", domainName=" + domain.getName()
-        + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
-        + ", hashIndexBits=" + hashIndexBits
-        + ", keyHashSize=" + keyHashSize
-        + ", offsetNumBytes=" + offsetNumBytes
-        + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
-        + ", remoteDomainRoot=" + remoteDomainRoot
-        + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
-        + ", valueFoldingCacheSize=" + valueFoldingCacheCapacity
-        + ", blockCompressionCodec=" + blockCompressionCodec
-        + ", compressedBlockSizeThreshold=" + compressedBlockSizeThreshold
-        + ", offsetInBlockNumBytes=" + offsetInBlockNumBytes
-        + "]";
+    return "Curly{" +
+        "domain=" + domain +
+        ", offsetNumBytes=" + offsetNumBytes +
+        ", recordFileReadBufferBytes=" + recordFileReadBufferBytes +
+        ", cueballStorageEngine=" + cueballStorageEngine +
+        ", domainBuilderRemoteDomainRoot='" + domainBuilderRemoteDomainRoot + '\'' +
+        ", partitionServerRemoteDomainRoot='" + partitionServerRemoteDomainRoot + '\'' +
+        ", keyHashSize=" + keyHashSize +
+        ", partitionRemoteFileOpsFactory=" + partitionRemoteFileOpsFactory +
+        ", hashIndexBits=" + hashIndexBits +
+        ", keyFileCompressionCodecClass=" + keyFileCompressionCodecClass +
+        ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep +
+        ", valueFoldingCacheCapacity=" + valueFoldingCacheCapacity +
+        ", blockCompressionCodec=" + blockCompressionCodec +
+        ", compressedBlockSizeThreshold=" + compressedBlockSizeThreshold +
+        ", offsetInBlockNumBytes=" + offsetInBlockNumBytes +
+        ", cueballValueNumBytes=" + cueballValueNumBytes +
+        '}';
   }
 }

@@ -85,12 +85,12 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory(RemoteLocation location) {
     return new HdfsPartitionRemoteFileOps.Factory();
   }
 
   @Override
-  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) {
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(RemoteLocation location, int partitionNumber) {
     return null;
   }
 

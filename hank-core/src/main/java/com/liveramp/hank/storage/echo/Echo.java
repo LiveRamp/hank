@@ -49,12 +49,12 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory(RemoteLocation location) {
     return null;
   }
 
   @Override
-  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) throws IOException {
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(RemoteLocation location, int partitionNumber) throws IOException {
     return null;
   }
 

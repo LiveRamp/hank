@@ -43,7 +43,7 @@ public class TestCueballRemoteDomainVersionDeleter extends BaseTestCase {
   @Test
   public void testIt() throws Exception {
     final Cueball storageEngine = new Cueball(1,
-        new Murmur64Hasher(), 1, 1, localDiskRoot,
+        new Murmur64Hasher(), 1, 1, localDiskRoot, localDiskRoot,
         new LocalPartitionRemoteFileOps.Factory(), NoCueballCompressionCodec.class,
         new MockDomain("domain", 0, 1, null, null, null, null), 0);
     Writer writer = storageEngine.getWriter(new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base()),
