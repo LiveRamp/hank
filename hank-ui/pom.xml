@@ -207,9 +207,6 @@
             <goals>
               <goal>single</goal>
             </goals>
-            <configuration>
-              <attach>false</attach>
-            </configuration>
           </execution>
         </executions>
       </plugin>
