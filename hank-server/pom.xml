@@ -143,7 +143,6 @@
             <descriptor>src/assembly/jobjar.xml</descriptor>
             <descriptor>src/assembly/dist.xml</descriptor>
           </descriptors>
-          <attach>false</attach>
         </configuration>
         <executions>
           <execution>
