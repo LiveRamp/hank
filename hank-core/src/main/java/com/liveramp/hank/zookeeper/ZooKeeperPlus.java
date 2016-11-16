@@ -375,10 +375,24 @@ public class ZooKeeperPlus {
     }
 
     public void ensureCreated(String path, byte[] value, CreateMode createMode) throws InterruptedException, KeeperException {
-      if (exists(path, false) == null) {
+      if (!path.isEmpty() && exists(path, false) == null) {
+        ensureCreated(getParent(path), null, createMode);
         create(path, value, DEFAULT_ACL, createMode);
         NodeCreationBarrier.block(ZooKeeperPlus.this, path);
       }
+    }
+
+    private boolean isRootOrEmpty(String path){
+      return path.isEmpty() || path.equals("/");
+    }
+
+    // TODO I don't want to create a File, and idk what other API I can use for htis
+    private String getParent(String path){
+      if(isRootOrEmpty(path)){
+        throw new IllegalArgumentException();
+      }
+
+      return path.substring(0, path.lastIndexOf("/"));
     }
 
     public void deleteNodeRecursively(String path) throws InterruptedException, KeeperException {
