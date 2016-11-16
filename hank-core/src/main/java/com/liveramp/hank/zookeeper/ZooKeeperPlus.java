@@ -16,6 +16,7 @@
 
 package com.liveramp.hank.zookeeper;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -375,7 +376,8 @@ public class ZooKeeperPlus {
     }
 
     public void ensureCreated(String path, byte[] value, CreateMode createMode) throws InterruptedException, KeeperException {
-      if (exists(path, false) == null) {
+      if (!path.isEmpty() && exists(path, false) == null) {
+        ensureCreated(new File(path).getParent(), null, createMode);
         create(path, value, DEFAULT_ACL, createMode);
         NodeCreationBarrier.block(ZooKeeperPlus.this, path);
       }
