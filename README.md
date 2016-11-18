@@ -1,5 +1,7 @@
 # Project Hank
 
+[![Build Status](https://travis-ci.org/liveramp/hank.svg?branch=master)](https://travis-ci.org/liveramp/hank)
+
 ## Design
 
 Hank is a very fast and very compact distributed key-value NoSQL database that we built and use at [LiveRamp](http://www.liveramp.com). Read queries are guaranteed to execute fewer than 2 disk seeks at all times, and to perform 1 network call on average. All disk write operations are strictly sequential to achieve high throughput updates (millions per second per node). Block compression of values, and an on-disk flyweight pattern provide compactness. Hank is fully distributed and fault tolerant. Data is consistently hashed and re-allocated automatically. It horizontally scales to terabyte and petabyte-sized datasets with billions or trillions of records. Range queries and random writes are not supported by design, for simplicity and performance.
