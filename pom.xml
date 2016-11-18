@@ -1,7 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -11,7 +8,7 @@
   </parent>
 
   <artifactId>hank</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -25,6 +22,7 @@
     <connection>scm:git:git@github.com:LiveRamp/hank.git</connection>
     <url>scm:git:git@github.com:LiveRamp/hank.git</url>
     <developerConnection>scm:git:git@github.com:LiveRamp/hank.git</developerConnection>
+    <tag>hank-1.0</tag>
   </scm>
 
   <repositories>
@@ -76,13 +74,12 @@
         <version>1.7</version>
         <configuration>
           <target>
-            <delete dir="${basedir}/src/main/java/com/liveramp/hank/generated"/>
+            <delete dir="${basedir}/src/main/java/com/liveramp/hank/generated" />
             <exec executable="thrift" failonerror="true">
-              <arg
-                  line="-o ${project.build.directory} --gen java:hashcode,nocamel,builder ${basedir}/src/main/thrift/hank.thrift"/>
+              <arg line="-o ${project.build.directory} --gen java:hashcode,nocamel,builder ${basedir}/src/main/thrift/hank.thrift" />
             </exec>
             <move todir="${basedir}/src/main/java/com/liveramp/hank/generated">
-              <fileset dir="${project.build.directory}/gen-java/com/liveramp/hank/generated"/>
+              <fileset dir="${project.build.directory}/gen-java/com/liveramp/hank/generated" />
             </move>
           </target>
         </configuration>
