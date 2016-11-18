@@ -1,6 +1,6 @@
 # Project Hank
 
-[![Build Status](https://travis-ci.org/liveramp/hank.svg?branch=master)](https://travis-ci.org/liveramp/hank)
+[![Build Status](https://travis-ci.org/LiveRamp/hank.svg?branch=master)](https://travis-ci.org/LiveRamp/hank)
 
 ## Design
 
