@@ -95,7 +95,7 @@
     <dependency>
       <groupId>com.liveramp</groupId>
       <artifactId>cascading_ext</artifactId>
-      <version>1.6</version>
+      <version>1.7-SNAPSHOT</version>
     </dependency>
 
 
