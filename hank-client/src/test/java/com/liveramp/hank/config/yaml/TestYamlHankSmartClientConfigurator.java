@@ -25,6 +25,7 @@ import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.test.BaseTestCase;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class TestYamlHankSmartClientConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";
@@ -44,8 +45,7 @@ public class TestYamlHankSmartClientConfigurator extends BaseTestCase {
     pw.println("  establish_connection_timeout_ms: 100");
     pw.println("  query_timeout_ms: 42");
     pw.println("  bulk_query_timeout_ms: 142");
-    pw.println("  preferred_environment_key: VAR");
-    pw.println("  preferred_environment_value: VAL");
+    pw.println("  preferred_environment_key: PATH");
 
     pw.close();
 
@@ -60,8 +60,8 @@ public class TestYamlHankSmartClientConfigurator extends BaseTestCase {
     assertEquals(142, conf.getBulkQueryTimeoutMs());
 
     EnvironmentValue env = conf.getPreferredServerEnvironment();
-    assertEquals("VAR", env.getKey());
-    assertEquals("VAL", env.getValue());
-
+    assertEquals("PATH", env.getKey());
+    assertNotEquals(null, env.getValue());
+    assertNotEquals("", env.getValue());
   }
 }

@@ -33,7 +33,6 @@ public class YamlHankSmartClientConfigurator extends YamlCoordinatorConfigurator
   private static final String QUERY_TIMEOUT_MS_KEY = "query_timeout_ms";
   private static final String BULK_QUERY_TIMEOUT_MS_KEY = "bulk_query_timeout_ms";
   private static final String PREFERRED_ENVIRONMENT_KEY = "preferred_environment_key";
-  private static final String PREFERRED_ENVIRONMENT_VALUE = "preferred_environment_value";
 
   public YamlHankSmartClientConfigurator(String configurationPath) throws FileNotFoundException, InvalidConfigurationException {
     super(configurationPath);
@@ -90,12 +89,11 @@ public class YamlHankSmartClientConfigurator extends YamlCoordinatorConfigurator
   @Override
   public EnvironmentValue getPreferredServerEnvironment() {
     String key = getOptionalString(HANK_SMART_CLIENT_SECTION_KEY, PREFERRED_ENVIRONMENT_KEY);
-    String value = getOptionalString(HANK_SMART_CLIENT_SECTION_KEY, PREFERRED_ENVIRONMENT_VALUE);
 
-    if(key == null || value == null){
+    if(key == null){
       return null;
     }
 
-    return new EnvironmentValue(key, value);
+    return new EnvironmentValue(key, System.getenv(key));
   }
 }
