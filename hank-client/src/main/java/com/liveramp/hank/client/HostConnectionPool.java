@@ -348,45 +348,6 @@ public class HostConnectionPool {
 
   }
 
-  //  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys, int maxNumTries) {
-  //    HostConnectionAndHostIndex connectionAndHostIndex = null;
-  //    int numTries = 0;
-  //    while (true) {
-  //      // Either get a connection to an arbitrary host, or get a connection skipping the
-  //      // previous host used (since it failed)
-  //      if (connectionAndHostIndex == null) {
-  //        connectionAndHostIndex = getConnectionToUse(preferredPools);
-  //      } else {
-  //        connectionAndHostIndex = getNextConnectionToUse(connectionAndHostIndex.hostIndex, preferredPools.hostToConnections);
-  //      }
-  //      // If we couldn't find any available connection, return corresponding error response
-  //      if (connectionAndHostIndex == null) {
-  //        LOG.error("No connection is available. Giving up. Num keys = " + keys.size());
-  //        return NO_CONNECTION_AVAILABLE_BULK_RESPONSE;
-  //      } else {
-  //        // Perform query
-  //        try {
-  //          return connectionAndHostIndex.hostConnection.getBulk(domainId, keys);
-  //        } catch (IOException e) {
-  //          // In case of error, keep count of the number of times we retry
-  //          ++numTries;
-  //          if (numTries < maxNumTries) {
-  //            // Simply log the error and retry
-  //            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
-  //                + ". Retrying. Try " + numTries + "/" + maxNumTries
-  //                + ", Num keys = " + keys.size(), e);
-  //          } else {
-  //            // If we have exhausted tries, return an exception response
-  //            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
-  //                + ". Giving up. Try " + numTries + "/" + maxNumTries
-  //                + ", Num keys = " + keys.size(), e);
-  //            return HankBulkResponse.xception(HankException.failed_retries(maxNumTries));
-  //          }
-  //        }
-  //      }
-  //    }
-  //  }
-
   public static Integer getHostListShuffleSeed(Integer domainId, Integer partitionId) {
     return (domainId + 1) * (partitionId + 1);
   }
