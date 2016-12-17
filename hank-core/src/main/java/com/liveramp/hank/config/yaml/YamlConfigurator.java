@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import org.yaml.snakeyaml.Yaml;
 
 import com.liveramp.hank.config.InvalidConfigurationException;
@@ -207,6 +208,14 @@ public abstract class YamlConfigurator implements Serializable {
     }
   }
 
+  protected List<String> getOptionalStringList(String... optionPath) {
+    try {
+      return getRequiredStringList(optionPath);
+    } catch (InvalidConfigurationException e) {
+      return Lists.newArrayList();
+    }
+  }
+
   protected List<String> getStringList(String... optionPath) {
     try {
       return getRequiredStringList(optionPath);
@@ -214,4 +223,5 @@ public abstract class YamlConfigurator implements Serializable {
       throw new RuntimeException(e);
     }
   }
+
 }

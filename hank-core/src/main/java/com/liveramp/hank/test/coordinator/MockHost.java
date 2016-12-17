@@ -15,11 +15,23 @@
  */
 package com.liveramp.hank.test.coordinator;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.zookeeper.WatchedNodeListener;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.liveramp.hank.coordinator.AbstractHost;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostCommandQueueChangeListener;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
 public class MockHost extends AbstractHost {
 
@@ -36,7 +48,7 @@ public class MockHost extends AbstractHost {
   private final Set<HostDomain> hostDomains = new HashSet<HostDomain>();
   private Map<String, String> statistics = new HashMap<String, String>();
   private final Set<Domain> removedDomains = new HashSet<Domain>();
-
+  private Map<String, String> environmentFlags = new HashMap<>();
 
   public MockHost(PartitionServerAddress address) {
     this.address = address;
@@ -204,5 +216,15 @@ public class MockHost extends AbstractHost {
   @Override
   public void deleteStatistic(String key) throws IOException {
     statistics.remove(key);
+  }
+
+  @Override
+  public void setEnvironmentFlags(Map<String, String> flags) {
+    this.environmentFlags = flags;
+  }
+
+  @Override
+  public Map<String, String> getEnvironmentFlags() {
+    return environmentFlags;
   }
 }

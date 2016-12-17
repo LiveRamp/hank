@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,8 +59,8 @@ public class TestHostConnectionPool extends BaseTestCase {
   private static final PartitionServerAddress partitionServerAddress1 = new PartitionServerAddress("localhost", 50004);
   private static final PartitionServerAddress partitionServerAddress2 = new PartitionServerAddress("localhost", 50005);
 
-  private final Host mockHost1 = new MockHost(partitionServerAddress1);
-  private final Host mockHost2 = new MockHost(partitionServerAddress2);
+  private Host mockHost1;
+  private Host mockHost2;
 
   private Thread mockPartitionServerThread1;
   private Thread mockPartitionServerThread2;
@@ -68,6 +69,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   private TestHostConnection.MockPartitionServer mockPartitionServer2;
 
   private Domain mockDomain = new MockDomain("domain");
+
 
   private static abstract class MockIface implements IfaceWithShutdown {
 
@@ -136,6 +138,10 @@ public class TestHostConnectionPool extends BaseTestCase {
 
   @Before
   public void setUp() throws Exception {
+
+    mockHost1 = new MockHost(partitionServerAddress1);
+    mockHost2 = new MockHost(partitionServerAddress2);
+
     mockHost1.setState(HostState.OFFLINE);
     mockHost2.setState(HostState.OFFLINE);
   }
@@ -167,7 +173,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
         tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
 
-    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null);
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null, Sets.newHashSet());
 
     mockHost1.setState(HostState.SERVING);
     mockHost2.setState(HostState.SERVING);
@@ -229,6 +235,167 @@ public class TestHostConnectionPool extends BaseTestCase {
   }
 
   @Test
+  public void testSimplePreferredPool() throws InterruptedException, IOException {
+
+    //  two hosts, one preferred one not.  get all requests there
+
+    MockIface iface1 = new Response1Iface();
+    MockIface iface2 = new Response1Iface();
+
+    startMockPartitionServerThread1(iface1, 1);
+    startMockPartitionServerThread2(iface2, 1);
+
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+
+    int tryLockTimeoutMs = 0;
+    int establishConnectionTimeoutMs = 0;
+    int queryTimeoutMs = 0;
+    int bulkQueryTimeoutMs = 0;
+
+    mockHost1.setEnvironmentFlags(Collections.singletonMap("REGION", "REG1"));
+    mockHost2.setEnvironmentFlags(Collections.singletonMap("REGION", "REG2"));
+
+    hostToConnectionsMap.put(mockHost1, Collections.singletonList(new HostConnection(mockHost1,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+    hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null, Sets.newHashSet(mockHost1));
+
+    mockHost1.setState(HostState.SERVING);
+    mockHost2.setState(HostState.SERVING);
+
+    int numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 1, null);
+      if (response.is_set_value()) {
+        assertEquals(RESPONSE_1, response);
+        ++numHits;
+      }
+    }
+
+    assertEquals("Gets should be distributed accross hosts", 10, iface1.numGets);
+    assertEquals("Gets should be distributed accross hosts", 0, iface2.numGets);
+    assertEquals("Half the keys should have been found", 10, numHits);
+
+
+  }
+
+  @Test
+  public void testBothPreferred() throws InterruptedException, IOException {
+
+    //  two hosts, one preferred one not.  get all requests there
+
+    MockIface iface1 = new Response1Iface();
+    MockIface iface2 = new Response1Iface();
+
+    startMockPartitionServerThread1(iface1, 1);
+    startMockPartitionServerThread2(iface2, 1);
+
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+
+    int tryLockTimeoutMs = 0;
+    int establishConnectionTimeoutMs = 0;
+    int queryTimeoutMs = 0;
+    int bulkQueryTimeoutMs = 0;
+
+    mockHost1.setEnvironmentFlags(Collections.singletonMap("REGION", "REG1"));
+    mockHost2.setEnvironmentFlags(Collections.singletonMap("REGION", "REG1"));
+
+    hostToConnectionsMap.put(mockHost1, Collections.singletonList(new HostConnection(mockHost1,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+    hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null, Sets.newHashSet(mockHost1, mockHost2));
+
+    mockHost1.setState(HostState.SERVING);
+    mockHost2.setState(HostState.SERVING);
+
+    int numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 1, null);
+      if (response.is_set_value()) {
+        assertEquals(RESPONSE_1, response);
+        ++numHits;
+      }
+    }
+
+    assertEquals("Gets should be distributed accross hosts", 5, iface1.numGets);
+    assertEquals("Gets should be distributed accross hosts", 5, iface2.numGets);
+    assertEquals("Half the keys should have been found", 10, numHits);
+
+
+  }
+
+  @Test
+  public void testPreferredFailing() throws InterruptedException, IOException {
+
+    //  two hosts, one preferred one not.  get all requests there
+
+    MockIface iface1 = new HankExceptionIface();
+    MockIface iface2 = new Response1Iface();
+
+    startMockPartitionServerThread1(iface1, 1);
+    startMockPartitionServerThread2(iface2, 1);
+
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+
+    int tryLockTimeoutMs = 0;
+    int establishConnectionTimeoutMs = 0;
+    int queryTimeoutMs = 0;
+    int bulkQueryTimeoutMs = 0;
+
+    mockHost1.setEnvironmentFlags(Collections.singletonMap("REGION", "REG1"));
+    mockHost2.setEnvironmentFlags(Collections.singletonMap("REGION", "REG1"));
+
+    hostToConnectionsMap.put(mockHost1, Collections.singletonList(new HostConnection(mockHost1,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+    hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null, Sets.newHashSet(mockHost1));
+
+    mockHost1.setState(HostState.SERVING);
+    mockHost2.setState(HostState.SERVING);
+
+    int numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 2, null);
+      if (response.is_set_value()) {
+        assertEquals(RESPONSE_1, response);
+        ++numHits;
+      }
+    }
+
+    assertEquals("First should have gotten all requests once", 10, iface1.numGets);
+    assertEquals("Second should have gotten all as a backup", 10, iface2.numGets);
+    assertEquals("All keys found", 10, numHits);
+
+    //  half should fail
+
+    iface1.clearCounts();
+    iface2.clearCounts();
+    numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 1, null);
+      if (response.is_set_value()) {
+        assertEquals(RESPONSE_1, response);
+        ++numHits;
+      }
+    }
+
+    assertEquals("All hosts to first", 10, iface1.numGets);
+    assertEquals("None to second", 0, iface2.numGets);
+    assertEquals("No keys found", 0, numHits);
+
+  }
+
+  @Test
   public void testOneHankExceptions() throws IOException, InterruptedException {
 
     MockIface iface1 = new Response1Iface();
@@ -249,7 +416,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
         tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
 
-    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null);
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null, Sets.newHashSet());
 
     mockHost1.setState(HostState.SERVING);
     mockHost2.setState(HostState.SERVING);
@@ -310,7 +477,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
         tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
 
-    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null);
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null, Sets.newHashSet());
 
     mockHost1.setState(HostState.SERVING);
     mockHost2.setState(HostState.SERVING);
@@ -415,8 +582,8 @@ public class TestHostConnectionPool extends BaseTestCase {
     for (int n = 0; n < 1024; ++n) {
       int numHits = 0;
       // Note: creating connection pools with a host shuffling seed
-      HostConnectionPool hostConnectionPoolA = new HostConnectionPool(hostToConnectionsMap, n);
-      HostConnectionPool hostConnectionPoolB = new HostConnectionPool(hostToConnectionsMap, n);
+      HostConnectionPool hostConnectionPoolA = new HostConnectionPool(hostToConnectionsMap, n, Sets.newHashSet());
+      HostConnectionPool hostConnectionPoolB = new HostConnectionPool(hostToConnectionsMap, n, Sets.newHashSet());
 
       // Connection pools should try the same host first for a given key hash
       final int keyHash = 42;

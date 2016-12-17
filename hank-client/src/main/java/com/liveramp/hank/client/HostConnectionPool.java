@@ -25,7 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,10 +75,14 @@ public class HostConnectionPool {
 
   private static Logger LOG = LoggerFactory.getLogger(HostConnectionPool.class);
 
-  private ArrayList<List<HostConnectionAndHostIndex>> hostToConnections
-      = new ArrayList<List<HostConnectionAndHostIndex>>();
+  private static class ConnectionPools {
+    private ArrayList<List<HostConnectionAndHostIndex>> hostToConnections = new ArrayList<>();
+    private int previouslyUsedHostIndex = 0;
+  }
 
-  private int globalPreviouslyUsedHostIndex;
+  private final ConnectionPools preferredPools = new ConnectionPools();
+  private final ConnectionPools otherPools = new ConnectionPools();
+
   private final Random random = new Random();
 
   private static final HankResponse NO_CONNECTION_AVAILABLE_RESPONSE
@@ -101,7 +107,7 @@ public class HostConnectionPool {
     }
   }
 
-  HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap, Integer hostShuffleSeed) {
+  HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap, Integer hostShuffleSeed, Set<Host> preferredHosts) {
     if (hostToConnectionsMap.size() == 0) {
       throw new RuntimeException("HostConnectionPool must be initialized with a non empty collection of connections.");
     }
@@ -126,16 +132,29 @@ public class HostConnectionPool {
       }
       // Shuffle list of connections for that host, so that different pools try connections in different orders
       Collections.shuffle(connections, random);
-      hostToConnections.add(connections);
+
+      if (preferredHosts.contains(host)) {
+        preferredPools.hostToConnections.add(connections);
+      } else {
+        otherPools.hostToConnections.add(connections);
+      }
+
       ++hostIndex;
     }
 
     // Previously used host is randomized so that different connection pools start querying
     // different hosts.
-    globalPreviouslyUsedHostIndex = random.nextInt(hostToConnections.size());
+    if (!preferredPools.hostToConnections.isEmpty()) {
+      preferredPools.previouslyUsedHostIndex = random.nextInt(preferredPools.hostToConnections.size());
+    }
+
+    if (!otherPools.hostToConnections.isEmpty()) {
+      otherPools.previouslyUsedHostIndex = random.nextInt(otherPools.hostToConnections.size());
+    }
+
   }
 
-  static HostConnectionPool createFromList(Collection<HostConnection> connections, Integer hostShuffleSeed) {
+  static HostConnectionPool createFromList(Collection<HostConnection> connections, Integer hostShuffleSeed, Set<Host> preferredHosts) {
     Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
     for (HostConnection connection : connections) {
       List<HostConnection> connectionList = hostToConnectionsMap.get(connection.getHost());
@@ -145,12 +164,12 @@ public class HostConnectionPool {
       }
       connectionList.add(connection);
     }
-    return new HostConnectionPool(hostToConnectionsMap, hostShuffleSeed);
+    return new HostConnectionPool(hostToConnectionsMap, hostShuffleSeed, preferredHosts);
   }
 
   Collection<HostConnection> getConnections() {
     List<HostConnection> connections = new ArrayList<HostConnection>();
-    for (List<HostConnectionAndHostIndex> hostConnectionAndHostIndexList : hostToConnections) {
+    for (List<HostConnectionAndHostIndex> hostConnectionAndHostIndexList : Iterables.concat(otherPools.hostToConnections, preferredPools.hostToConnections)) {
       for (HostConnectionAndHostIndex hostConnectionAndHostIndex : hostConnectionAndHostIndexList) {
         connections.add(hostConnectionAndHostIndex.hostConnection);
       }
@@ -159,27 +178,28 @@ public class HostConnectionPool {
   }
 
   // Return a connection to a host, initially skipping the previously used host
-  private synchronized HostConnectionAndHostIndex getConnectionToUse() {
-    HostConnectionAndHostIndex result = getNextConnectionToUse(globalPreviouslyUsedHostIndex);
+  private synchronized HostConnectionAndHostIndex getConnectionToUse(ConnectionPools pool) {
+    HostConnectionAndHostIndex result = getNextConnectionToUse(pool.previouslyUsedHostIndex, pool.hostToConnections);
     if (result != null) {
-      globalPreviouslyUsedHostIndex = result.hostIndex;
+      pool.previouslyUsedHostIndex = result.hostIndex;
     }
     return result;
   }
 
   // Attempt to find a connection for that key where it is likely to be in the cache if it was queried
   // recently. (Globally random, but deterministic on the key.)
-  private HostConnectionAndHostIndex getConnectionToUseForKey(int keyHash) {
-    return getNextConnectionToUse(keyHash % hostToConnections.size());
+  private HostConnectionAndHostIndex getConnectionToUseForKey(ConnectionPools pool, int keyHash) {
+    return getNextConnectionToUse(keyHash % pool.hostToConnections.size(), pool.hostToConnections);
   }
 
   // Return a connection to an arbitrary host, initially skipping the supplied host (likely because there was
   // a failure using a connection to it)
-  private synchronized HostConnectionAndHostIndex getNextConnectionToUse(int previouslyUsedHostIndex) {
+  private synchronized HostConnectionAndHostIndex getNextConnectionToUse(int previouslyUsedHostIndex,
+                                                                         ArrayList<List<HostConnectionAndHostIndex>> hostToConnections) {
 
     // First, search for any unused (unlocked) connection
     for (int tryId = 0; tryId < hostToConnections.size(); ++tryId) {
-      previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
+      previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex, hostToConnections);
       List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
       for (HostConnectionAndHostIndex connectionAndHostIndex : connectionAndHostList) {
         // If a host has one unavaible connection, it is itself unavailable. Move on to the next host.
@@ -199,7 +219,7 @@ public class HostConnectionPool {
 
     // No unused connection was found, return a random connection that is available
     for (int tryId = 0; tryId < hostToConnections.size(); ++tryId) {
-      previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
+      previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex, hostToConnections);
       List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
       // Pick a random connection for that host
       HostConnectionAndHostIndex connectionAndHostIndex
@@ -220,7 +240,7 @@ public class HostConnectionPool {
     // offline when the Thrift partition server is actually still up. We then attempt to use an unavailable
     // connection opportunistically, until the system recovers.
     for (int tryId = 0; tryId < hostToConnections.size(); ++tryId) {
-      previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
+      previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex, hostToConnections);
       List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
       // Pick a random connection for that host, and use it only if it is offline
       HostConnectionAndHostIndex connectionAndHostIndex
@@ -234,7 +254,8 @@ public class HostConnectionPool {
     return null;
   }
 
-  private int getNextHostIndexToUse(int previouslyUsedHostIndex) {
+  private int getNextHostIndexToUse(int previouslyUsedHostIndex,
+                                    ArrayList<List<HostConnectionAndHostIndex>> hostToConnections) {
     if (previouslyUsedHostIndex >= (hostToConnections.size() - 1)) {
       return 0;
     } else {
@@ -243,91 +264,128 @@ public class HostConnectionPool {
   }
 
   public HankResponse get(Domain domain, ByteBuffer key, int maxNumTries, Integer keyHash) {
-    int domainId = domain.getId();
     HostConnectionAndHostIndex connectionAndHostIndex = null;
-    int numTries = 0;
+    int numPreferredTries = 0;
+    int numOtherTries = 0;
+
     while (true) {
+
+      //  jump out if we don't have any more preferred hosts
+      if (numPreferredTries >= preferredPools.hostToConnections.size()) {
+        break;
+      }
+
       // Either get a connection to an arbitrary host, or get a connection skipping the
       // previous host used (since it failed)
-      if (connectionAndHostIndex == null) {
-        if (keyHash == null) {
-          connectionAndHostIndex = getConnectionToUse();
-        } else {
-          connectionAndHostIndex = getConnectionToUseForKey(keyHash);
-        }
-      } else {
-        connectionAndHostIndex = getNextConnectionToUse(connectionAndHostIndex.hostIndex);
+      connectionAndHostIndex = getConnectionFromPools(preferredPools, keyHash, connectionAndHostIndex);
+
+      ++numPreferredTries;
+
+      HankResponse response = attemptQuery(connectionAndHostIndex, domain, key, numPreferredTries, maxNumTries);
+      if (response != null) {
+        return response;
       }
-      // If we couldn't find any available connection, return corresponding error response
-      if (connectionAndHostIndex == null) {
-        LOG.error("No connection is available. Giving up. Domain = " + domain.getName() + ", Key=" + BytesUtils.bytesToHexString(key));
-        return NO_CONNECTION_AVAILABLE_RESPONSE;
-      } else {
-        // Perform query
-        try {
-          return connectionAndHostIndex.hostConnection.get(domainId, key);
-        } catch (IOException e) {
-          // In case of error, keep count of the number of times we retry
-          ++numTries;
-          if (numTries < maxNumTries) {
-            // Simply log the error and retry
-            LOG.error("Failed to perform query with host: "
-                + connectionAndHostIndex.hostConnection.getHost().getAddress()
-                + ". Retrying. Try " + numTries + "/" + maxNumTries
-                + ", Domain = " + domain.getName()
-                + ", Key = " + BytesUtils.bytesToHexString(key), e);
-          } else {
-            // If we have exhausted tries, return an exception response
-            LOG.error("Failed to perform query with host: "
-                + connectionAndHostIndex.hostConnection.getHost().getAddress()
-                + ". Giving up. Try " + numTries + "/" + maxNumTries
-                + ", Domain = " + domain.getName()
-                + ", Key = " + BytesUtils.bytesToHexString(key), e);
-            return HankResponse.xception(HankException.failed_retries(maxNumTries));
-          }
-        }
+    }
+
+    while (true) {
+      connectionAndHostIndex = getConnectionFromPools(otherPools, keyHash, connectionAndHostIndex);
+      ++numOtherTries;
+
+      HankResponse response = attemptQuery(connectionAndHostIndex, domain, key, numPreferredTries+numOtherTries, maxNumTries);
+      if (response != null) {
+        return response;
       }
+    }
+
+  }
+
+  private HostConnectionAndHostIndex getConnectionFromPools(ConnectionPools pools, Integer keyHash, HostConnectionAndHostIndex connectionAndHostIndex) {
+    if (connectionAndHostIndex == null) {
+      if (keyHash == null) {
+        return getConnectionToUse(pools);
+      } else {
+        return getConnectionToUseForKey(pools, keyHash);
+      }
+    } else {
+      return getNextConnectionToUse(connectionAndHostIndex.hostIndex, pools.hostToConnections);
     }
   }
 
-  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys, int maxNumTries) {
-    HostConnectionAndHostIndex connectionAndHostIndex = null;
-    int numTries = 0;
-    while (true) {
-      // Either get a connection to an arbitrary host, or get a connection skipping the
-      // previous host used (since it failed)
-      if (connectionAndHostIndex == null) {
-        connectionAndHostIndex = getConnectionToUse();
-      } else {
-        connectionAndHostIndex = getNextConnectionToUse(connectionAndHostIndex.hostIndex);
-      }
-      // If we couldn't find any available connection, return corresponding error response
-      if (connectionAndHostIndex == null) {
-        LOG.error("No connection is available. Giving up. Num keys = " + keys.size());
-        return NO_CONNECTION_AVAILABLE_BULK_RESPONSE;
-      } else {
-        // Perform query
-        try {
-          return connectionAndHostIndex.hostConnection.getBulk(domainId, keys);
-        } catch (IOException e) {
-          // In case of error, keep count of the number of times we retry
-          ++numTries;
-          if (numTries < maxNumTries) {
-            // Simply log the error and retry
-            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
-                + ". Retrying. Try " + numTries + "/" + maxNumTries
-                + ", Num keys = " + keys.size(), e);
-          } else {
-            // If we have exhausted tries, return an exception response
-            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
-                + ". Giving up. Try " + numTries + "/" + maxNumTries
-                + ", Num keys = " + keys.size(), e);
-            return HankBulkResponse.xception(HankException.failed_retries(maxNumTries));
-          }
+  private HankResponse attemptQuery(HostConnectionAndHostIndex connectionAndHostIndex, Domain domain, ByteBuffer key, int numTries, int maxNumTries) {
+    int domainId = domain.getId();
+
+    // If we couldn't find any available connection, return corresponding error response
+    if (connectionAndHostIndex == null) {
+      LOG.error("No connection is available. Giving up. Domain = " + domain.getName() + ", Key=" + BytesUtils.bytesToHexString(key));
+      return NO_CONNECTION_AVAILABLE_RESPONSE;
+    } else {
+      // Perform query
+      try {
+        return connectionAndHostIndex.hostConnection.get(domainId, key);
+      } catch (IOException e) {
+        // In case of error, keep count of the number of times we retry
+        if (numTries < maxNumTries) {
+          // Simply log the error and retry
+          LOG.error("Failed to perform query with host: "
+              + connectionAndHostIndex.hostConnection.getHost().getAddress()
+              + ". Retrying. Try " + numTries + "/" + maxNumTries
+              + ", Domain = " + domain.getName()
+              + ", Key = " + BytesUtils.bytesToHexString(key), e);
+
+          return null;
+        } else {
+          // If we have exhausted tries, return an exception response
+          LOG.error("Failed to perform query with host: "
+              + connectionAndHostIndex.hostConnection.getHost().getAddress()
+              + ". Giving up. Try " + numTries + "/" + maxNumTries
+              + ", Domain = " + domain.getName()
+              + ", Key = " + BytesUtils.bytesToHexString(key), e);
+          return HankResponse.xception(HankException.failed_retries(maxNumTries));
         }
       }
+
     }
+
   }
+
+  //  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys, int maxNumTries) {
+  //    HostConnectionAndHostIndex connectionAndHostIndex = null;
+  //    int numTries = 0;
+  //    while (true) {
+  //      // Either get a connection to an arbitrary host, or get a connection skipping the
+  //      // previous host used (since it failed)
+  //      if (connectionAndHostIndex == null) {
+  //        connectionAndHostIndex = getConnectionToUse(preferredPools);
+  //      } else {
+  //        connectionAndHostIndex = getNextConnectionToUse(connectionAndHostIndex.hostIndex, preferredPools.hostToConnections);
+  //      }
+  //      // If we couldn't find any available connection, return corresponding error response
+  //      if (connectionAndHostIndex == null) {
+  //        LOG.error("No connection is available. Giving up. Num keys = " + keys.size());
+  //        return NO_CONNECTION_AVAILABLE_BULK_RESPONSE;
+  //      } else {
+  //        // Perform query
+  //        try {
+  //          return connectionAndHostIndex.hostConnection.getBulk(domainId, keys);
+  //        } catch (IOException e) {
+  //          // In case of error, keep count of the number of times we retry
+  //          ++numTries;
+  //          if (numTries < maxNumTries) {
+  //            // Simply log the error and retry
+  //            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
+  //                + ". Retrying. Try " + numTries + "/" + maxNumTries
+  //                + ", Num keys = " + keys.size(), e);
+  //          } else {
+  //            // If we have exhausted tries, return an exception response
+  //            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
+  //                + ". Giving up. Try " + numTries + "/" + maxNumTries
+  //                + ", Num keys = " + keys.size(), e);
+  //            return HankBulkResponse.xception(HankException.failed_retries(maxNumTries));
+  //          }
+  //        }
+  //      }
+  //    }
+  //  }
 
   public static Integer getHostListShuffleSeed(Integer domainId, Integer partitionId) {
     return (domainId + 1) * (partitionId + 1);
@@ -337,7 +395,7 @@ public class HostConnectionPool {
   public ConnectionLoad getConnectionLoad() {
     int numLockedConnections = 0;
     int numConnections = 0;
-    for (List<HostConnectionAndHostIndex> hostConnectionAndHostIndexes : hostToConnections) {
+    for (List<HostConnectionAndHostIndex> hostConnectionAndHostIndexes : Iterables.concat(preferredPools.hostToConnections, otherPools.hostToConnections)) {
       for (HostConnectionAndHostIndex hostConnectionAndHostIndex : hostConnectionAndHostIndexes) {
         if (hostConnectionAndHostIndex.hostConnection.isLocked()) {
           numLockedConnections += 1;

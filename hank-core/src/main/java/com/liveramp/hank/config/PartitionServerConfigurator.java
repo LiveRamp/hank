@@ -16,6 +16,8 @@
 
 package com.liveramp.hank.config;
 
+import java.util.Map;
+
 public interface PartitionServerConfigurator extends CoordinatorConfigurator, ReaderConfigurator {
 
   public int getServicePort();
@@ -35,6 +37,8 @@ public interface PartitionServerConfigurator extends CoordinatorConfigurator, Re
   public int getGetTimerAggregatorWindow();
 
   public long getUpdateFailureCooldown();
+
+  public Map<String, String> getEnvironmentFlags();
 
   public ReaderConfigurator getReaderConfigurator(int numTotalPartitions);
 }

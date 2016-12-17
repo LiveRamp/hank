@@ -15,12 +15,13 @@
  */
 package com.liveramp.hank.coordinator;
 
-import com.liveramp.hank.zookeeper.WatchedNodeListener;
-
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+
+import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
 public interface Host extends Comparable<Host> {
 
@@ -71,4 +72,8 @@ public interface Host extends Comparable<Host> {
   public String getStatistic(String key) throws IOException;
 
   public void deleteStatistic(String key) throws IOException;
+
+  public void setEnvironmentFlags(Map<String, String> flags);
+
+  public Map<String, String> getEnvironmentFlags();
 }

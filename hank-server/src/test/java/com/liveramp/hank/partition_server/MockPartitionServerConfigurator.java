@@ -16,7 +16,10 @@
 package com.liveramp.hank.partition_server;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
+
+import com.google.common.collect.Maps;
 
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.config.ReaderConfigurator;
@@ -83,6 +86,11 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   @Override
   public long getUpdateFailureCooldown() {
     return 0;
+  }
+
+  @Override
+  public Map<String, String> getEnvironmentFlags() {
+    return Maps.newHashMap();
   }
 
   @Override
