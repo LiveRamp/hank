@@ -89,8 +89,8 @@ public class YamlHankSmartClientConfigurator extends YamlCoordinatorConfigurator
 
   @Override
   public EnvironmentValue getPreferredServerEnvironment() {
-    String key = getString(HANK_SMART_CLIENT_SECTION_KEY, PREFERRED_ENVIRONMENT_KEY);
-    String value = getString(HANK_SMART_CLIENT_SECTION_KEY, PREFERRED_ENVIRONMENT_VALUE);
+    String key = getOptionalString(HANK_SMART_CLIENT_SECTION_KEY, PREFERRED_ENVIRONMENT_KEY);
+    String value = getOptionalString(HANK_SMART_CLIENT_SECTION_KEY, PREFERRED_ENVIRONMENT_VALUE);
 
     if(key == null || value == null){
       return null;
