@@ -21,10 +21,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.Lists;
 import org.yaml.snakeyaml.Yaml;
 
 import com.liveramp.hank.config.InvalidConfigurationException;
@@ -212,7 +212,7 @@ public abstract class YamlConfigurator implements Serializable {
     try {
       return getRequiredStringList(optionPath);
     } catch (InvalidConfigurationException e) {
-      return Lists.newArrayList();
+      return Collections.emptyList();
     }
   }
 

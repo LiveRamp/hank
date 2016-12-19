@@ -275,17 +275,14 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
 
-    assertEquals("Gets should be distributed accross hosts", 10, iface1.numGets);
-    assertEquals("Gets should be distributed accross hosts", 0, iface2.numGets);
-    assertEquals("Half the keys should have been found", 10, numHits);
-
+    assertEquals("Gets should all hit first host", 10, iface1.numGets);
+    assertEquals("Gets should not hit second host", 0, iface2.numGets);
+    assertEquals("All keys should have been found", 10, numHits);
 
   }
 
   @Test
   public void testBothPreferred() throws InterruptedException, IOException {
-
-    //  two hosts, one preferred one not.  get all requests there
 
     MockIface iface1 = new Response1Iface();
     MockIface iface2 = new Response1Iface();
@@ -323,8 +320,8 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
 
-    assertEquals("Gets should be distributed accross hosts", 5, iface1.numGets);
-    assertEquals("Gets should be distributed accross hosts", 5, iface2.numGets);
+    assertEquals("Gets should be distributed across hosts", 5, iface1.numGets);
+    assertEquals("Gets should be distributed across hosts", 5, iface2.numGets);
     assertEquals("Half the keys should have been found", 10, numHits);
 
 
@@ -333,9 +330,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   @Test
   public void testPreferredFailing() throws InterruptedException, IOException {
 
-    //  two hosts, one preferred one not.  get all requests there
-
-    MockIface iface1 = new HankExceptionIface();
+      MockIface iface1 = new HankExceptionIface();
     MockIface iface2 = new Response1Iface();
 
     startMockPartitionServerThread1(iface1, 1);
