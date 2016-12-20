@@ -124,22 +124,19 @@ public class HostConnectionPool {
       Collections.shuffle(shuffledHosts);
     }
 
-    int hostIndex = 0;
+    int preferrdIndex = 0;
+    int otherIndex = 0;
+
     for (Host host : shuffledHosts) {
-      List<HostConnectionAndHostIndex> connections = new ArrayList<HostConnectionAndHostIndex>();
-      for (HostConnection hostConnection : hostToConnectionsMap.get(host)) {
-        connections.add(new HostConnectionAndHostIndex(hostConnection, hostIndex));
-      }
-      // Shuffle list of connections for that host, so that different pools try connections in different orders
-      Collections.shuffle(connections, random);
 
       if (preferredHosts.contains(host)) {
-        preferredPools.hostToConnections.add(connections);
+        preferredPools.hostToConnections.add(buildConnections(hostToConnectionsMap, preferrdIndex, host));
+        ++preferrdIndex;
       } else {
-        otherPools.hostToConnections.add(connections);
+        otherPools.hostToConnections.add(buildConnections(hostToConnectionsMap, otherIndex, host));
+        ++otherIndex;
       }
 
-      ++hostIndex;
     }
 
     // Previously used host is randomized so that different connection pools start querying
@@ -152,6 +149,16 @@ public class HostConnectionPool {
       otherPools.previouslyUsedHostIndex = random.nextInt(otherPools.hostToConnections.size());
     }
 
+  }
+
+  private List<HostConnectionAndHostIndex> buildConnections(Map<Host, List<HostConnection>> hostToConnectionsMap, int hostIndex, Host host) {
+    List<HostConnectionAndHostIndex> connections = new ArrayList<HostConnectionAndHostIndex>();
+    for (HostConnection hostConnection : hostToConnectionsMap.get(host)) {
+      connections.add(new HostConnectionAndHostIndex(hostConnection, hostIndex));
+    }
+    // Shuffle list of connections for that host, so that different pools try connections in different orders
+    Collections.shuffle(connections, random);
+    return connections;
   }
 
   static HostConnectionPool createFromList(Collection<HostConnection> connections, Integer hostShuffleSeed, Set<Host> preferredHosts) {

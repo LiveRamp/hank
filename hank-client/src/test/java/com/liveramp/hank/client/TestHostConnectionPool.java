@@ -58,15 +58,19 @@ public class TestHostConnectionPool extends BaseTestCase {
 
   private static final PartitionServerAddress partitionServerAddress1 = new PartitionServerAddress("localhost", 50004);
   private static final PartitionServerAddress partitionServerAddress2 = new PartitionServerAddress("localhost", 50005);
+  private static final PartitionServerAddress partitionServerAddress3 = new PartitionServerAddress("localhost", 50006);
 
   private Host mockHost1;
   private Host mockHost2;
+  private Host mockHost3;
 
   private Thread mockPartitionServerThread1;
   private Thread mockPartitionServerThread2;
+  private Thread mockPartitionServerThread3;
 
   private TestHostConnection.MockPartitionServer mockPartitionServer1;
   private TestHostConnection.MockPartitionServer mockPartitionServer2;
+  private TestHostConnection.MockPartitionServer mockPartitionServer3;
 
   private Domain mockDomain = new MockDomain("domain");
 
@@ -141,15 +145,20 @@ public class TestHostConnectionPool extends BaseTestCase {
 
     mockHost1 = new MockHost(partitionServerAddress1);
     mockHost2 = new MockHost(partitionServerAddress2);
+    mockHost3 = new MockHost(partitionServerAddress3);
 
     mockHost1.setState(HostState.OFFLINE);
     mockHost2.setState(HostState.OFFLINE);
+    mockHost3.setState(HostState.OFFLINE);
+
   }
 
   @After
   public void tearDown() throws InterruptedException {
     stopPartitionServer(mockPartitionServer1, mockPartitionServerThread1);
     stopPartitionServer(mockPartitionServer2, mockPartitionServerThread2);
+    stopPartitionServer(mockPartitionServer3, mockPartitionServerThread3);
+
   }
 
   @Test
@@ -330,7 +339,7 @@ public class TestHostConnectionPool extends BaseTestCase {
   @Test
   public void testPreferredFailing() throws InterruptedException, IOException {
 
-      MockIface iface1 = new HankExceptionIface();
+    MockIface iface1 = new HankExceptionIface();
     MockIface iface2 = new Response1Iface();
 
     startMockPartitionServerThread1(iface1, 1);
@@ -389,6 +398,67 @@ public class TestHostConnectionPool extends BaseTestCase {
     assertEquals("No keys found", 0, numHits);
 
   }
+
+  @Test
+  public void testPreferredFallback() throws InterruptedException, IOException {
+
+    //  two preferred, one not.  one preferred failing.
+
+    MockIface iface1 = new HankExceptionIface();
+    MockIface iface2 = new Response1Iface();
+    MockIface iface3 = new Response1Iface();
+
+    startMockPartitionServerThread1(iface1, 1);
+    startMockPartitionServerThread2(iface2, 1);
+    startMockPartitionServerThread3(iface3, 1);
+
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+
+    int tryLockTimeoutMs = 0;
+    int establishConnectionTimeoutMs = 0;
+    int queryTimeoutMs = 0;
+    int bulkQueryTimeoutMs = 0;
+
+    mockHost1.setEnvironmentFlags(Collections.singletonMap("REGION", "REG1"));
+    mockHost2.setEnvironmentFlags(Collections.singletonMap("REGION", "REG1"));
+    mockHost3.setEnvironmentFlags(Collections.singletonMap("REGION", "REG2"));
+
+
+    hostToConnectionsMap.put(mockHost1, Collections.singletonList(new HostConnection(mockHost1,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+    hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+    hostToConnectionsMap.put(mockHost3, Collections.singletonList(new HostConnection(mockHost3,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+
+
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null, Sets.newHashSet(mockHost1, mockHost2));
+
+    mockHost1.setState(HostState.SERVING);
+    mockHost2.setState(HostState.SERVING);
+    mockHost3.setState(HostState.SERVING);
+
+    iface1.clearCounts();
+    iface2.clearCounts();
+    iface3.clearCounts();
+
+    int numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 2, null);
+      if (response.is_set_value()) {
+        assertEquals(RESPONSE_1, response);
+        ++numHits;
+      }
+    }
+
+    assertEquals("Gets all fail on preferred host 1", 5, iface1.numGets);
+    assertEquals("Gets should all forward to second preferred host", 10, iface2.numGets);
+    assertEquals("No gets on non preferred host", 0, iface3.numGets);
+    assertEquals("All keys found", 10, numHits);
+
+  }
+
 
   @Test
   public void testOneHankExceptions() throws IOException, InterruptedException {
@@ -640,4 +710,20 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     });
   }
+
+  private void startMockPartitionServerThread3(IfaceWithShutdown handler, int numWorkerThreads)
+      throws InterruptedException {
+    mockPartitionServer3 = new TestHostConnection.MockPartitionServer(handler, numWorkerThreads,
+        partitionServerAddress3);
+    mockPartitionServerThread3 = new Thread(mockPartitionServer3);
+    mockPartitionServerThread3.start();
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return mockPartitionServer3.dataServer != null
+            && mockPartitionServer3.dataServer.isServing();
+      }
+    });
+  }
+
 }
