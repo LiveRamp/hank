@@ -461,9 +461,7 @@ public class ZkHost extends AbstractHost {
           currentCopy.set_environment_flags(flags);
         }
       });
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    } catch (KeeperException e) {
+    } catch (InterruptedException | KeeperException e) {
       throw new RuntimeException(e);
     }
   }
