@@ -1,17 +1,17 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.liveramp.hank.config.yaml;
 
@@ -29,6 +29,12 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
   public static final String MIN_RING_FULLY_SERVING_OBSERVATIONS_KEY = "min_ring_fully_serving_observations";
   public static final String RING_GROUP_NAME_KEY = "ring_group_name";
   public static final String INITIAL_MODE_KEY = "initial_mode";
+  public static final String HOST_AVAILABILITY_BUCKET_FLAG_KEY = "host_availability_bucket";
+  public static final String MIN_SERVING_REPLICAS = "min_serving_replicas";
+  public static final String AVAILABILITY_BUCKET_MIN_SERVING_REPLICAS = "availability_bucket_min_serving_replicas";
+
+
+  public static final Integer DEFAULT_MIN_SERVING_REPLICAS = 2;
 
   public YamlRingGroupConductorConfigurator(String configPath) throws IOException, InvalidConfigurationException {
     super(configPath);
@@ -47,6 +53,44 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
   @Override
   public int getMinRingFullyServingObservations() {
     return getInteger(RING_GROUP_CONDUCTOR_SECTION_KEY, MIN_RING_FULLY_SERVING_OBSERVATIONS_KEY);
+  }
+
+  @Override
+  public String getHostAvailabilityBucketFlag() {
+    return getOptionalString(
+        RING_GROUP_CONDUCTOR_SECTION_KEY,
+        HOST_AVAILABILITY_BUCKET_FLAG_KEY
+    );
+  }
+
+  @Override
+  public int getMinServingReplicas() {
+
+    Integer minServingReplicas = getOptionalInteger(
+        RING_GROUP_CONDUCTOR_SECTION_KEY,
+        MIN_SERVING_REPLICAS
+    );
+
+    if(minServingReplicas == null){
+      return DEFAULT_MIN_SERVING_REPLICAS;
+    }
+
+    return minServingReplicas;
+  }
+
+  @Override
+  public int getAvailabilityBucketMinServingReplicas() {
+
+    Integer minServingReplicas = getOptionalInteger(
+        RING_GROUP_CONDUCTOR_SECTION_KEY,
+        AVAILABILITY_BUCKET_MIN_SERVING_REPLICAS
+    );
+
+    if(minServingReplicas == null){
+      return DEFAULT_MIN_SERVING_REPLICAS;
+    }
+
+    return minServingReplicas;
   }
 
   @Override

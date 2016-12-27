@@ -26,5 +26,12 @@ public interface RingGroupConductorConfigurator extends CoordinatorConfigurator 
 
   public int getMinRingFullyServingObservations();
 
+  public String getHostAvailabilityBucketFlag();
+
+  public int getMinServingReplicas();
+
+  public int getAvailabilityBucketMinServingReplicas();
+
   public RingGroupConductorMode getInitialMode();
+
 }
