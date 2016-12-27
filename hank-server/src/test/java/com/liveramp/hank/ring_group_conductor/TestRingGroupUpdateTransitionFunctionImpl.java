@@ -146,7 +146,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     partitionAssigner = new ModPartitionAssigner();
 
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0);
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 2, 0, null);
 
     // V1
     versionsMap1.put(domain1, 1);
@@ -188,7 +188,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
   @Test
   public void testIsFullyServing() throws IOException {
-    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null, 1);
+    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null, 1, 2, 0, null);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     assertFalse(transitionFunction.isFullyServing(r0h0, true));

@@ -134,6 +134,21 @@ public class TestRingGroupConductor {
       }
 
       @Override
+      public String getHostAvailabilityBucketFlag() {
+        return null;
+      }
+
+      @Override
+      public int getMinServingReplicas() {
+        return 2;
+      }
+
+      @Override
+      public int getAvailabilityBucketMinServingReplicas() {
+        return 0;
+      }
+
+      @Override
       public String getRingGroupName() {
         return "myRingGroup";
       }

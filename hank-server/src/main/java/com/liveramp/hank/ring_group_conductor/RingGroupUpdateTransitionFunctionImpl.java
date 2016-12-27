@@ -146,13 +146,10 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             domainToPartitionToHostsFullyServing,
             domainGroup.getDomainVersions(),
             host);
-    if (status == null) {
-      status = LiveReplicaStatus.OVER_REPLICATED;
-    }
 
     // Not enough replicas are fully serving and the current host is servable. Serve.
-    if (Hosts.isIdle(host) && Hosts.isServable(host) && numReplicasFullyServing < minNumReplicasFullyServing) {
-      LOG.info("Host " + host.getAddress() + " is idle, servable, and only " + numReplicasFullyServing + " replicas are fully serving. Serve.");
+    if (Hosts.isIdle(host) && Hosts.isServable(host) && status == LiveReplicaStatus.UNDER_REPLICATED) {
+      LOG.info("Host " + host.getAddress() + " is idle, servable, and not enough replicas are fully serving. Serve.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
       return;
     }
@@ -165,14 +162,14 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     }
 
     if (Hosts.isIdle(host) && isAssigned && !isUpToDate
-        && (numReplicasFullyServing >= minNumReplicasFullyServing || !Hosts.isServable(host))) {
+        && (status.isFullyReplicated() || !Hosts.isServable(host))) {
       // Host is idle, assigned, not up-to-date and there are enough replicas serving or it's not servable. Update.
       LOG.info("Host " + host.getAddress() + " is idle, assigned, not up-to-date, and there are enough replicas serving (or it's not servable). Update.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.EXECUTE_UPDATE);
       return;
     }
 
-    if (isFullyServing && isAssigned && !isUpToDate && numReplicasFullyServing > minNumReplicasFullyServing) {
+    if (isFullyServing && isAssigned && !isUpToDate && status == LiveReplicaStatus.OVER_REPLICATED) {
       // Host is serving, assigned, not up-to-date and there are more than enough replicas serving. Go idle.
       LOG.info("Host " + host.getAddress() + " is serving, assigned, not up-to-date, and there are more than enough replicas serving. Go idle.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
@@ -188,7 +185,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     }
 
     // Host is serving, not assigned, and there are more than enough replicas serving. Go idle.
-    if (isFullyServing && !isAssigned && numReplicasFullyServing > minNumReplicasFullyServing) {
+    if (isFullyServing && !isAssigned && status == LiveReplicaStatus.OVER_REPLICATED) {
       LOG.info("Host " + host.getAddress() + " is serving, not assigned, and there are more than enough replicas serving. Go idle.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
       removeFromReplicasFullyServing(domainToPartitionToHostsFullyServing, host);
@@ -200,8 +197,6 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
         + ", isUpToDate: " + isUpToDate
         + ", isFullyServing: " + isFullyServing
         + ", state: " + host.getState()
-        + ", numReplicasFullyServing: " + numReplicasFullyServing
-        + ", minNumReplicasFullyServing: " + minNumReplicasFullyServing
     );
   }
 
@@ -249,6 +244,10 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     REPLICATED,
     OVER_REPLICATED;
 
+    public boolean isFullyReplicated() {
+      return this == REPLICATED || this == OVER_REPLICATED;
+    }
+
     public static LiveReplicaStatus min(LiveReplicaStatus... statuses) {
       return LiveReplicaStatus.values()[Collections.min(Lists.newArrayList(statuses)
           .stream()
@@ -284,12 +283,18 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             Set<Host> servingHosts = partitionToNumFullyServing.get(partition.getPartitionNumber());
             worstStatus = LiveReplicaStatus.min(
                 worstStatus,
-                statusFor(servingHosts.size(), minServingReplicas),
-                statusFor(
-                    (int)servingHosts.stream().filter(input -> sameBucket(host, input)).count(),
-                    minServingAvailabilityBucketReplicas
-                )
+                statusFor(servingHosts.size(), minServingReplicas)
             );
+
+            if (availablilityBucketKey != null) {
+              worstStatus = LiveReplicaStatus.min(
+                  worstStatus,
+                  statusFor(
+                      (int)servingHosts.stream().filter(input -> sameBucket(host, input)).count(),
+                      minServingAvailabilityBucketReplicas
+                  )
+              );
+            }
 
           }
         }
