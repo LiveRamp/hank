@@ -17,18 +17,17 @@
 package com.liveramp.hank.ring_group_conductor;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,19 +52,19 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
   private final int minRingFullyServingObservations;
   private final int minServingReplicas;
   private final int minServingAvailabilityBucketReplicas;
-  private final String availablilityBucketKey;
+  private final String availabilityBucketKey;
   private final Map<String, Integer> hostToFullyServingObservations = new HashMap<String, Integer>();
 
   public RingGroupUpdateTransitionFunctionImpl(PartitionAssigner partitionAssigner,
                                                int minRingFullyServingObservations,
                                                int minServingReplicas,
                                                int minServingAvailabilityBucketReplicas,
-                                               String availablilityBucketKey) throws IOException {
+                                               String availabilityBucketKey) throws IOException {
     this.partitionAssigner = partitionAssigner;
     this.minRingFullyServingObservations = minRingFullyServingObservations;
     this.minServingReplicas = minServingReplicas;
     this.minServingAvailabilityBucketReplicas = minServingAvailabilityBucketReplicas;
-    this.availablilityBucketKey = availablilityBucketKey;
+    this.availabilityBucketKey = availabilityBucketKey;
   }
 
   private static boolean isServingAndAboutToServe(Host host) throws IOException {
@@ -113,8 +112,6 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       LOG.info("Domain group not found. Nothing to do.");
       return;
     }
-
-    int numRingGroups = ringGroup.getRings().size();
 
     Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing = computeDomainToPartitionToHostsFullyServing(ringGroup);
 
@@ -248,12 +245,6 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       return this == REPLICATED || this == OVER_REPLICATED;
     }
 
-    public static LiveReplicaStatus min(LiveReplicaStatus... statuses) {
-      return LiveReplicaStatus.values()[Collections.min(Lists.newArrayList(statuses)
-          .stream()
-          .map(input -> input.ordinal())
-          .collect(Collectors.toList()))];
-    }
   }
 
   private LiveReplicaStatus computeDataReplicationStatus(Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
@@ -267,7 +258,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
     // Compute num replicas fully serving for given host, which is the minimum of the number of replicas
     // fully serving across all partitions assigned to it (for relevant domains)
-    LiveReplicaStatus worstStatus = LiveReplicaStatus.OVER_REPLICATED;
+    Set<LiveReplicaStatus> allStatuses = EnumSet.of(LiveReplicaStatus.OVER_REPLICATED);
 
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       Domain domain = hostDomain.getDomain();
@@ -281,48 +272,42 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
           if (partitionToNumFullyServing.containsKey(partition.getPartitionNumber())) {
 
             Set<Host> servingHosts = partitionToNumFullyServing.get(partition.getPartitionNumber());
-            worstStatus = LiveReplicaStatus.min(
-                worstStatus,
-                statusFor(servingHosts.size(), minServingReplicas)
-            );
+            allStatuses.add(statusFor(servingHosts.size(), minServingReplicas));
 
-            if (availablilityBucketKey != null) {
-              worstStatus = LiveReplicaStatus.min(
-                  worstStatus,
-                  statusFor(
-                      (int)servingHosts.stream().filter(input -> sameBucket(host, input)).count(),
-                      minServingAvailabilityBucketReplicas
-                  )
-              );
+            if (availabilityBucketKey != null) {
+
+              allStatuses.add(statusFor(
+                  servingHosts.stream().filter(input -> sameBucket(host, input)).count(),
+                  minServingAvailabilityBucketReplicas
+              ));
             }
 
           }
         }
       }
     }
-    return worstStatus;
+
+    return Collections.min(allStatuses);
   }
 
-  private LiveReplicaStatus statusFor(int numServing, int numRequired) {
+  private LiveReplicaStatus statusFor(long numServing, long numRequired) {
     if (numServing < numRequired) {
       return LiveReplicaStatus.UNDER_REPLICATED;
-    }
-
-    if (numServing == numRequired) {
+    } else if (numServing == numRequired) {
       return LiveReplicaStatus.REPLICATED;
+    } else{
+      return LiveReplicaStatus.OVER_REPLICATED;
     }
-
-    return LiveReplicaStatus.OVER_REPLICATED;
   }
 
   private boolean sameBucket(Host host1, Host host2) {
-    if (availablilityBucketKey == null) {
+    if (availabilityBucketKey == null) {
       return true;
     }
 
     return Objects.equals(
-        host1.getEnvironmentFlags().get(availablilityBucketKey),
-        host2.getEnvironmentFlags().get(availablilityBucketKey)
+        host1.getEnvironmentFlags().get(availabilityBucketKey),
+        host2.getEnvironmentFlags().get(availabilityBucketKey)
     );
 
   }
