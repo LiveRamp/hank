@@ -92,6 +92,7 @@ struct HostMetadata {
   1: required string flags;
   2: required string host_name;
   3: required i32 port_number;
+  4: optional map<string, string> environment_flags;
 }
 
 struct StatisticsMetadata {

@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -449,6 +450,25 @@ public class ZkHost extends AbstractHost {
     } catch (KeeperException e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public void setEnvironmentFlags(Map<String, String> flags) {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(HostMetadata currentCopy) {
+          currentCopy.set_environment_flags(flags);
+        }
+      });
+    } catch (InterruptedException | KeeperException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public Map<String, String> getEnvironmentFlags() {
+    return metadata.get().get_environment_flags();
   }
 
   public void delete() throws IOException {

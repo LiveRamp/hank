@@ -16,6 +16,8 @@
 
 package com.liveramp.hank.client;
 
+import com.liveramp.hank.config.EnvironmentValue;
+
 public class HankSmartClientOptions {
 
   private int numConnectionsPerHost = 1;
@@ -29,6 +31,7 @@ public class HankSmartClientOptions {
   private long responseCacheNumBytesCapacity = 0;
   private int responseCacheNumItemsCapacity = 0;
   private long responseCacheExpirationSeconds = 0;
+  private EnvironmentValue preferredServerEnvironment = null;
 
   public int getNumConnectionsPerHost() {
     return numConnectionsPerHost;
@@ -122,6 +125,15 @@ public class HankSmartClientOptions {
 
   public long getResponseCacheExpirationSeconds() {
     return responseCacheExpirationSeconds;
+  }
+
+  public EnvironmentValue getPreferredServerEnvironment() {
+    return preferredServerEnvironment;
+  }
+
+  public HankSmartClientOptions setPreferredServerEnvironmentFlag(EnvironmentValue preferredServerEnvironment) {
+    this.preferredServerEnvironment = preferredServerEnvironment;
+    return this;
   }
 
   public HankSmartClientOptions setResponseCacheExpirationSeconds(long responseCacheExpirationSeconds) {

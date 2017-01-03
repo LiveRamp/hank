@@ -114,6 +114,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     }
     host.setCommandQueueChangeListener(this);
     host.setCurrentCommandChangeListener(this);
+    host.setEnvironmentFlags(configurator.getEnvironmentFlags());
 
     // Start the update filesystem statistics thread
     updateFilesystemStatisticsRunnable = new UpdateFilesystemStatisticsRunnable();

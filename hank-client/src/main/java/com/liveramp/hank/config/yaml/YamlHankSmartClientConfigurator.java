@@ -16,10 +16,11 @@
 
 package com.liveramp.hank.config.yaml;
 
+import java.io.FileNotFoundException;
+
+import com.liveramp.hank.config.EnvironmentValue;
 import com.liveramp.hank.config.HankSmartClientConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
-
-import java.io.FileNotFoundException;
 
 public class YamlHankSmartClientConfigurator extends YamlCoordinatorConfigurator implements HankSmartClientConfigurator {
 
@@ -31,6 +32,7 @@ public class YamlHankSmartClientConfigurator extends YamlCoordinatorConfigurator
   private static final String ESTABLISH_CONNECTION_TIMEOUT_MS_KEY = "establish_connection_timeout_ms";
   private static final String QUERY_TIMEOUT_MS_KEY = "query_timeout_ms";
   private static final String BULK_QUERY_TIMEOUT_MS_KEY = "bulk_query_timeout_ms";
+  private static final String PREFERRED_ENVIRONMENT_KEY = "preferred_environment_key";
 
   public YamlHankSmartClientConfigurator(String configurationPath) throws FileNotFoundException, InvalidConfigurationException {
     super(configurationPath);
@@ -82,5 +84,16 @@ public class YamlHankSmartClientConfigurator extends YamlCoordinatorConfigurator
   @Override
   public int getBulkQueryTimeoutMs() {
     return getInteger(HANK_SMART_CLIENT_SECTION_KEY, BULK_QUERY_TIMEOUT_MS_KEY);
+  }
+
+  @Override
+  public EnvironmentValue getPreferredServerEnvironment() {
+    String key = getOptionalString(HANK_SMART_CLIENT_SECTION_KEY, PREFERRED_ENVIRONMENT_KEY);
+
+    if(key == null){
+      return null;
+    }
+
+    return new EnvironmentValue(key, System.getenv(key));
   }
 }

@@ -31,4 +31,7 @@ public interface HankSmartClientConfigurator extends CoordinatorConfigurator {
   public int getQueryTimeoutMs();
 
   public int getBulkQueryTimeoutMs();
+
+  public EnvironmentValue getPreferredServerEnvironment();
+
 }

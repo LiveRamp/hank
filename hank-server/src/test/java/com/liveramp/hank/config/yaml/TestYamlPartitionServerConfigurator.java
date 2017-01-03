@@ -18,6 +18,7 @@ package com.liveramp.hank.config.yaml;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Collections;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -25,6 +26,7 @@ import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.test.BaseTestCase;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class TestYamlPartitionServerConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";
@@ -48,6 +50,8 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     pw.println("  update_daemon:");
     pw.println("    num_concurrent_updates: 5");
     pw.println("    max_concurrent_updates_per_data_directory: 2");
+    pw.println("  environment_flags:");
+    pw.println("    - PATH");
     pw.println("coordinator:");
     pw.println("  factory: " + MockCoordinator.Factory.class.getName());
     pw.println("  options:");
@@ -64,5 +68,12 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     assertEquals(1024, conf.getBufferReuseMaxSize());
     assertEquals(1000000, conf.getCacheNumBytesCapacity());
     assertEquals(2000, conf.getCacheNumItemsCapacity());
+
+    Map<String, String> flags = conf.getEnvironmentFlags();
+    assertNotEquals("", flags.get("PATH"));
+    assertNotEquals(null, flags.get("PATH"));
+
   }
+
+
 }

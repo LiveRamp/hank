@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -207,6 +208,14 @@ public abstract class YamlConfigurator implements Serializable {
     }
   }
 
+  protected List<String> getOptionalStringList(String... optionPath) {
+    try {
+      return getRequiredStringList(optionPath);
+    } catch (InvalidConfigurationException e) {
+      return Collections.emptyList();
+    }
+  }
+
   protected List<String> getStringList(String... optionPath) {
     try {
       return getRequiredStringList(optionPath);
@@ -214,4 +223,5 @@ public abstract class YamlConfigurator implements Serializable {
       throw new RuntimeException(e);
     }
   }
+
 }

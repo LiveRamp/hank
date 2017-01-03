@@ -18,7 +18,11 @@ package com.liveramp.hank.config.yaml;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import com.google.common.collect.Maps;
 
 import com.liveramp.hank.config.BaseReaderConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
@@ -43,6 +47,7 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   public static final String BUFFER_REUSE_MAX_SIZE = "buffer_reuse_max_size";
   public static final String CACHE_NUM_BYTES_CAPACITY = "cache_num_bytes_capacity";
   public static final String CACHE_NUM_ITEMS_CAPACITY = "cache_num_items_capacity";
+  public static final String ENVIRONMENT_FLAGS = "environment_flags";
 
   public YamlPartitionServerConfigurator(String path) throws IOException,
       InvalidConfigurationException {
@@ -77,6 +82,7 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
     getRequiredSection(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, NUM_CONCURRENT_UPDATES_KEY);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, MAX_CONCURRENT_UPDATES_PER_DATA_DIRECTORY_KEY);
+
   }
 
   @Override
@@ -123,6 +129,19 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   public long getUpdateFailureCooldown() {
     return getLong(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         GET_UPDATE_FAILURE_COOLDOWN_KEY);
+  }
+
+  @Override
+  public Map<String, String> getEnvironmentFlags() {
+    List<String> variables = getOptionalStringList(PARTITION_SERVER_SECTION_KEY, ENVIRONMENT_FLAGS);
+
+    Map<String, String> envVars = Maps.newHashMap();
+
+    for (String variable : variables) {
+      envVars.put(variable, System.getenv(variable));
+    }
+
+    return envVars;
   }
 
   @Override

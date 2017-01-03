@@ -21,15 +21,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.liveramp.commons.util.BytesUtils;
+import com.liveramp.hank.config.EnvironmentValue;
 import com.liveramp.hank.config.HankSmartClientConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -81,6 +85,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
+  private final EnvironmentValue preferredHostEnvironment;
 
   private final SynchronizedMemoryBoundCacheExpiring<DomainAndKey, HankResponse> responseCache;
   // 0: num queries
@@ -129,7 +134,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         .setTryLockConnectionTimeoutMs(configurator.getTryLockConnectionTimeoutMs())
         .setEstablishConnectionTimeoutMs(configurator.getEstablishConnectionTimeoutMs())
         .setQueryTimeoutMs(configurator.getQueryTimeoutMs())
-        .setBulkQueryTimeoutMs(configurator.getBulkQueryTimeoutMs()));
+        .setBulkQueryTimeoutMs(configurator.getBulkQueryTimeoutMs())
+        .setPreferredServerEnvironmentFlag(configurator.getPreferredServerEnvironment()));
   }
 
   public HankSmartClient(Coordinator coordinator, String ringGroupName) throws IOException {
@@ -162,6 +168,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         new DomainAndKey.DomainAndKeyMemoryUsageEstimator(),
         new HankResponseMemoryUsageEstimator());
     this.requestsCounters = new AtomicLongCollection(2, new long[]{0, 0});
+    this.preferredHostEnvironment = options.getPreferredServerEnvironment();
 
     // This creates a thread pool executor with a specific maximum number of threads.
     // We allow core threads to timeout after the keep alive time. We use a custom bounded
@@ -268,6 +275,19 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     }
   }
 
+  private boolean isPreferredHost(Host host){
+
+    if(host.getEnvironmentFlags() != null && preferredHostEnvironment != null){
+      String clientValue = host.getEnvironmentFlags().get(preferredHostEnvironment.getKey());
+
+      if(clientValue != null && clientValue.equals(preferredHostEnvironment.getValue())){
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private void buildNewConnectionCache(
       final Map<HostAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool,
       final Map<Integer, Map<Integer, HostConnectionPool>> newDomainToPartitionToConnectionPool)
@@ -276,8 +296,14 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     final Map<Integer, Map<Integer, List<HostAddress>>> newDomainToPartitionToPartitionServerAddressList
         = new HashMap<Integer, Map<Integer, List<HostAddress>>>();
 
+    Set<Host> preferredHosts = Sets.newHashSet();
+
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
+
+        if(isPreferredHost(host)){
+          preferredHosts.add(host);
+        }
 
         LOG.info(getLogPrefix() + "Loading partition metadata for Host: " + host.getAddress());
 
@@ -328,7 +354,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
                 queryTimeoutMs,
                 bulkQueryTimeoutMs));
           }
-          hostConnectionPool = HostConnectionPool.createFromList(hostConnections, null);
+          hostConnectionPool = HostConnectionPool.createFromList(hostConnections, null, preferredHosts);
         }
         newPartitionServerAddressToConnectionPool.put(hostAddress, hostConnectionPool);
       }
@@ -347,7 +373,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         }
         Integer partitionId = partitionToAddressesEntry.getKey();
         partitionToConnectionPool.put(partitionId,
-            HostConnectionPool.createFromList(connections, getHostListShuffleSeed(domainId, partitionId)));
+            HostConnectionPool.createFromList(connections, getHostListShuffleSeed(domainId, partitionId), preferredHosts));
       }
       newDomainToPartitionToConnectionPool.put(domainId, partitionToConnectionPool);
     }
