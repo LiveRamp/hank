@@ -1,28 +1,35 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.liveramp.hank.ring_group_conductor;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainAndVersion;
@@ -43,12 +50,21 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
   private final PartitionAssigner partitionAssigner;
   private final int minRingFullyServingObservations;
+  private final int minServingReplicas;
+  private final int minServingAvailabilityBucketReplicas;
+  private final String availabilityBucketKey;
   private final Map<String, Integer> hostToFullyServingObservations = new HashMap<String, Integer>();
 
   public RingGroupUpdateTransitionFunctionImpl(PartitionAssigner partitionAssigner,
-                                               int minRingFullyServingObservations) throws IOException {
+                                               int minRingFullyServingObservations,
+                                               int minServingReplicas,
+                                               int minServingAvailabilityBucketReplicas,
+                                               String availabilityBucketKey) throws IOException {
     this.partitionAssigner = partitionAssigner;
     this.minRingFullyServingObservations = minRingFullyServingObservations;
+    this.minServingReplicas = minServingReplicas;
+    this.minServingAvailabilityBucketReplicas = minServingAvailabilityBucketReplicas;
+    this.availabilityBucketKey = availabilityBucketKey;
   }
 
   private static boolean isServingAndAboutToServe(Host host) throws IOException {
@@ -97,26 +113,18 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       return;
     }
 
-    int minNumReplicasFullyServing;
-    if (ringGroup.getRings().size() <= 3) {
-      minNumReplicasFullyServing = ringGroup.getRings().size() - 1;
-    } else {
-      minNumReplicasFullyServing = ringGroup.getRings().size() - 2;
-    }
-
     Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing = computeDomainToPartitionToHostsFullyServing(ringGroup);
 
     for (Ring ring : ringGroup.getRingsSorted()) {
       partitionAssigner.prepare(ring, domainGroup.getDomainVersions(), ringGroup.getRingGroupConductorMode());
       for (Host host : ring.getHostsSorted()) {
-        manageTransitions(host, domainGroup, minNumReplicasFullyServing, domainToPartitionToHostsFullyServing);
+        manageTransitions(host, domainGroup, domainToPartitionToHostsFullyServing);
       }
     }
   }
 
   private void manageTransitions(Host host,
                                  DomainGroup domainGroup,
-                                 int minNumReplicasFullyServing,
                                  Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing) throws IOException {
     boolean isAssigned = partitionAssigner.isAssigned(host);
     boolean isUpToDate = Hosts.isUpToDate(host, domainGroup);
@@ -130,18 +138,15 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
     // Note: numReplicasFullyServing can be null if the host is not serving relevant data
 
-    Integer numReplicasFullyServing =
-        computeNumReplicasFullyServingRelevantData(
+    LiveReplicaStatus status =
+        computeDataReplicationStatus(
             domainToPartitionToHostsFullyServing,
             domainGroup.getDomainVersions(),
             host);
-    if (numReplicasFullyServing == null) {
-      numReplicasFullyServing = Integer.MAX_VALUE;
-    }
 
     // Not enough replicas are fully serving and the current host is servable. Serve.
-    if (Hosts.isIdle(host) && Hosts.isServable(host) && numReplicasFullyServing < minNumReplicasFullyServing) {
-      LOG.info("Host " + host.getAddress() + " is idle, servable, and only " + numReplicasFullyServing + " replicas are fully serving. Serve.");
+    if (Hosts.isIdle(host) && Hosts.isServable(host) && status == LiveReplicaStatus.UNDER_REPLICATED) {
+      LOG.info("Host " + host.getAddress() + " is idle, servable, and not enough replicas are fully serving. Serve.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
       return;
     }
@@ -154,14 +159,14 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     }
 
     if (Hosts.isIdle(host) && isAssigned && !isUpToDate
-        && (numReplicasFullyServing >= minNumReplicasFullyServing || !Hosts.isServable(host))) {
+        && (status.isFullyReplicated() || !Hosts.isServable(host))) {
       // Host is idle, assigned, not up-to-date and there are enough replicas serving or it's not servable. Update.
       LOG.info("Host " + host.getAddress() + " is idle, assigned, not up-to-date, and there are enough replicas serving (or it's not servable). Update.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.EXECUTE_UPDATE);
       return;
     }
 
-    if (isFullyServing && isAssigned && !isUpToDate && numReplicasFullyServing > minNumReplicasFullyServing) {
+    if (isFullyServing && isAssigned && !isUpToDate && status == LiveReplicaStatus.OVER_REPLICATED) {
       // Host is serving, assigned, not up-to-date and there are more than enough replicas serving. Go idle.
       LOG.info("Host " + host.getAddress() + " is serving, assigned, not up-to-date, and there are more than enough replicas serving. Go idle.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
@@ -177,7 +182,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     }
 
     // Host is serving, not assigned, and there are more than enough replicas serving. Go idle.
-    if (isFullyServing && !isAssigned && numReplicasFullyServing > minNumReplicasFullyServing) {
+    if (isFullyServing && !isAssigned && status == LiveReplicaStatus.OVER_REPLICATED) {
       LOG.info("Host " + host.getAddress() + " is serving, not assigned, and there are more than enough replicas serving. Go idle.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
       removeFromReplicasFullyServing(domainToPartitionToHostsFullyServing, host);
@@ -189,8 +194,6 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
         + ", isUpToDate: " + isUpToDate
         + ", isFullyServing: " + isFullyServing
         + ", state: " + host.getState()
-        + ", numReplicasFullyServing: " + numReplicasFullyServing
-        + ", minNumReplicasFullyServing: " + minNumReplicasFullyServing
     );
   }
 
@@ -233,9 +236,20 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     return result;
   }
 
-  private Integer computeNumReplicasFullyServingRelevantData(Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
-                                                             Set<DomainAndVersion> domainVersions,
-                                                             Host host) throws IOException {
+  enum LiveReplicaStatus {
+    UNDER_REPLICATED,
+    REPLICATED,
+    OVER_REPLICATED;
+
+    public boolean isFullyReplicated() {
+      return this == REPLICATED || this == OVER_REPLICATED;
+    }
+
+  }
+
+  private LiveReplicaStatus computeDataReplicationStatus(Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
+                                                         Set<DomainAndVersion> domainVersions,
+                                                         Host host) throws IOException {
     // Build set of relevant domains
     Set<Domain> relevantDomains = new HashSet<Domain>();
     for (DomainAndVersion domainVersion : domainVersions) {
@@ -244,26 +258,57 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
     // Compute num replicas fully serving for given host, which is the minimum of the number of replicas
     // fully serving across all partitions assigned to it (for relevant domains)
-    Integer result = null;
+    Set<LiveReplicaStatus> allStatuses = EnumSet.of(LiveReplicaStatus.OVER_REPLICATED);
+
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       Domain domain = hostDomain.getDomain();
       // Only consider relevant domains
       if (relevantDomains.contains(domain)) {
         Map<Integer, Set<Host>> partitionToNumFullyServing = domainToPartitionToHostsFullyServing.get(hostDomain.getDomain());
         if (partitionToNumFullyServing == null) {
-          return 0;
+          return LiveReplicaStatus.UNDER_REPLICATED;
         }
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
-          int numFullyServing = 0;
           if (partitionToNumFullyServing.containsKey(partition.getPartitionNumber())) {
-            numFullyServing = partitionToNumFullyServing.get(partition.getPartitionNumber()).size();
-          }
-          if (result == null || numFullyServing < result) {
-            result = numFullyServing;
+
+            Set<Host> servingHosts = partitionToNumFullyServing.get(partition.getPartitionNumber());
+            allStatuses.add(statusFor(servingHosts.size(), minServingReplicas));
+
+            if (availabilityBucketKey != null) {
+
+              allStatuses.add(statusFor(
+                  servingHosts.stream().filter(input -> sameBucket(host, input)).count(),
+                  minServingAvailabilityBucketReplicas
+              ));
+            }
+
           }
         }
       }
     }
-    return result;
+
+    return Collections.min(allStatuses);
+  }
+
+  private LiveReplicaStatus statusFor(long numServing, long numRequired) {
+    if (numServing < numRequired) {
+      return LiveReplicaStatus.UNDER_REPLICATED;
+    } else if (numServing == numRequired) {
+      return LiveReplicaStatus.REPLICATED;
+    } else{
+      return LiveReplicaStatus.OVER_REPLICATED;
+    }
+  }
+
+  private boolean sameBucket(Host host1, Host host2) {
+    if (availabilityBucketKey == null) {
+      return true;
+    }
+
+    return Objects.equals(
+        host1.getEnvironmentFlags().get(availabilityBucketKey),
+        host2.getEnvironmentFlags().get(availabilityBucketKey)
+    );
+
   }
 }

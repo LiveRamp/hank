@@ -17,6 +17,7 @@ package com.liveramp.hank.ring_group_conductor;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -146,7 +147,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     partitionAssigner = new ModPartitionAssigner();
 
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0);
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 2, 0, null);
 
     // V1
     versionsMap1.put(domain1, 1);
@@ -188,7 +189,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
   @Test
   public void testIsFullyServing() throws IOException {
-    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null, 1);
+    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null, 1, 2, 0, null);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     assertFalse(transitionFunction.isFullyServing(r0h0, true));
@@ -674,4 +675,80 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h0.getAndClearLastEnqueuedCommand());
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
+
+  //  2 - 2 : doesn't update both in either AZ
+
+  @Test
+  public void testSingleUpdateSameBucket() throws IOException {
+    domainGroup.setDomainVersions(versionsMap2);
+
+    r0h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r0h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    r1h0.setEnvironmentFlags(Collections.singletonMap("AZ", "b"));
+    r1h1.setEnvironmentFlags(Collections.singletonMap("AZ", "b"));
+
+    r2h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r2h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    //  all rings need to be updated
+    setUpRing(r0, v1, v2, HostState.SERVING);
+    setUpRing(r1, v1, v2, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
+
+    //  require at least 1 replica up per AZ.
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 1, 1, "AZ");
+    testTransitionFunction.manageTransitions(rg);
+
+    //  r0 can go idle
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getAndClearLastEnqueuedCommand());
+
+    //  r1 can't
+    assertEquals(null, r1h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r1h1.getAndClearLastEnqueuedCommand());
+
+    //  r2 can't
+    assertEquals(null, r2h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r2h1.getAndClearLastEnqueuedCommand());
+
+  }
+
+  @Test
+  public void testUpdateWithNoMin() throws IOException {
+    domainGroup.setDomainVersions(versionsMap2);
+
+    r0h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r0h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    r1h0.setEnvironmentFlags(Collections.singletonMap("AZ", "b"));
+    r1h1.setEnvironmentFlags(Collections.singletonMap("AZ", "b"));
+
+    r2h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r2h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    //  all rings need to be updated
+    setUpRing(r0, v1, v2, HostState.SERVING);
+    setUpRing(r1, v1, v2, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
+
+    //  no minimum number of replicas per zone
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 1, 0, "AZ");
+    testTransitionFunction.manageTransitions(rg);
+
+    //  r0 can go idle
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getAndClearLastEnqueuedCommand());
+
+    //  r1 can as well, since 0 min
+    assertEquals(HostCommand.GO_TO_IDLE, r1h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r1h1.getAndClearLastEnqueuedCommand());
+
+    //  r2 can't, limited by global 1 min replica.
+    assertEquals(null, r2h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r2h1.getAndClearLastEnqueuedCommand());
+
+  }
+
+
 }

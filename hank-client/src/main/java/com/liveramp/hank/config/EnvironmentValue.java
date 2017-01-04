@@ -17,4 +17,13 @@ public class EnvironmentValue {
   public String getValue() {
     return value;
   }
+
+
+  @Override
+  public String toString() {
+    return "EnvironmentValue{" +
+        "key='" + key + '\'' +
+        ", value='" + value + '\'' +
+        '}';
+  }
 }

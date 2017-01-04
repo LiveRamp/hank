@@ -125,6 +125,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("  " + YamlRingGroupConductorConfigurator.MIN_RING_FULLY_SERVING_OBSERVATIONS_KEY + ": 5");
       pw.println("  " + YamlRingGroupConductorConfigurator.RING_GROUP_NAME_KEY + ": rg1");
       pw.println("  " + YamlRingGroupConductorConfigurator.INITIAL_MODE_KEY + ": ACTIVE");
+      pw.println("  " + YamlRingGroupConductorConfigurator.MIN_SERVING_REPLICAS + ": 1"); //  only have 2x2 servers
       coordinatorConfig(pw);
       pw.close();
       configurator = new YamlRingGroupConductorConfigurator(configPath);
@@ -210,7 +211,10 @@ public class IntegrationTest extends ZkTestCase {
 
   @Test
   public void testItAll() throws Throwable {
-    org.apache.log4j.Logger.getLogger("com.liveramp.hank.coordinator.zk").setLevel(Level.INFO);
+    org.apache.log4j.Logger.getLogger("com.liveramp.hank.coordinator.zk").setLevel(Level.WARN);
+    org.apache.log4j.Logger.getLogger("org.apache.zookeeper").setLevel(Level.WARN);
+    org.apache.log4j.Logger.getLogger("org.apache.zookeeper.server").setLevel(Level.WARN);
+
     // Logger.getLogger("com.liveramp.hank.partition_server").setLevel(Level.INFO);
     org.apache.log4j.Logger.getLogger("com.liveramp.hank.storage").setLevel(Level.TRACE);
     create(domainsRoot);
