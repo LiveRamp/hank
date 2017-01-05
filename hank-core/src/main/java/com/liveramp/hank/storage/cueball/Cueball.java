@@ -342,8 +342,8 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    return new CueballRemoteDomainVersionDeleter(domain, domainBuilderRemoteDomainRoot, partitionRemoteFileOpsFactory);
+  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter(RemoteLocation location) throws IOException {
+    return new CueballRemoteDomainVersionDeleter(domain, getRoot(location), partitionRemoteFileOpsFactory);
   }
 
   @Override

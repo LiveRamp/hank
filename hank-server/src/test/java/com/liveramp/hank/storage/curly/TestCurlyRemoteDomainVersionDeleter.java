@@ -27,6 +27,7 @@ import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
+import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.ZkTestCase;
@@ -59,7 +60,7 @@ public class TestCurlyRemoteDomainVersionDeleter extends ZkTestCase {
     assertTrue(new File(localDiskRoot + "/0/00001.base.curly").exists());
     assertTrue(new File(localDiskRoot + "/0/00002.delta.curly").exists());
 
-    final RemoteDomainVersionDeleter cleaner = storageEngine.getRemoteDomainVersionDeleter();
+    final RemoteDomainVersionDeleter cleaner = storageEngine.getRemoteDomainVersionDeleter(StorageEngine.RemoteLocation.DOMAIN_BUILDER);
     cleaner.deleteVersion(1);
 
     assertFalse(new File(localDiskRoot + "/0/00001.base.cueball").exists());

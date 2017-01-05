@@ -95,7 +95,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
+  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter(RemoteLocation location) throws IOException {
     return null;
   }
 
