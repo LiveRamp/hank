@@ -166,11 +166,11 @@ public final class Domains {
     return properties.isBase();
   }
 
-  public static void cleanDomains(Collection<Domain> domains) throws IOException {
-    cleanDomains(domains, true);
+  public static void cleanDomains(Collection<Domain> domains, StorageEngine.RemoteLocation dataLocation) throws IOException {
+    cleanDomains(domains, true, dataLocation);
   }
 
-  public static void cleanDomains(Collection <Domain> domains, boolean deleteMetadata) throws IOException {
+  public static void cleanDomains(Collection <Domain> domains, boolean deleteMetadata, StorageEngine.RemoteLocation dataLocation) throws IOException {
     for (Domain domain : domains) {
       StorageEngine storageEngine = domain.getStorageEngine();
       RemoteDomainCleaner cleaner = storageEngine.getRemoteDomainCleaner();
@@ -178,7 +178,7 @@ public final class Domains {
         LOG.info("Failed to clean Domain " + domain.getName() + ". No Remote Domain Cleaner is configured.");
         continue;
       }
-      RemoteDomainVersionDeleter deleter = storageEngine.getRemoteDomainVersionDeleter();
+      RemoteDomainVersionDeleter deleter = storageEngine.getRemoteDomainVersionDeleter(dataLocation);
       if (deleter == null) {
         LOG.info("Failed to clean Domain " + domain.getName() + ". No Remote Domain Version Deleter is configured.");
         continue;

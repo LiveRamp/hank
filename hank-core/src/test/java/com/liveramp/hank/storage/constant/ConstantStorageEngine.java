@@ -113,7 +113,7 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
+  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter(RemoteLocation location) throws IOException {
     throw new UnsupportedOperationException();
   }
 

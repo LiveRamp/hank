@@ -53,6 +53,6 @@ public class RemoteDomainVersionDeletionHelper {
 
     LOG.info("Deleting remote data for domain " + domainName + " version " + versionNumber);
     domainVersion.setDefunct(true);
-    domain.getStorageEngine().getRemoteDomainVersionDeleter().deleteVersion(versionNumber);
+    domain.getStorageEngine().getRemoteDomainVersionDeleter(StorageEngine.RemoteLocation.DOMAIN_BUILDER).deleteVersion(versionNumber);
   }
 }

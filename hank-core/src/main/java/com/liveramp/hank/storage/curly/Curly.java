@@ -450,8 +450,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    return new CurlyRemoteDomainVersionDeleter(domain, domainBuilderRemoteDomainRoot, partitionRemoteFileOpsFactory);
+  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter(RemoteLocation location) throws IOException {
+    return new CurlyRemoteDomainVersionDeleter(domain, getRoot(location), partitionRemoteFileOpsFactory);
   }
 
   @Override

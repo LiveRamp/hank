@@ -60,7 +60,7 @@ public interface StorageEngine {
 
   public PartitionRemoteFileOps getPartitionRemoteFileOps(RemoteLocation files, int partitionNumber) throws IOException;
 
-  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException;
+  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter(RemoteLocation location) throws IOException;
 
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException;
 
