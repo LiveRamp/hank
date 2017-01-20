@@ -479,7 +479,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public String toString() {
     return "Curly{" +
-        "domain=" + domain +
         ", offsetNumBytes=" + offsetNumBytes +
         ", recordFileReadBufferBytes=" + recordFileReadBufferBytes +
         ", cueballStorageEngine=" + cueballStorageEngine +
