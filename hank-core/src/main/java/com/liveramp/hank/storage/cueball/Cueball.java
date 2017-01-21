@@ -414,7 +414,6 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public String toString() {
     return "Cueball{" +
-        "domain=" + domain +
         ", keyHashSize=" + keyHashSize +
         ", hasher=" + hasher +
         ", valueSize=" + valueSize +
