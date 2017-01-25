@@ -72,7 +72,11 @@ public class SynchronizedMemoryBoundCache<K, V> {
   }
 
   public int getMaxNumItems() {
-    return cache.getMaxNumItems();
+    if(!isEnabled()){
+      return 0;
+    }else{
+      return cache.getMaxNumItems();
+    }
   }
 
   public long getNumManagedBytes() {
@@ -86,6 +90,10 @@ public class SynchronizedMemoryBoundCache<K, V> {
   }
 
   public long getMaxNumManagedBytes() {
-    return cache.getMaxNumManagedBytes();
+    if(!isEnabled()){
+      return 0;
+    }else{
+      return cache.getMaxNumManagedBytes();
+    }
   }
 }
