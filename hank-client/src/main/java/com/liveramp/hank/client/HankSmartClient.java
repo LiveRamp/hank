@@ -169,6 +169,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         new HankResponseMemoryUsageEstimator());
     this.requestsCounters = new AtomicLongCollection(2, new long[]{0, 0});
     this.preferredHostEnvironment = options.getPreferredServerEnvironment();
+    LOG.info("Initializing client using preferred host environment: "+preferredHostEnvironment);
 
     // This creates a thread pool executor with a specific maximum number of threads.
     // We allow core threads to timeout after the keep alive time. We use a custom bounded
