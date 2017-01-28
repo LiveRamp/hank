@@ -41,6 +41,7 @@ import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroups;
 import com.liveramp.hank.coordinator.ServingStatus;
 import com.liveramp.hank.generated.ClientMetadata;
+import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 
 /**
  * This class does all the logic for the HankApiServlet.
@@ -121,6 +122,7 @@ public class HankApiHelper {
   public static class RingGroupData extends HankApiData {
     public String name;
     public boolean isRingGroupConductorOnline;
+    public RingGroupConductorMode ringGroupConductorMode;
     public String domainGroupName;
     public int numPartitions;
     public int numPartitionsServedAndUpToDate;
@@ -169,6 +171,7 @@ public class HankApiHelper {
     RingGroupData data = new RingGroupData();
     data.name = ringGroup.getName();
     data.isRingGroupConductorOnline = ringGroup.isRingGroupConductorOnline();
+    data.ringGroupConductorMode = ringGroup.getRingGroupConductorMode();
     data.domainGroupName = ringGroup.getDomainGroup().getName();
 
     ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup()).computeServingStatus();
