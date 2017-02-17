@@ -11,7 +11,8 @@ import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.mapred.JobConf;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cascading.flow.FlowProcess;
 
@@ -252,41 +253,80 @@ public class DomainBuilderProperties {
     return result;
   }
 
-  private static class RemoteDomainRootGetter implements RunnableWithCoordinator {
+  private static class DomainBuilderRemoteDomainRootGetter implements RunnableWithCoordinator {
 
     private final String domainName;
     private String result;
 
-    public RemoteDomainRootGetter(String domainName) {
+    public DomainBuilderRemoteDomainRootGetter(String domainName) {
       this.domainName = domainName;
     }
 
     @Override
     public void run(Coordinator coordinator) throws IOException {
       Domain domain = coordinator.getDomain(domainName);
-      if (domain == null) {
-        throw new RuntimeException("Could not get domain: " + domainName + " from coordinator.");
-      }
-      Map<String, Object> options = domain.getStorageEngineOptions();
-      if (options == null) {
-        throw new RuntimeException("Empty options for domain: " + domainName);
-      }
+      Map<String, Object> options = getOptions(domainName, domain);
 
       this.result = FileOpsUtil.getDomainBuilderRoot(options);
     }
   }
 
+  private static class PartitionServerRemoteDomainRootGetter implements RunnableWithCoordinator {
+
+    private final String domainName;
+    private String result;
+
+    public PartitionServerRemoteDomainRootGetter(String domainName) {
+      this.domainName = domainName;
+    }
+
+    @Override
+    public void run(Coordinator coordinator) throws IOException {
+      Domain domain = coordinator.getDomain(domainName);
+      Map<String, Object> options = getOptions(domainName, domain);
+
+      this.result = FileOpsUtil.getPartitionServerRoot(options);
+    }
+
+  }
+
+  private static Map<String, Object> getOptions(String domainName, Domain domain) {
+    if (domain == null) {
+      throw new RuntimeException("Could not get domain: " + domainName + " from coordinator.");
+    }
+    Map<String, Object> options = domain.getStorageEngineOptions();
+    if (options == null) {
+      throw new RuntimeException("Empty options for domain: " + domainName);
+    }
+    return options;
+  }
+
+
   public String getRemoteDomainRoot() throws IOException {
-    RemoteDomainRootGetter remoteDomainRootGetter = new RemoteDomainRootGetter(domainName);
+    DomainBuilderRemoteDomainRootGetter remoteDomainRootGetter = new DomainBuilderRemoteDomainRootGetter(domainName);
     RunWithCoordinator.run(configurator, remoteDomainRootGetter);
     return remoteDomainRootGetter.result;
   }
 
+  @Deprecated
   public static String getRemoteDomainRoot(Coordinator coordinator, String domainName) throws IOException {
+    return getDomainBuilderDomainRoot(coordinator, domainName);
+  }
+
+  public static String getDomainBuilderDomainRoot(Coordinator coordinator, String domainName) throws IOException {
     if (coordinator == null) {
       throw new RuntimeException("A null Coordinator was provided.");
     }
-    RemoteDomainRootGetter remoteDomainRootGetter = new RemoteDomainRootGetter(domainName);
+    DomainBuilderRemoteDomainRootGetter remoteDomainRootGetter = new DomainBuilderRemoteDomainRootGetter(domainName);
+    remoteDomainRootGetter.run(coordinator);
+    return remoteDomainRootGetter.result;
+  }
+
+  public static String getPartitionServerDomainRoot(Coordinator coordinator, String domainName) throws IOException {
+    if(coordinator == null){
+      throw new RuntimeException("A null Coordinator was provided.");
+    }
+    PartitionServerRemoteDomainRootGetter remoteDomainRootGetter = new PartitionServerRemoteDomainRootGetter(domainName);
     remoteDomainRootGetter.run(coordinator);
     return remoteDomainRootGetter.result;
   }
