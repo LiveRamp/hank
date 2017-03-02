@@ -266,4 +266,19 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   public boolean isLocked() {
     return lock.isLocked();
   }
+
+  @Override
+  public String toString() {
+    return "HostConnection{" +
+        "tryLockTimeoutMs=" + tryLockTimeoutMs +
+        ", establishConnectionTimeoutMs=" + establishConnectionTimeoutMs +
+        ", queryTimeoutMs=" + queryTimeoutMs +
+        ", bulkQueryTimeoutMs=" + bulkQueryTimeoutMs +
+        ", socket=" + socket +
+        ", transport=" + transport +
+        ", client=" + client +
+        ", host=" + host +
+        ", lock=" + lock +
+        '}';
+  }
 }

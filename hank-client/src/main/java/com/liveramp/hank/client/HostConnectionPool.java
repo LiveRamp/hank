@@ -105,6 +105,14 @@ public class HostConnectionPool {
     public int compareTo(HostConnectionAndHostIndex hostConnectionAndHostIndex) {
       return hostConnection.getHost().compareTo(hostConnectionAndHostIndex.hostConnection.getHost());
     }
+
+    @Override
+    public String toString() {
+      return "HostConnectionAndHostIndex{" +
+          "hostConnection=" + hostConnection +
+          ", hostIndex=" + hostIndex +
+          '}';
+    }
   }
 
   HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap, Integer hostShuffleSeed, Set<Host> preferredHosts) {
@@ -148,6 +156,10 @@ public class HostConnectionPool {
     if (!otherPools.hostToConnections.isEmpty()) {
       otherPools.previouslyUsedHostIndex = random.nextInt(otherPools.hostToConnections.size());
     }
+
+
+    LOG.info("Local pools: "+preferredPools);
+    LOG.info("Non-local pools: "+otherPools);
 
   }
 

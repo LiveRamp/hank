@@ -169,7 +169,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         new HankResponseMemoryUsageEstimator());
     this.requestsCounters = new AtomicLongCollection(2, new long[]{0, 0});
     this.preferredHostEnvironment = options.getPreferredServerEnvironment();
-    LOG.info("Initializing client using preferred host environment: "+preferredHostEnvironment);
+    LOG.info("Initializing client using preferred host environment: " + preferredHostEnvironment);
 
     // This creates a thread pool executor with a specific maximum number of threads.
     // We allow core threads to timeout after the keep alive time. We use a custom bounded
@@ -276,12 +276,13 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     }
   }
 
-  private boolean isPreferredHost(Host host){
+  private boolean isPreferredHost(Host host) {
 
-    if(host.getEnvironmentFlags() != null && preferredHostEnvironment != null){
+    LOG.info("Environment flags for host "+host+": "+host.getEnvironmentFlags());
+    if (host.getEnvironmentFlags() != null && preferredHostEnvironment != null) {
       String clientValue = host.getEnvironmentFlags().get(preferredHostEnvironment.getKey());
 
-      if(clientValue != null && clientValue.equals(preferredHostEnvironment.getValue())){
+      if (clientValue != null && clientValue.equals(preferredHostEnvironment.getValue())) {
         return true;
       }
     }
@@ -300,9 +301,13 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     Set<Host> preferredHosts = Sets.newHashSet();
 
     for (Ring ring : ringGroup.getRings()) {
-      for (Host host : ring.getHosts()) {
+      LOG.info("Building connection cache for ring: " + ring);
 
-        if(isPreferredHost(host)){
+      for (Host host : ring.getHosts()) {
+        LOG.info("Building cache for host: " + host);
+
+        if (isPreferredHost(host)) {
+          LOG.info("Host " + host + "is local");
           preferredHosts.add(host);
         }
 
