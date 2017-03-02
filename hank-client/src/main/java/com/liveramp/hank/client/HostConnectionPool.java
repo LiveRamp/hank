@@ -165,10 +165,6 @@ public class HostConnectionPool {
       otherPools.previouslyUsedHostIndex = random.nextInt(otherPools.hostToConnections.size());
     }
 
-
-    LOG.info("Local pools: "+preferredPools);
-    LOG.info("Non-local pools: "+otherPools);
-
   }
 
   private List<HostConnectionAndHostIndex> buildConnections(Map<Host, List<HostConnection>> hostToConnectionsMap, int hostIndex, Host host) {
@@ -343,7 +339,11 @@ public class HostConnectionPool {
 
     // If we couldn't find any available connection, return corresponding error response
     if (connectionAndHostIndex == null) {
-      LOG.error("No connection is available. Giving up. Domain = " + domain.getName() + ", Key=" + BytesUtils.bytesToHexString(key));
+      LOG.error("No connection is available. Giving up with "+numTries+"/"+maxNumTries+" attempts. Domain = " + domain.getName() + ", Key=" + BytesUtils.bytesToHexString(key)+"\n"+
+          "Local pools: "+preferredPools+"\n"+
+          "Non-local pools: "+otherPools
+      );
+      
       return NO_CONNECTION_AVAILABLE_RESPONSE;
     } else {
       // Perform query
