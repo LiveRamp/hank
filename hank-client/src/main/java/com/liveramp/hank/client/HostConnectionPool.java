@@ -78,6 +78,14 @@ public class HostConnectionPool {
   private static class ConnectionPools {
     private ArrayList<List<HostConnectionAndHostIndex>> hostToConnections = new ArrayList<>();
     private int previouslyUsedHostIndex = 0;
+
+    @Override
+    public String toString() {
+      return "ConnectionPools{" +
+          "hostToConnections=" + hostToConnections +
+          ", previouslyUsedHostIndex=" + previouslyUsedHostIndex +
+          '}';
+    }
   }
 
   private final ConnectionPools preferredPools = new ConnectionPools();
