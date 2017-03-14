@@ -94,7 +94,8 @@ public class CueballWriter implements Writer {
     // Check that key is different from previous one
     if (previousKey != null && previousKey.remaining() == key.remaining()
         && 0 == BytesUtils.compareBytesUnsigned(key, previousKey)) {
-      throw new IOException("Keys must be distinct but two consecutive (in terms of comparableKey) keys are equal.");
+      throw new IOException("Keys must be distinct but two consecutive (in terms of comparableKey) keys are equal."
+          + " Offending key: " + BytesUtils.bytesToHexString(key));
     }
     // Hash key
     hasher.hash(key, keyHashSize, keyHashBytes);
