@@ -19,7 +19,13 @@ import com.liveramp.commons.util.BytesUtils;
 
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ReaderResult {
+  private static final Logger LOG = LoggerFactory.getLogger(ReaderResult.class);
+
+  private static final long BUFFER_SIZE_WARN_THRESHOLD = 200_000_000;
 
   private boolean isFound = false;
 
@@ -57,6 +63,11 @@ public class ReaderResult {
 
   public void requiresBufferSize(int size) {
     if (buffer == null || buffer.capacity() < size) {
+
+      if(size >= BUFFER_SIZE_WARN_THRESHOLD){
+        LOG.warn("Creating large reader buffer size: increasing to "+size+" bytes");
+      }
+
       buffer = ByteBuffer.wrap(new byte[size]);
     }
   }
