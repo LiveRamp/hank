@@ -21,6 +21,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.apache.zookeeper.KeeperException;
+
+import com.liveramp.hank.generated.RuntimeStatisticsSummary;
 import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
 public interface Host extends Comparable<Host> {
@@ -70,6 +73,10 @@ public interface Host extends Comparable<Host> {
   public void setEphemeralStatistic(String key, String value) throws IOException;
 
   public String getStatistic(String key) throws IOException;
+
+  public void setRuntimeStatisticsSummary(RuntimeStatisticsSummary summary) throws IOException;
+
+  public RuntimeStatisticsSummary getRuntimeStatisticsSummary() throws IOException;
 
   public void deleteStatistic(String key) throws IOException;
 

@@ -31,6 +31,7 @@ import com.liveramp.hank.coordinator.HostCommandQueueChangeListener;
 import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.generated.RuntimeStatisticsSummary;
 import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
 public class MockHost extends AbstractHost {
@@ -49,6 +50,7 @@ public class MockHost extends AbstractHost {
   private Map<String, String> statistics = new HashMap<String, String>();
   private final Set<Domain> removedDomains = new HashSet<Domain>();
   private Map<String, String> environmentFlags = new HashMap<>();
+  private RuntimeStatisticsSummary runtimeStatisticsSummary;
 
   public MockHost(PartitionServerAddress address) {
     this.address = address;
@@ -211,6 +213,16 @@ public class MockHost extends AbstractHost {
   @Override
   public String getStatistic(String key) throws IOException {
     return statistics.get(key);
+  }
+
+  @Override
+  public void setRuntimeStatisticsSummary(RuntimeStatisticsSummary summary) throws IOException {
+    this.runtimeStatisticsSummary = summary;
+  }
+
+  @Override
+  public RuntimeStatisticsSummary getRuntimeStatisticsSummary() throws IOException {
+    return runtimeStatisticsSummary;
   }
 
   @Override

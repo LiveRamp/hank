@@ -46,6 +46,7 @@ import com.liveramp.hank.generated.HostAssignmentsMetadata;
 import com.liveramp.hank.generated.HostDomainMetadata;
 import com.liveramp.hank.generated.HostDomainPartitionMetadata;
 import com.liveramp.hank.generated.HostMetadata;
+import com.liveramp.hank.generated.RuntimeStatisticsSummary;
 import com.liveramp.hank.generated.StatisticsMetadata;
 import com.liveramp.hank.zookeeper.WatchedEnum;
 import com.liveramp.hank.zookeeper.WatchedNodeListener;
@@ -62,6 +63,7 @@ public class ZkHost extends AbstractHost {
   private static final String STATISTICS_PATH = "i";
   private static final String CURRENT_COMMAND_PATH = "c";
   private static final String COMMAND_QUEUE_PATH = "q";
+  private static final String RUNTIME_STATISTICS_PATH = "r";
 
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
@@ -73,6 +75,7 @@ public class ZkHost extends AbstractHost {
   private final WatchedThriftNode<StatisticsMetadata> statistics;
   private final WatchedEnum<HostState> state;
   private final WatchedEnum<HostCommand> currentCommand;
+  private final WatchedThriftNode<RuntimeStatisticsSummary> summary;
 
   private final Set<HostCommandQueueChangeListener> commandQueueListeners
       = new HashSet<HostCommandQueueChangeListener>();
@@ -129,6 +132,9 @@ public class ZkHost extends AbstractHost {
     if (create) {
       zk.create(ZkPath.append(path, DotComplete.NODE_NAME), null);
     }
+
+    this.summary = new WatchedThriftNode<>(zk, ZkPath.append(path, RUNTIME_STATISTICS_PATH),
+        false, null, null, new RuntimeStatisticsSummary());
   }
 
   private class HostStateDataLocationChangeNotifier implements WatchedNodeListener<HostState> {
@@ -432,6 +438,22 @@ public class ZkHost extends AbstractHost {
     } else {
       return result.get_statistics().get(key);
     }
+  }
+
+  @Override
+  public void setRuntimeStatisticsSummary(RuntimeStatisticsSummary summary) throws IOException {
+    try {
+      this.summary.set(summary);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public RuntimeStatisticsSummary getRuntimeStatisticsSummary() throws IOException {
+    return this.summary.get();
   }
 
   @Override
