@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
+import com.liveramp.hank.generated.DomainStatisticsSummary;
 import com.liveramp.hank.storage.CacheStatistics;
 
 public class RuntimeStatisticsAggregator {
@@ -137,6 +138,27 @@ public class RuntimeStatisticsAggregator {
   public CacheStatistics getCacheStatistics() {
     return cacheStatisticsTotal;
   }
+
+
+  public void putToStatistics(DomainStatisticsSummary summary){
+    summary.set_throughput_total(throughputTotal);
+    summary.set_response_data_throughput_total(responseDataThroughputTotal);
+    summary.set_num_requests_total(numRequestsTotal);
+
+    summary.set_num_hits_total(numHitsTotal);
+
+    summary.set_num_l1_cache_hits_total(numL1CacheHitsTotal);
+    summary.set_num_l2_cache_hits_total(numL2CacheHitsTotal);
+
+    summary.set_cache_num_items(cacheStatisticsTotal.getNumItems());
+    summary.set_cache_max_num_items(cacheStatisticsTotal.getMaxNumItems());
+    summary.set_cache_num_managed_bytes(cacheStatisticsTotal.getNumManagedBytes());
+    summary.set_cache_max_num_managed_bytes(cacheStatisticsTotal.getMaxNumManagedBytes());
+
+    summary.set_latency_summary(getRequestsPopulationStatistics.getStatistics());
+
+  }
+
 
   public static String toString(RuntimeStatisticsAggregator runtimeStatisticsAggregator) {
     return runtimeStatisticsAggregator.throughputTotal

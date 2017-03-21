@@ -28,6 +28,9 @@ import java.util.TreeMap;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
+import com.liveramp.hank.generated.DomainStatisticsSummary;
+import com.liveramp.hank.generated.RuntimeStatisticsSummary;
+import com.liveramp.hank.partition_server.DoublePopulationStatisticsAggregator;
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
 
@@ -317,16 +320,29 @@ public final class Hosts {
                                           Map<Domain, RuntimeStatisticsAggregator> runtimeStatisticsAggregators)
       throws IOException {
 
+    RuntimeStatisticsSummary summary = new RuntimeStatisticsSummary();
+
     StringBuilder statistics = new StringBuilder();
+
     for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry : runtimeStatisticsAggregators.entrySet()) {
       Domain domain = entry.getKey();
       RuntimeStatisticsAggregator runtimeStatisticsAggregator = entry.getValue();
+
+      DomainStatisticsSummary domainSummary = new DomainStatisticsSummary();
+      runtimeStatisticsAggregator.putToStatistics(domainSummary);
+
+      summary.put_to_domain_statistics(domain.getName(), domainSummary);
+
       statistics.append(domain.getId());
       statistics.append('\t');
       statistics.append(RuntimeStatisticsAggregator.toString(runtimeStatisticsAggregator));
       statistics.append('\n');
     }
+
     host.setEphemeralStatistic(RUNTIME_STATISTICS_KEY, statistics.toString());
+
+    host.setRuntimeStatisticsSummary(summary);
+
   }
 
   public static void deleteRuntimeStatistics(Host host) throws IOException {

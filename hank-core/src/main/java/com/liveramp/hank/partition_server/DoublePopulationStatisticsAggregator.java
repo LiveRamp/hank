@@ -19,7 +19,13 @@ package com.liveramp.hank.partition_server;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
+
+import com.google.common.collect.Lists;
+
+import com.liveramp.hank.generated.DomainStatisticsSummary;
+import com.liveramp.hank.generated.LatencySampleSummary;
 
 public class DoublePopulationStatisticsAggregator {
 
@@ -136,6 +142,23 @@ public class DoublePopulationStatisticsAggregator {
       }
     }
     return result;
+  }
+
+  public LatencySampleSummary getStatistics(){
+
+    LatencySampleSummary summary = new LatencySampleSummary();
+
+    summary.set_minimum(minimum);
+    summary.set_maximum(maximum);
+    summary.set_num_values(numValues);
+    summary.set_total(total);
+
+    List<Double> samples = Lists.newArrayList();
+    for (int i = 0; i < reservoirSample.getSize(); ++i) {
+      samples.add(reservoirSample.getReservoir()[i]);
+    }
+
+    return summary;
   }
 
   public static String toString(DoublePopulationStatisticsAggregator populationStatistics) {

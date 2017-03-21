@@ -149,6 +149,7 @@ public class HankApiHelper {
     public HostState state;
     public boolean isOnline;
     public String statisticsString;
+    public String statisticsJson;
   }
 
   private final Coordinator coordinator;
@@ -214,6 +215,7 @@ public class HankApiHelper {
     data.isOnline = Hosts.isOnline(host);
     data.state = host.getState();
     data.statisticsString = host.getStatistic(Hosts.RUNTIME_STATISTICS_KEY);
+    data.statisticsJson = GSON.parse
     return data;
   }
 

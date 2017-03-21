@@ -22,8 +22,8 @@ CONDUCTOR_CLASS='com.liveramp.hank.ring_group_conductor.RingGroupConductor'
 
 # Default OPTS
 
-HANK_SERVER_OPTS="$HANK_SERVER_OPTS -XX:+UseConcMarkSweepGC"
-HANK_CONDUCTOR_OPTS="$HANK_CONDUCTOR_OPTS -XX:+UseConcMarkSweepGC"
+HANK_SERVER_OPTS="$HANK_SERVER_OPTS -XX:+UseG1GC"
+HANK_CONDUCTOR_OPTS="$HANK_CONDUCTOR_OPTS -XX:+UseG1GC"
 
 function start-server {
   set-opts $HANK_SERVER_OPTS

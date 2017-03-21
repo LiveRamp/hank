@@ -105,3 +105,36 @@ struct ClientMetadata {
   3: required string type;
   4: required string version;
 }
+
+struct LatencySampleSummary {
+
+  1: required double minimum;
+  2: required double maximum;
+  3: required i64 num_values;
+  4: required double total;
+
+  5: required list<double> reservoir_samples;
+
+}
+
+struct DomainStatisticsSummary {
+  1: required i32 id;
+  2: required double throughput_total;
+  3: required double response_data_throughput_total;
+  4: required i64 num_requests_total;
+  5: required i64 num_hits_total;
+  6: required i64 num_l1_cache_hits_total;
+  7: required i64 num_l2_cache_hits_total;
+  8: required i64 cache_num_items;
+  9: required i64 cache_max_num_items;
+  10: required i64 cache_num_managed_bytes;
+  11: required i64 cache_max_num_managed_bytes;
+
+  12: required LatencySampleSummary latency_summary;
+
+}
+
+struct RuntimeStatisticsSummary {
+  1: required map<string, DomainStatisticsSummary> domain_statistics;
+
+}
