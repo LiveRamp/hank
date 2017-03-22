@@ -24,7 +24,6 @@ import java.util.Random;
 
 import com.google.common.collect.Lists;
 
-import com.liveramp.hank.generated.DomainStatisticsSummary;
 import com.liveramp.hank.generated.LatencySampleSummary;
 
 public class DoublePopulationStatisticsAggregator {
@@ -157,6 +156,8 @@ public class DoublePopulationStatisticsAggregator {
     for (int i = 0; i < reservoirSample.getSize(); ++i) {
       samples.add(reservoirSample.getReservoir()[i]);
     }
+
+    summary.set_reservoir_samples(samples);
 
     return summary;
   }
