@@ -443,6 +443,7 @@ public class ZkHost extends AbstractHost {
   @Override
   public void setRuntimeStatisticsSummary(RuntimeStatisticsSummary summary) throws IOException {
     try {
+      this.summary.ensureCreated(CreateMode.EPHEMERAL);
       this.summary.set(summary);
     } catch (KeeperException e) {
       throw new IOException(e);
