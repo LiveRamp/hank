@@ -22,8 +22,8 @@ CONDUCTOR_CLASS='com.liveramp.hank.ring_group_conductor.RingGroupConductor'
 
 # Default OPTS
 
-HANK_SERVER_OPTS="$HANK_SERVER_OPTS -XX:+UseG1GC"
-HANK_CONDUCTOR_OPTS="$HANK_CONDUCTOR_OPTS -XX:+UseG1GC"
+HANK_SERVER_OPTS="$HANK_SERVER_OPTS -XX:+UseConcMarkSweepGC"
+HANK_CONDUCTOR_OPTS="$HANK_CONDUCTOR_OPTS -XX:+UseConcMarkSweepGC"
 
 function start-server {
   set-opts $HANK_SERVER_OPTS
@@ -58,11 +58,34 @@ function start-component {
   eval $COMMAND
 }
 
+function kill-pid {
+
+  echo "Killing $1 $2"
+  kill $1
+
+  for i in {1..30}
+  do
+
+    RUNNING=$( pgrep -f $2 )
+
+    if [[ -z "$RUNNING" ]]; then
+      echo "Process dead, returning"
+      return
+    fi
+
+    sleep 1
+
+  done
+
+  echo "Did not die gracefully, force killing $1"
+  kill -9 $1
+
+}
+
 function stop-component {
   CLASSNAME=$1
   for PID in `pgrep -f $CLASSNAME`; do
-    echo "Killing $PID $CLASSNAME"
-    kill -9 $PID
+    kill-pid $PID $CLASSNAME
   done
 }
 
