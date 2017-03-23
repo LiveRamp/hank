@@ -152,12 +152,12 @@ public class DoublePopulationStatisticsAggregator {
     summary.set_num_values(numValues);
     summary.set_total(total);
 
-    List<Double> samples = Lists.newArrayList();
-    for (int i = 0; i < reservoirSample.getSize(); ++i) {
-      samples.add(reservoirSample.getReservoir()[i]);
+    List<Double> deciles = Lists.newArrayList();
+    for (double v : computeDeciles()) {
+      deciles.add(v);
     }
 
-    summary.set_reservoir_samples(samples);
+    summary.set_deciles(deciles);
 
     return summary;
   }

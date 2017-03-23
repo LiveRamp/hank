@@ -113,8 +113,7 @@ struct LatencySampleSummary {
   3: required i64 num_values;
   4: required double total;
 
-  5: required list<double> reservoir_samples;
-
+  6: required list<double> deciles;
 }
 
 struct DomainStatisticsSummary {

@@ -6,30 +6,21 @@
  */
 package com.liveramp.hank.generated;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.thrift.EncodingUtils;
+import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
 import org.apache.thrift.scheme.StandardScheme;
-
 import org.apache.thrift.scheme.TupleScheme;
-import org.apache.thrift.protocol.TTupleProtocol;
-import org.apache.thrift.protocol.TProtocolException;
-import org.apache.thrift.EncodingUtils;
-import org.apache.thrift.TException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.EnumMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.EnumSet;
-import java.util.Collections;
-import java.util.BitSet;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySampleSummary, LatencySampleSummary._Fields>, java.io.Serializable, Cloneable, Comparable<LatencySampleSummary> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("LatencySampleSummary");
@@ -38,7 +29,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
   private static final org.apache.thrift.protocol.TField MAXIMUM_FIELD_DESC = new org.apache.thrift.protocol.TField("maximum", org.apache.thrift.protocol.TType.DOUBLE, (short)2);
   private static final org.apache.thrift.protocol.TField NUM_VALUES_FIELD_DESC = new org.apache.thrift.protocol.TField("num_values", org.apache.thrift.protocol.TType.I64, (short)3);
   private static final org.apache.thrift.protocol.TField TOTAL_FIELD_DESC = new org.apache.thrift.protocol.TField("total", org.apache.thrift.protocol.TType.DOUBLE, (short)4);
-  private static final org.apache.thrift.protocol.TField RESERVOIR_SAMPLES_FIELD_DESC = new org.apache.thrift.protocol.TField("reservoir_samples", org.apache.thrift.protocol.TType.LIST, (short)5);
+  private static final org.apache.thrift.protocol.TField DECILES_FIELD_DESC = new org.apache.thrift.protocol.TField("deciles", org.apache.thrift.protocol.TType.LIST, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -50,7 +41,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
   public double maximum; // required
   public long num_values; // required
   public double total; // required
-  public List<Double> reservoir_samples; // required
+  public List<Double> deciles; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -58,7 +49,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     MAXIMUM((short)2, "maximum"),
     NUM_VALUES((short)3, "num_values"),
     TOTAL((short)4, "total"),
-    RESERVOIR_SAMPLES((short)5, "reservoir_samples");
+    DECILES((short)6, "deciles");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -81,8 +72,8 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
           return NUM_VALUES;
         case 4: // TOTAL
           return TOTAL;
-        case 5: // RESERVOIR_SAMPLES
-          return RESERVOIR_SAMPLES;
+        case 6: // DECILES
+          return DECILES;
         default:
           return null;
       }
@@ -139,7 +130,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.TOTAL, new org.apache.thrift.meta_data.FieldMetaData("total", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)));
-    tmpMap.put(_Fields.RESERVOIR_SAMPLES, new org.apache.thrift.meta_data.FieldMetaData("reservoir_samples", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.DECILES, new org.apache.thrift.meta_data.FieldMetaData("deciles", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -154,7 +145,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     double maximum,
     long num_values,
     double total,
-    List<Double> reservoir_samples)
+    List<Double> deciles)
   {
     this();
     this.minimum = minimum;
@@ -165,7 +156,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     set_num_values_isSet(true);
     this.total = total;
     set_total_isSet(true);
-    this.reservoir_samples = reservoir_samples;
+    this.deciles = deciles;
   }
 
   /**
@@ -177,12 +168,12 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     this.maximum = other.maximum;
     this.num_values = other.num_values;
     this.total = other.total;
-    if (other.is_set_reservoir_samples()) {
-      List<Double> __this__reservoir_samples = new ArrayList<Double>();
-      for (Double other_element : other.reservoir_samples) {
-        __this__reservoir_samples.add(other_element);
+    if (other.is_set_deciles()) {
+      List<Double> __this__deciles = new ArrayList<Double>();
+      for (Double other_element : other.deciles) {
+        __this__deciles.add(other_element);
       }
-      this.reservoir_samples = __this__reservoir_samples;
+      this.deciles = __this__deciles;
     }
   }
 
@@ -200,7 +191,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     this.num_values = 0;
     set_total_isSet(false);
     this.total = 0.0;
-    this.reservoir_samples = null;
+    this.deciles = null;
   }
 
   public double get_minimum() {
@@ -295,42 +286,42 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TOTAL_ISSET_ID, value);
   }
 
-  public int get_reservoir_samples_size() {
-    return (this.reservoir_samples == null) ? 0 : this.reservoir_samples.size();
+  public int get_deciles_size() {
+    return (this.deciles == null) ? 0 : this.deciles.size();
   }
 
-  public java.util.Iterator<Double> get_reservoir_samples_iterator() {
-    return (this.reservoir_samples == null) ? null : this.reservoir_samples.iterator();
+  public java.util.Iterator<Double> get_deciles_iterator() {
+    return (this.deciles == null) ? null : this.deciles.iterator();
   }
 
-  public void add_to_reservoir_samples(double elem) {
-    if (this.reservoir_samples == null) {
-      this.reservoir_samples = new ArrayList<Double>();
+  public void add_to_deciles(double elem) {
+    if (this.deciles == null) {
+      this.deciles = new ArrayList<Double>();
     }
-    this.reservoir_samples.add(elem);
+    this.deciles.add(elem);
   }
 
-  public List<Double> get_reservoir_samples() {
-    return this.reservoir_samples;
+  public List<Double> get_deciles() {
+    return this.deciles;
   }
 
-  public LatencySampleSummary set_reservoir_samples(List<Double> reservoir_samples) {
-    this.reservoir_samples = reservoir_samples;
+  public LatencySampleSummary set_deciles(List<Double> deciles) {
+    this.deciles = deciles;
     return this;
   }
 
-  public void unset_reservoir_samples() {
-    this.reservoir_samples = null;
+  public void unset_deciles() {
+    this.deciles = null;
   }
 
-  /** Returns true if field reservoir_samples is set (has been assigned a value) and false otherwise */
-  public boolean is_set_reservoir_samples() {
-    return this.reservoir_samples != null;
+  /** Returns true if field deciles is set (has been assigned a value) and false otherwise */
+  public boolean is_set_deciles() {
+    return this.deciles != null;
   }
 
-  public void set_reservoir_samples_isSet(boolean value) {
+  public void set_deciles_isSet(boolean value) {
     if (!value) {
-      this.reservoir_samples = null;
+      this.deciles = null;
     }
   }
 
@@ -368,11 +359,11 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
       }
       break;
 
-    case RESERVOIR_SAMPLES:
+    case DECILES:
       if (value == null) {
-        unset_reservoir_samples();
+        unset_deciles();
       } else {
-        set_reservoir_samples((List<Double>)value);
+        set_deciles((List<Double>)value);
       }
       break;
 
@@ -393,8 +384,8 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     case TOTAL:
       return Double.valueOf(get_total());
 
-    case RESERVOIR_SAMPLES:
-      return get_reservoir_samples();
+    case DECILES:
+      return get_deciles();
 
     }
     throw new IllegalStateException();
@@ -415,8 +406,8 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
       return is_set_num_values();
     case TOTAL:
       return is_set_total();
-    case RESERVOIR_SAMPLES:
-      return is_set_reservoir_samples();
+    case DECILES:
+      return is_set_deciles();
     }
     throw new IllegalStateException();
   }
@@ -470,12 +461,12 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
         return false;
     }
 
-    boolean this_present_reservoir_samples = true && this.is_set_reservoir_samples();
-    boolean that_present_reservoir_samples = true && that.is_set_reservoir_samples();
-    if (this_present_reservoir_samples || that_present_reservoir_samples) {
-      if (!(this_present_reservoir_samples && that_present_reservoir_samples))
+    boolean this_present_deciles = true && this.is_set_deciles();
+    boolean that_present_deciles = true && that.is_set_deciles();
+    if (this_present_deciles || that_present_deciles) {
+      if (!(this_present_deciles && that_present_deciles))
         return false;
-      if (!this.reservoir_samples.equals(that.reservoir_samples))
+      if (!this.deciles.equals(that.deciles))
         return false;
     }
 
@@ -506,10 +497,10 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     if (present_total)
       builder.append(total);
 
-    boolean present_reservoir_samples = true && (is_set_reservoir_samples());
-    builder.append(present_reservoir_samples);
-    if (present_reservoir_samples)
-      builder.append(reservoir_samples);
+    boolean present_deciles = true && (is_set_deciles());
+    builder.append(present_deciles);
+    if (present_deciles)
+      builder.append(deciles);
 
     return builder.toHashCode();
   }
@@ -562,12 +553,12 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(is_set_reservoir_samples()).compareTo(other.is_set_reservoir_samples());
+    lastComparison = Boolean.valueOf(is_set_deciles()).compareTo(other.is_set_deciles());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (is_set_reservoir_samples()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.reservoir_samples, other.reservoir_samples);
+    if (is_set_deciles()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.deciles, other.deciles);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -608,11 +599,11 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     sb.append(this.total);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("reservoir_samples:");
-    if (this.reservoir_samples == null) {
+    sb.append("deciles:");
+    if (this.deciles == null) {
       sb.append("null");
     } else {
-      sb.append(this.reservoir_samples);
+      sb.append(this.deciles);
     }
     first = false;
     sb.append(")");
@@ -625,8 +616,8 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     // alas, we cannot check 'maximum' because it's a primitive and you chose the non-beans generator.
     // alas, we cannot check 'num_values' because it's a primitive and you chose the non-beans generator.
     // alas, we cannot check 'total' because it's a primitive and you chose the non-beans generator.
-    if (reservoir_samples == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'reservoir_samples' was not present! Struct: " + toString());
+    if (deciles == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'deciles' was not present! Struct: " + toString());
     }
     // check for sub-struct validity
   }
@@ -699,20 +690,20 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 5: // RESERVOIR_SAMPLES
+          case 6: // DECILES
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list68 = iprot.readListBegin();
-                struct.reservoir_samples = new ArrayList<Double>(_list68.size);
+                struct.deciles = new ArrayList<Double>(_list68.size);
                 for (int _i69 = 0; _i69 < _list68.size; ++_i69)
                 {
                   double _elem70; // required
                   _elem70 = iprot.readDouble();
-                  struct.reservoir_samples.add(_elem70);
+                  struct.deciles.add(_elem70);
                 }
                 iprot.readListEnd();
               }
-              struct.set_reservoir_samples_isSet(true);
+              struct.set_deciles_isSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -756,11 +747,11 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
       oprot.writeFieldBegin(TOTAL_FIELD_DESC);
       oprot.writeDouble(struct.total);
       oprot.writeFieldEnd();
-      if (struct.reservoir_samples != null) {
-        oprot.writeFieldBegin(RESERVOIR_SAMPLES_FIELD_DESC);
+      if (struct.deciles != null) {
+        oprot.writeFieldBegin(DECILES_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, struct.reservoir_samples.size()));
-          for (double _iter71 : struct.reservoir_samples)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, struct.deciles.size()));
+          for (double _iter71 : struct.deciles)
           {
             oprot.writeDouble(_iter71);
           }
@@ -790,8 +781,8 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
       oprot.writeI64(struct.num_values);
       oprot.writeDouble(struct.total);
       {
-        oprot.writeI32(struct.reservoir_samples.size());
-        for (double _iter72 : struct.reservoir_samples)
+        oprot.writeI32(struct.deciles.size());
+        for (double _iter72 : struct.deciles)
         {
           oprot.writeDouble(_iter72);
         }
@@ -811,15 +802,15 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
       struct.set_total_isSet(true);
       {
         org.apache.thrift.protocol.TList _list73 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, iprot.readI32());
-        struct.reservoir_samples = new ArrayList<Double>(_list73.size);
+        struct.deciles = new ArrayList<Double>(_list73.size);
         for (int _i74 = 0; _i74 < _list73.size; ++_i74)
         {
           double _elem75; // required
           _elem75 = iprot.readDouble();
-          struct.reservoir_samples.add(_elem75);
+          struct.deciles.add(_elem75);
         }
       }
-      struct.set_reservoir_samples_isSet(true);
+      struct.set_deciles_isSet(true);
     }
   }
 

@@ -24,10 +24,8 @@ import java.util.Set;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
-import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 import org.apache.thrift.protocol.TSimpleJSONProtocol;
-import org.json.JSONObject;
 
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -156,7 +154,7 @@ public class HankApiHelper {
     public HostState state;
     public boolean isOnline;
     public String statisticsString;
-    public String statisticsJson;
+    public RuntimeStatisticsSummary statisticsJson;
   }
 
   private final Coordinator coordinator;
@@ -222,24 +220,8 @@ public class HankApiHelper {
     data.isOnline = Hosts.isOnline(host);
     data.state = host.getState();
     data.statisticsString = host.getStatistic(Hosts.RUNTIME_STATISTICS_KEY);
-    data.statisticsJson = getRuntimeStatsString(host);
+    data.statisticsJson = host.getRuntimeStatisticsSummary();
     return data;
-  }
-
-  private String getRuntimeStatsString(Host host) throws IOException {
-    RuntimeStatisticsSummary summary = host.getRuntimeStatisticsSummary();
-
-    //  just booting up, not deployed, etc
-    if(summary == null){
-      return new JSONObject().toString();
-    }
-
-    try {
-      return JSON_SERIALIZER.toString(summary);
-    } catch (TException e) {
-      throw new IOException(e);
-    }
-
   }
 
   protected DomainGroupData getDomainGroupData(DomainGroup domainGroup) throws IOException {
