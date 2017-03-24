@@ -64,7 +64,7 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
   public long cache_max_num_items; // required
   public long cache_num_managed_bytes; // required
   public long cache_max_num_managed_bytes; // required
-  public LatencySampleSummary latency_summary; // required
+  public LatencySampleSummary latency_summary; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -170,6 +170,7 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
   private static final int __CACHE_NUM_MANAGED_BYTES_ISSET_ID = 9;
   private static final int __CACHE_MAX_NUM_MANAGED_BYTES_ISSET_ID = 10;
   private short __isset_bitfield = 0;
+  private _Fields optionals[] = {_Fields.LATENCY_SUMMARY};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -195,7 +196,7 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.CACHE_MAX_NUM_MANAGED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("cache_max_num_managed_bytes", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.LATENCY_SUMMARY, new org.apache.thrift.meta_data.FieldMetaData("latency_summary", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.LATENCY_SUMMARY, new org.apache.thrift.meta_data.FieldMetaData("latency_summary", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LatencySampleSummary.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DomainStatisticsSummary.class, metaDataMap);
@@ -215,8 +216,7 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
     long cache_num_items,
     long cache_max_num_items,
     long cache_num_managed_bytes,
-    long cache_max_num_managed_bytes,
-    LatencySampleSummary latency_summary)
+    long cache_max_num_managed_bytes)
   {
     this();
     this.id = id;
@@ -241,7 +241,6 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
     set_cache_num_managed_bytes_isSet(true);
     this.cache_max_num_managed_bytes = cache_max_num_managed_bytes;
     set_cache_max_num_managed_bytes_isSet(true);
-    this.latency_summary = latency_summary;
   }
 
   /**
@@ -1133,14 +1132,16 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
     sb.append("cache_max_num_managed_bytes:");
     sb.append(this.cache_max_num_managed_bytes);
     first = false;
-    if (!first) sb.append(", ");
-    sb.append("latency_summary:");
-    if (this.latency_summary == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.latency_summary);
+    if (is_set_latency_summary()) {
+      if (!first) sb.append(", ");
+      sb.append("latency_summary:");
+      if (this.latency_summary == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.latency_summary);
+      }
+      first = false;
     }
-    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -1158,9 +1159,6 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
     // alas, we cannot check 'cache_max_num_items' because it's a primitive and you chose the non-beans generator.
     // alas, we cannot check 'cache_num_managed_bytes' because it's a primitive and you chose the non-beans generator.
     // alas, we cannot check 'cache_max_num_managed_bytes' because it's a primitive and you chose the non-beans generator.
-    if (latency_summary == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'latency_summary' was not present! Struct: " + toString());
-    }
     // check for sub-struct validity
     if (latency_summary != null) {
       latency_summary.validate();
@@ -1382,9 +1380,11 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
       oprot.writeI64(struct.cache_max_num_managed_bytes);
       oprot.writeFieldEnd();
       if (struct.latency_summary != null) {
-        oprot.writeFieldBegin(LATENCY_SUMMARY_FIELD_DESC);
-        struct.latency_summary.write(oprot);
-        oprot.writeFieldEnd();
+        if (struct.is_set_latency_summary()) {
+          oprot.writeFieldBegin(LATENCY_SUMMARY_FIELD_DESC);
+          struct.latency_summary.write(oprot);
+          oprot.writeFieldEnd();
+        }
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -1414,7 +1414,14 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
       oprot.writeI64(struct.cache_max_num_items);
       oprot.writeI64(struct.cache_num_managed_bytes);
       oprot.writeI64(struct.cache_max_num_managed_bytes);
-      struct.latency_summary.write(oprot);
+      BitSet optionals = new BitSet();
+      if (struct.is_set_latency_summary()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.is_set_latency_summary()) {
+        struct.latency_summary.write(oprot);
+      }
     }
 
     @Override
@@ -1442,9 +1449,12 @@ public class DomainStatisticsSummary implements org.apache.thrift.TBase<DomainSt
       struct.set_cache_num_managed_bytes_isSet(true);
       struct.cache_max_num_managed_bytes = iprot.readI64();
       struct.set_cache_max_num_managed_bytes_isSet(true);
-      struct.latency_summary = new LatencySampleSummary();
-      struct.latency_summary.read(iprot);
-      struct.set_latency_summary_isSet(true);
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        struct.latency_summary = new LatencySampleSummary();
+        struct.latency_summary.read(iprot);
+        struct.set_latency_summary_isSet(true);
+      }
     }
   }
 

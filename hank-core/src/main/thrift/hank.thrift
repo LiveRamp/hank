@@ -129,7 +129,7 @@ struct DomainStatisticsSummary {
   10: required i64 cache_num_managed_bytes;
   11: required i64 cache_max_num_managed_bytes;
 
-  12: required LatencySampleSummary latency_summary;
+  12: optional LatencySampleSummary latency_summary;
 
 }
 
