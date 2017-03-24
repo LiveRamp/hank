@@ -50,7 +50,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
   public double maximum; // required
   public long num_values; // required
   public double total; // required
-  public List<Double> deciles; // required
+  public List<Double> deciles; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -128,6 +128,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
   private static final int __NUM_VALUES_ISSET_ID = 2;
   private static final int __TOTAL_ISSET_ID = 3;
   private byte __isset_bitfield = 0;
+  private _Fields optionals[] = {_Fields.DECILES};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -139,7 +140,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.TOTAL, new org.apache.thrift.meta_data.FieldMetaData("total", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)));
-    tmpMap.put(_Fields.DECILES, new org.apache.thrift.meta_data.FieldMetaData("deciles", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.DECILES, new org.apache.thrift.meta_data.FieldMetaData("deciles", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -153,8 +154,7 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     double minimum,
     double maximum,
     long num_values,
-    double total,
-    List<Double> deciles)
+    double total)
   {
     this();
     this.minimum = minimum;
@@ -165,7 +165,6 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     set_num_values_isSet(true);
     this.total = total;
     set_total_isSet(true);
-    this.deciles = deciles;
   }
 
   /**
@@ -607,14 +606,16 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     sb.append("total:");
     sb.append(this.total);
     first = false;
-    if (!first) sb.append(", ");
-    sb.append("deciles:");
-    if (this.deciles == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.deciles);
+    if (is_set_deciles()) {
+      if (!first) sb.append(", ");
+      sb.append("deciles:");
+      if (this.deciles == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.deciles);
+      }
+      first = false;
     }
-    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -625,9 +626,6 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
     // alas, we cannot check 'maximum' because it's a primitive and you chose the non-beans generator.
     // alas, we cannot check 'num_values' because it's a primitive and you chose the non-beans generator.
     // alas, we cannot check 'total' because it's a primitive and you chose the non-beans generator.
-    if (deciles == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'deciles' was not present! Struct: " + toString());
-    }
     // check for sub-struct validity
   }
 
@@ -757,16 +755,18 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
       oprot.writeDouble(struct.total);
       oprot.writeFieldEnd();
       if (struct.deciles != null) {
-        oprot.writeFieldBegin(DECILES_FIELD_DESC);
-        {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, struct.deciles.size()));
-          for (double _iter71 : struct.deciles)
+        if (struct.is_set_deciles()) {
+          oprot.writeFieldBegin(DECILES_FIELD_DESC);
           {
-            oprot.writeDouble(_iter71);
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, struct.deciles.size()));
+            for (double _iter71 : struct.deciles)
+            {
+              oprot.writeDouble(_iter71);
+            }
+            oprot.writeListEnd();
           }
-          oprot.writeListEnd();
+          oprot.writeFieldEnd();
         }
-        oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -789,11 +789,18 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
       oprot.writeDouble(struct.maximum);
       oprot.writeI64(struct.num_values);
       oprot.writeDouble(struct.total);
-      {
-        oprot.writeI32(struct.deciles.size());
-        for (double _iter72 : struct.deciles)
+      BitSet optionals = new BitSet();
+      if (struct.is_set_deciles()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.is_set_deciles()) {
         {
-          oprot.writeDouble(_iter72);
+          oprot.writeI32(struct.deciles.size());
+          for (double _iter72 : struct.deciles)
+          {
+            oprot.writeDouble(_iter72);
+          }
         }
       }
     }
@@ -809,17 +816,20 @@ public class LatencySampleSummary implements org.apache.thrift.TBase<LatencySamp
       struct.set_num_values_isSet(true);
       struct.total = iprot.readDouble();
       struct.set_total_isSet(true);
-      {
-        org.apache.thrift.protocol.TList _list73 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, iprot.readI32());
-        struct.deciles = new ArrayList<Double>(_list73.size);
-        for (int _i74 = 0; _i74 < _list73.size; ++_i74)
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
         {
-          double _elem75; // required
-          _elem75 = iprot.readDouble();
-          struct.deciles.add(_elem75);
+          org.apache.thrift.protocol.TList _list73 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.DOUBLE, iprot.readI32());
+          struct.deciles = new ArrayList<Double>(_list73.size);
+          for (int _i74 = 0; _i74 < _list73.size; ++_i74)
+          {
+            double _elem75; // required
+            _elem75 = iprot.readDouble();
+            struct.deciles.add(_elem75);
+          }
         }
+        struct.set_deciles_isSet(true);
       }
-      struct.set_deciles_isSet(true);
     }
   }
 

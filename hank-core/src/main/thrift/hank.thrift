@@ -113,7 +113,7 @@ struct LatencySampleSummary {
   3: required i64 num_values;
   4: required double total;
 
-  6: required list<double> deciles;
+  6: optional list<double> deciles;
 }
 
 struct DomainStatisticsSummary {
