@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
+import com.google.common.collect.Sets;
+
 public class MockCoordinator implements Coordinator {
 
   private final Map<String, Object> options;
@@ -96,7 +98,7 @@ public class MockCoordinator implements Coordinator {
 
   @Override
   public Set<RingGroup> getRingGroups() {
-    return null;
+    return Sets.newHashSet();
   }
 
   @Override
