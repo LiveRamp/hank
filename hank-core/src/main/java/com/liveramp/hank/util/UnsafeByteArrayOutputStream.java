@@ -19,7 +19,12 @@ package com.liveramp.hank.util;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(UnsafeByteArrayOutputStream.class);
+  private static final long BUFFER_SIZE_WARN_THRESHOLD = 200_000_000;
 
   public UnsafeByteArrayOutputStream() {
     super();
@@ -39,5 +44,13 @@ public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
 
   public ByteBuffer getByteBuffer() {
     return ByteBuffer.wrap(this.buf, 0, this.count);
+  }
+
+  @Override
+  public synchronized void write(int b) {
+    if (count + 1 > buf.length && buf.length << 1 >= BUFFER_SIZE_WARN_THRESHOLD) {
+      LOG.warn("Creating large UnsafeByteArrayOutputStream buffer: Increasing size to " + buf.length + " bytes.");
+    }
+    super.write(b);
   }
 }
