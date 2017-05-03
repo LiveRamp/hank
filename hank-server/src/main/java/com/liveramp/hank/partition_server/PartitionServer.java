@@ -66,6 +66,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
   private static final int NUM_WARMUP_QUERIES_PER_THREAD = 100;
 
+  private static final long MAX_BUFFER_SIZE = 1L << 24; //  16MB
+
   private final PartitionServerConfigurator configurator;
   private final Coordinator coordinator;
 
@@ -436,6 +438,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       options.workerThreads(configurator.getNumConcurrentQueries());
       options.selectorThreads(4);
       options.protocolFactory(new TCompactProtocol.Factory());
+      options.maxReadBufferBytes = MAX_BUFFER_SIZE;
       dataServer = new TThreadedSelectorServer(options);
       LOG.info("Launching Thrift server.");
       dataServer.serve();
