@@ -436,6 +436,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       options.workerThreads(configurator.getNumConcurrentQueries());
       options.selectorThreads(4);
       options.protocolFactory(new TCompactProtocol.Factory());
+      options.maxReadBufferBytes = (long) Math.pow(2, 24);  //  16MB
       dataServer = new TThreadedSelectorServer(options);
       LOG.info("Launching Thrift server.");
       dataServer.serve();
