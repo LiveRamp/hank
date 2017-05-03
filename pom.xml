@@ -68,6 +68,8 @@
         </configuration>
       </plugin>
 
+
+
       <!-- Use mvn antrun:run -pl hank-core to generate Thrift sources -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -87,5 +89,36 @@
 
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>gen-go</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.thrift.tools</groupId>
+            <artifactId>maven-thrift-plugin</artifactId>
+            <version>0.1.11</version>
+            <configuration>
+              <thriftExecutable>thrift</thriftExecutable>
+            </configuration>
+            <executions>
+              <execution>
+                <id>thrift-sources-java</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>compile</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${basedir}/src/main/go/</outputDirectory>
+                  <generator>go</generator>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
