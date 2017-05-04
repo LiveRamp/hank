@@ -97,7 +97,7 @@ public final class Domains {
   }
 
   public static boolean hasOpenDelta(Domain domain) throws IOException {
-    return !allDeltasComplete(getLatestDelta(domain), domain);
+    return getLatestVersion(domain) != null && !allDeltasComplete(getLatestDelta(domain), domain);
   }
 
   private static boolean allDeltasComplete(DomainVersion version, Domain domain) throws IOException {
