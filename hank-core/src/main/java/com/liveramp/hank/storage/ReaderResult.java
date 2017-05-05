@@ -1,26 +1,26 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.liveramp.hank.storage;
-
-import com.liveramp.commons.util.BytesUtils;
 
 import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.liveramp.commons.util.BytesUtils;
 
 public class ReaderResult {
   private static final Logger LOG = LoggerFactory.getLogger(ReaderResult.class);
@@ -63,12 +63,15 @@ public class ReaderResult {
 
   public void requiresBufferSize(int size) {
     if (buffer == null || buffer.capacity() < size) {
-
-      if(size >= BUFFER_SIZE_WARN_THRESHOLD){
-        LOG.warn("Creating large reader buffer size: increasing to "+size+" bytes");
+      int newSize = size;
+      if (buffer != null && 1.1 * buffer.capacity() > newSize) {
+        newSize = (int)(1.1 * buffer.capacity());
+      }
+      if (newSize >= BUFFER_SIZE_WARN_THRESHOLD) {
+        LOG.warn("Creating large reader buffer size: increasing to " + newSize + " bytes");
       }
 
-      buffer = ByteBuffer.wrap(new byte[size]);
+      buffer = ByteBuffer.wrap(new byte[newSize]);
     }
   }
 
