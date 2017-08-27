@@ -142,7 +142,9 @@ public class CascadingDomainBuilder {
       throw new IOException(exceptionMessage, e);
     }
     // Close the new version
-    closeNewVersion();
+    if(properties.shouldCloseVersion()) {
+      closeNewVersion();
+    }
     // Clean up job
     DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getConfig());
     return flow;
@@ -263,7 +265,9 @@ public class CascadingDomainBuilder {
     }
     // Close new versions
     for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-      domainBuilder.closeNewVersion();
+      if(domainBuilder.properties.shouldCloseVersion()) {
+        domainBuilder.closeNewVersion();
+      }
       // Clean up jobs
       DomainBuilderOutputCommitter.cleanupJob(domainBuilder.properties.getDomainName(), flow.getConfig());
     }
