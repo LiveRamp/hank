@@ -40,6 +40,7 @@ public class DomainBuilderProperties {
   private String outputPath = null;
   private String randomTmpOutputPathId;
   private boolean shouldPartitionAndSortInput = true;
+  private boolean shouldCloseVersion = true;
 
   private static final Logger LOG = LoggerFactory.getLogger(DomainBuilderProperties.class);
 
@@ -96,8 +97,17 @@ public class DomainBuilderProperties {
     return shouldPartitionAndSortInput;
   }
 
+  public boolean shouldCloseVersion(){
+    return this.shouldCloseVersion;
+  }
+
   public DomainBuilderProperties setShouldPartitionAndSortInput(boolean shouldPartitionAndSortInput) {
     this.shouldPartitionAndSortInput = shouldPartitionAndSortInput;
+    return this;
+  }
+
+  public DomainBuilderProperties setShouldCloseVersion(boolean closeVersion){
+    this.shouldCloseVersion = closeVersion;
     return this;
   }
 
