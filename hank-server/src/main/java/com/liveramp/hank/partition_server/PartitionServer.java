@@ -51,6 +51,8 @@ import com.liveramp.hank.coordinator.Hosts;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.generated.ConnectedServerMetadata;
+import com.liveramp.hank.generated.HostMetadata;
 import com.liveramp.hank.util.CommandLineChecker;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
@@ -64,6 +66,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
   private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 2 * 60 * 1000;
 
+  private static final int HOST_RING_CONNECT_SLEEP_TIME_MS_DEFAULT = 5*1000;
+
   private static final int NUM_WARMUP_QUERIES_PER_THREAD = 100;
 
   private static final long MAX_BUFFER_SIZE = 1L << 24; //  16MB
@@ -76,7 +80,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private boolean stopping = false;
   private boolean hasProcessedCommandOnStartup = false;
   private final PartitionServerAddress hostAddress;
-  private final Host host;
+  private Host host;
+  private final String hostName;
 
   private Thread updateThread;
   private Thread offlineWatcherThread;
@@ -100,15 +105,42 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     if (ringGroup == null) {
       throw new RuntimeException("Could not get ring group: " + configurator.getRingGroupName());
     }
-    Ring ring = ringGroup.getRingForHost(hostAddress);
-    if (ring == null) {
-      throw new RuntimeException("Could not get ring for host address: " + hostAddress
-          + " in ring group " + ringGroup.getName());
-    }
-    host = ring.getHostByAddress(hostAddress);
-    if (host == null) {
-      throw new RuntimeException("Could not get host for host address: " + hostAddress
-          + " in ring group " + ringGroup.getName() + " ring " + ring.getRingNumber());
+    this.hostName = hostName;
+
+  }
+
+  private void connectToRing() throws IOException, InterruptedException {
+
+    ringGroup.registerServer(new ConnectedServerMetadata(hostName,
+        configurator.getServicePort(),
+        System.currentTimeMillis(),
+        configurator.getEnvironmentFlags()
+    ));
+
+    Ring ring = null;
+    while (!stopping) {
+      ring = ringGroup.getRingForHost(hostAddress);
+
+      if(ring != null){
+        LOG.info("Found ring for host: "+ring);
+
+        host = ring.getHostByAddress(hostAddress);
+
+        if (host != null){
+         LOG.info("Found host info in ring: "+host);
+          break;
+
+        }else{
+          LOG.info("Could not get host for host address: " + hostAddress
+              + " in ring group " + ringGroup.getName() + " ring " + ring.getRingNumber());
+        }
+
+      }else{
+        LOG.info("Could not get host for host address: " + hostAddress
+            + " in ring group " + ringGroup.getName()+".  Sleeping.");
+      }
+
+      Thread.sleep(HOST_RING_CONNECT_SLEEP_TIME_MS_DEFAULT);
     }
     if (Hosts.isOnline(host)) {
       throw new RuntimeException("Could not start a partition server for host " + host
@@ -123,9 +155,13 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     updateFilesystemStatisticsThread = new Thread(updateFilesystemStatisticsRunnable, "Update Filesystem Statistics");
     updateFilesystemStatisticsThread.setDaemon(true);
     updateFilesystemStatisticsThread.start();
+
   }
 
   public void run() throws IOException, InterruptedException {
+
+    connectToRing();
+
     // Add shutdown hook
     addShutdownHook();
     // Initialize and process commands

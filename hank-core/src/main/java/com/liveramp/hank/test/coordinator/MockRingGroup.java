@@ -27,6 +27,8 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroupDataLocationChangeListener;
 import com.liveramp.hank.generated.ClientMetadata;
+import com.liveramp.hank.generated.ConnectedServerMetadata;
+import com.liveramp.hank.generated.HostMetadata;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
@@ -40,6 +42,7 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   private List<RingGroupDataLocationChangeListener> ringGroupDataLocationChangeListeners
       = new ArrayList<RingGroupDataLocationChangeListener>();
   private final List<ClientMetadata> clients = new ArrayList<ClientMetadata>();
+  private final List<ConnectedServerMetadata> hosts = new ArrayList<>();
 
   public MockRingGroup(DomainGroup dcg,
                        String name,
@@ -133,6 +136,16 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   @Override
   public void registerClient(ClientMetadata client) throws IOException {
     clients.add(client);
+  }
+
+  @Override
+  public void registerServer(ConnectedServerMetadata meta) throws IOException {
+    hosts.add(meta);
+  }
+
+  @Override
+  public List<ConnectedServerMetadata> getLiveServers() throws IOException {
+    return hosts;
   }
 
   @Override

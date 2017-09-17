@@ -19,7 +19,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.Before;
@@ -43,6 +47,7 @@ import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -231,6 +236,68 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals(HostState.OFFLINE, fixtures.host.getState());
   }
 
+
+  @Test
+  public void testWaitUntilRingAssignment() throws IOException, InterruptedException {
+
+    final Ring mockRing = new MockRing(null, null, 0);
+
+    final Map<PartitionServerAddress, Ring> hostToRing = Maps.newHashMap();
+
+    final RingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", null) {
+      @Override
+      public Ring getRingForHost(PartitionServerAddress hostAddress) {
+        return hostToRing.get(hostAddress);
+      }
+    };
+
+    final MockCoordinator mockCoord = new MockCoordinator() {
+      @Override
+      public RingGroup getRingGroup(String ringGroupName) {
+        return mockRingGroup;
+      }
+    };
+
+    MockPartitionServerConfigurator configurator = new MockPartitionServerConfigurator(12345, mockCoord, "myRingGroup", null);
+
+    final PartitionServer partitionServer = new MockPartitionServer(configurator, "localhost");
+
+    AtomicBoolean serverDead = new AtomicBoolean(false);
+    new Thread(() -> {
+      try {
+        partitionServer.run();
+        serverDead.set(true);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }).start();
+
+    //  host should have registered
+    WaitUntil.orDie(() -> {
+      try {
+        return mockRingGroup.getLiveServers().size() == 1;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+
+    //  and not died
+    assertFalse(serverDead.get());
+
+    PartitionServerAddress address = new PartitionServerAddress("localhost", 12345);
+    mockRing.addHost(address, Lists.newArrayList());
+    hostToRing.put(address, mockRing);
+
+    WaitUntil.orDie(() -> {
+      try {
+        return mockRing.getHostByAddress(address).getState() == HostState.IDLE;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
+
+  }
+
   @Test
   public void testNonEmptyCommandQueue() throws Exception {
     final SleepingUpdateManager updateManager = new SleepingUpdateManager();
@@ -292,7 +359,7 @@ public class TestPartitionServer extends BaseTestCase {
 
   @Test
   public void testHostSetStateFailure() throws Exception {
-    final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR2, "localhost");
+    final   PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR2, "localhost");
     Thread thread = createPartitionServerThread(partitionServer);
     thread.start();
     waitUntilHost(HostState.IDLE, fixtures.failingSetStateHost);
@@ -335,13 +402,14 @@ public class TestPartitionServer extends BaseTestCase {
     thread.start();
     Thread.sleep(500);
     try {
-      new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost");
+      new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost").run();
       fail("Should fail to start when host is already online.");
     } catch (Exception e) {
     }
     partitionServer.stopSynchronized();
     thread.join();
   }
+
 
   // Create a runnable thread that runs the given partition server
   public Thread createPartitionServerThread(final PartitionServer partitionServer) {

@@ -31,30 +31,30 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostMetadata._Fields>, java.io.Serializable, Cloneable {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HostMetadata");
+public class ConnectedServerMetadata implements org.apache.thrift.TBase<ConnectedServerMetadata, ConnectedServerMetadata._Fields>, java.io.Serializable, Cloneable {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ConnectedServerMetadata");
 
-  private static final org.apache.thrift.protocol.TField FLAGS_FIELD_DESC = new org.apache.thrift.protocol.TField("flags", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField HOST_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("host_name", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField PORT_NUMBER_FIELD_DESC = new org.apache.thrift.protocol.TField("port_number", org.apache.thrift.protocol.TType.I32, (short)3);
+  private static final org.apache.thrift.protocol.TField HOST_FIELD_DESC = new org.apache.thrift.protocol.TField("host", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField PORT_NUMBER_FIELD_DESC = new org.apache.thrift.protocol.TField("port_number", org.apache.thrift.protocol.TType.I32, (short)2);
+  private static final org.apache.thrift.protocol.TField CONNECTED_AT_FIELD_DESC = new org.apache.thrift.protocol.TField("connected_at", org.apache.thrift.protocol.TType.I64, (short)3);
   private static final org.apache.thrift.protocol.TField ENVIRONMENT_FLAGS_FIELD_DESC = new org.apache.thrift.protocol.TField("environment_flags", org.apache.thrift.protocol.TType.MAP, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new HostMetadataStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new HostMetadataTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new ConnectedServerMetadataStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new ConnectedServerMetadataTupleSchemeFactory());
   }
 
-  public String flags; // required
-  public String host_name; // required
+  public String host; // required
   public int port_number; // required
-  public Map<String,String> environment_flags; // optional
+  public long connected_at; // required
+  public Map<String,String> environment_flags; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    FLAGS((short)1, "flags"),
-    HOST_NAME((short)2, "host_name"),
-    PORT_NUMBER((short)3, "port_number"),
+    HOST((short)1, "host"),
+    PORT_NUMBER((short)2, "port_number"),
+    CONNECTED_AT((short)3, "connected_at"),
     ENVIRONMENT_FLAGS((short)4, "environment_flags");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -70,12 +70,12 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // FLAGS
-          return FLAGS;
-        case 2: // HOST_NAME
-          return HOST_NAME;
-        case 3: // PORT_NUMBER
+        case 1: // HOST
+          return HOST;
+        case 2: // PORT_NUMBER
           return PORT_NUMBER;
+        case 3: // CONNECTED_AT
+          return CONNECTED_AT;
         case 4: // ENVIRONMENT_FLAGS
           return ENVIRONMENT_FLAGS;
         default:
@@ -119,52 +119,53 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
 
   // isset id assignments
   private static final int __PORT_NUMBER_ISSET_ID = 0;
+  private static final int __CONNECTED_AT_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
-  private _Fields optionals[] = {_Fields.ENVIRONMENT_FLAGS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.FLAGS, new org.apache.thrift.meta_data.FieldMetaData("flags", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.HOST_NAME, new org.apache.thrift.meta_data.FieldMetaData("host_name", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.HOST, new org.apache.thrift.meta_data.FieldMetaData("host", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.PORT_NUMBER, new org.apache.thrift.meta_data.FieldMetaData("port_number", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.ENVIRONMENT_FLAGS, new org.apache.thrift.meta_data.FieldMetaData("environment_flags", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.CONNECTED_AT, new org.apache.thrift.meta_data.FieldMetaData("connected_at", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.ENVIRONMENT_FLAGS, new org.apache.thrift.meta_data.FieldMetaData("environment_flags", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HostMetadata.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ConnectedServerMetadata.class, metaDataMap);
   }
 
-  public HostMetadata() {
+  public ConnectedServerMetadata() {
   }
 
-  public HostMetadata(
-    String flags,
-    String host_name,
-    int port_number)
+  public ConnectedServerMetadata(
+    String host,
+    int port_number,
+    long connected_at,
+    Map<String,String> environment_flags)
   {
     this();
-    this.flags = flags;
-    this.host_name = host_name;
+    this.host = host;
     this.port_number = port_number;
     set_port_number_isSet(true);
+    this.connected_at = connected_at;
+    set_connected_at_isSet(true);
+    this.environment_flags = environment_flags;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public HostMetadata(HostMetadata other) {
+  public ConnectedServerMetadata(ConnectedServerMetadata other) {
     __isset_bitfield = other.__isset_bitfield;
-    if (other.is_set_flags()) {
-      this.flags = other.flags;
-    }
-    if (other.is_set_host_name()) {
-      this.host_name = other.host_name;
+    if (other.is_set_host()) {
+      this.host = other.host;
     }
     this.port_number = other.port_number;
+    this.connected_at = other.connected_at;
     if (other.is_set_environment_flags()) {
       Map<String,String> __this__environment_flags = new HashMap<String,String>();
       for (Map.Entry<String, String> other_element : other.environment_flags.entrySet()) {
@@ -182,64 +183,41 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     }
   }
 
-  public HostMetadata deepCopy() {
-    return new HostMetadata(this);
+  public ConnectedServerMetadata deepCopy() {
+    return new ConnectedServerMetadata(this);
   }
 
   @Override
   public void clear() {
-    this.flags = null;
-    this.host_name = null;
+    this.host = null;
     set_port_number_isSet(false);
     this.port_number = 0;
+    set_connected_at_isSet(false);
+    this.connected_at = 0;
     this.environment_flags = null;
   }
 
-  public String get_flags() {
-    return this.flags;
+  public String get_host() {
+    return this.host;
   }
 
-  public HostMetadata set_flags(String flags) {
-    this.flags = flags;
+  public ConnectedServerMetadata set_host(String host) {
+    this.host = host;
     return this;
   }
 
-  public void unset_flags() {
-    this.flags = null;
+  public void unset_host() {
+    this.host = null;
   }
 
-  /** Returns true if field flags is set (has been assigned a value) and false otherwise */
-  public boolean is_set_flags() {
-    return this.flags != null;
+  /** Returns true if field host is set (has been assigned a value) and false otherwise */
+  public boolean is_set_host() {
+    return this.host != null;
   }
 
-  public void set_flags_isSet(boolean value) {
+  public void set_host_isSet(boolean value) {
     if (!value) {
-      this.flags = null;
-    }
-  }
-
-  public String get_host_name() {
-    return this.host_name;
-  }
-
-  public HostMetadata set_host_name(String host_name) {
-    this.host_name = host_name;
-    return this;
-  }
-
-  public void unset_host_name() {
-    this.host_name = null;
-  }
-
-  /** Returns true if field host_name is set (has been assigned a value) and false otherwise */
-  public boolean is_set_host_name() {
-    return this.host_name != null;
-  }
-
-  public void set_host_name_isSet(boolean value) {
-    if (!value) {
-      this.host_name = null;
+      this.host = null;
     }
   }
 
@@ -247,7 +225,7 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     return this.port_number;
   }
 
-  public HostMetadata set_port_number(int port_number) {
+  public ConnectedServerMetadata set_port_number(int port_number) {
     this.port_number = port_number;
     set_port_number_isSet(true);
     return this;
@@ -266,6 +244,29 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __PORT_NUMBER_ISSET_ID, value);
   }
 
+  public long get_connected_at() {
+    return this.connected_at;
+  }
+
+  public ConnectedServerMetadata set_connected_at(long connected_at) {
+    this.connected_at = connected_at;
+    set_connected_at_isSet(true);
+    return this;
+  }
+
+  public void unset_connected_at() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CONNECTED_AT_ISSET_ID);
+  }
+
+  /** Returns true if field connected_at is set (has been assigned a value) and false otherwise */
+  public boolean is_set_connected_at() {
+    return EncodingUtils.testBit(__isset_bitfield, __CONNECTED_AT_ISSET_ID);
+  }
+
+  public void set_connected_at_isSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CONNECTED_AT_ISSET_ID, value);
+  }
+
   public int get_environment_flags_size() {
     return (this.environment_flags == null) ? 0 : this.environment_flags.size();
   }
@@ -281,7 +282,7 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     return this.environment_flags;
   }
 
-  public HostMetadata set_environment_flags(Map<String,String> environment_flags) {
+  public ConnectedServerMetadata set_environment_flags(Map<String,String> environment_flags) {
     this.environment_flags = environment_flags;
     return this;
   }
@@ -303,19 +304,11 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case FLAGS:
+    case HOST:
       if (value == null) {
-        unset_flags();
+        unset_host();
       } else {
-        set_flags((String)value);
-      }
-      break;
-
-    case HOST_NAME:
-      if (value == null) {
-        unset_host_name();
-      } else {
-        set_host_name((String)value);
+        set_host((String)value);
       }
       break;
 
@@ -324,6 +317,14 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
         unset_port_number();
       } else {
         set_port_number((Integer)value);
+      }
+      break;
+
+    case CONNECTED_AT:
+      if (value == null) {
+        unset_connected_at();
+      } else {
+        set_connected_at((Long)value);
       }
       break;
 
@@ -340,14 +341,14 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case FLAGS:
-      return get_flags();
-
-    case HOST_NAME:
-      return get_host_name();
+    case HOST:
+      return get_host();
 
     case PORT_NUMBER:
       return Integer.valueOf(get_port_number());
+
+    case CONNECTED_AT:
+      return Long.valueOf(get_connected_at());
 
     case ENVIRONMENT_FLAGS:
       return get_environment_flags();
@@ -363,12 +364,12 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     }
 
     switch (field) {
-    case FLAGS:
-      return is_set_flags();
-    case HOST_NAME:
-      return is_set_host_name();
+    case HOST:
+      return is_set_host();
     case PORT_NUMBER:
       return is_set_port_number();
+    case CONNECTED_AT:
+      return is_set_connected_at();
     case ENVIRONMENT_FLAGS:
       return is_set_environment_flags();
     }
@@ -379,30 +380,21 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof HostMetadata)
-      return this.equals((HostMetadata)that);
+    if (that instanceof ConnectedServerMetadata)
+      return this.equals((ConnectedServerMetadata)that);
     return false;
   }
 
-  public boolean equals(HostMetadata that) {
+  public boolean equals(ConnectedServerMetadata that) {
     if (that == null)
       return false;
 
-    boolean this_present_flags = true && this.is_set_flags();
-    boolean that_present_flags = true && that.is_set_flags();
-    if (this_present_flags || that_present_flags) {
-      if (!(this_present_flags && that_present_flags))
+    boolean this_present_host = true && this.is_set_host();
+    boolean that_present_host = true && that.is_set_host();
+    if (this_present_host || that_present_host) {
+      if (!(this_present_host && that_present_host))
         return false;
-      if (!this.flags.equals(that.flags))
-        return false;
-    }
-
-    boolean this_present_host_name = true && this.is_set_host_name();
-    boolean that_present_host_name = true && that.is_set_host_name();
-    if (this_present_host_name || that_present_host_name) {
-      if (!(this_present_host_name && that_present_host_name))
-        return false;
-      if (!this.host_name.equals(that.host_name))
+      if (!this.host.equals(that.host))
         return false;
     }
 
@@ -412,6 +404,15 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       if (!(this_present_port_number && that_present_port_number))
         return false;
       if (this.port_number != that.port_number)
+        return false;
+    }
+
+    boolean this_present_connected_at = true;
+    boolean that_present_connected_at = true;
+    if (this_present_connected_at || that_present_connected_at) {
+      if (!(this_present_connected_at && that_present_connected_at))
+        return false;
+      if (this.connected_at != that.connected_at)
         return false;
     }
 
@@ -431,20 +432,20 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
 
-    boolean present_flags = true && (is_set_flags());
-    builder.append(present_flags);
-    if (present_flags)
-      builder.append(flags);
-
-    boolean present_host_name = true && (is_set_host_name());
-    builder.append(present_host_name);
-    if (present_host_name)
-      builder.append(host_name);
+    boolean present_host = true && (is_set_host());
+    builder.append(present_host);
+    if (present_host)
+      builder.append(host);
 
     boolean present_port_number = true;
     builder.append(present_port_number);
     if (present_port_number)
       builder.append(port_number);
+
+    boolean present_connected_at = true;
+    builder.append(present_connected_at);
+    if (present_connected_at)
+      builder.append(connected_at);
 
     boolean present_environment_flags = true && (is_set_environment_flags());
     builder.append(present_environment_flags);
@@ -454,30 +455,20 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     return builder.toHashCode();
   }
 
-  public int compareTo(HostMetadata other) {
+  public int compareTo(ConnectedServerMetadata other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
 
     int lastComparison = 0;
-    HostMetadata typedOther = (HostMetadata)other;
+    ConnectedServerMetadata typedOther = (ConnectedServerMetadata)other;
 
-    lastComparison = Boolean.valueOf(is_set_flags()).compareTo(typedOther.is_set_flags());
+    lastComparison = Boolean.valueOf(is_set_host()).compareTo(typedOther.is_set_host());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (is_set_flags()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.flags, typedOther.flags);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(is_set_host_name()).compareTo(typedOther.is_set_host_name());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (is_set_host_name()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.host_name, typedOther.host_name);
+    if (is_set_host()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.host, typedOther.host);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -488,6 +479,16 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     }
     if (is_set_port_number()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.port_number, typedOther.port_number);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(is_set_connected_at()).compareTo(typedOther.is_set_connected_at());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (is_set_connected_at()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.connected_at, typedOther.connected_at);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -519,51 +520,46 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("HostMetadata(");
+    StringBuilder sb = new StringBuilder("ConnectedServerMetadata(");
     boolean first = true;
 
-    sb.append("flags:");
-    if (this.flags == null) {
+    sb.append("host:");
+    if (this.host == null) {
       sb.append("null");
     } else {
-      sb.append(this.flags);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("host_name:");
-    if (this.host_name == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.host_name);
+      sb.append(this.host);
     }
     first = false;
     if (!first) sb.append(", ");
     sb.append("port_number:");
     sb.append(this.port_number);
     first = false;
-    if (is_set_environment_flags()) {
-      if (!first) sb.append(", ");
-      sb.append("environment_flags:");
-      if (this.environment_flags == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.environment_flags);
-      }
-      first = false;
+    if (!first) sb.append(", ");
+    sb.append("connected_at:");
+    sb.append(this.connected_at);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("environment_flags:");
+    if (this.environment_flags == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.environment_flags);
     }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    if (flags == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'flags' was not present! Struct: " + toString());
-    }
-    if (host_name == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'host_name' was not present! Struct: " + toString());
+    if (host == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'host' was not present! Struct: " + toString());
     }
     // alas, we cannot check 'port_number' because it's a primitive and you chose the non-beans generator.
+    // alas, we cannot check 'connected_at' because it's a primitive and you chose the non-beans generator.
+    if (environment_flags == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'environment_flags' was not present! Struct: " + toString());
+    }
     // check for sub-struct validity
   }
 
@@ -585,15 +581,15 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     }
   }
 
-  private static class HostMetadataStandardSchemeFactory implements SchemeFactory {
-    public HostMetadataStandardScheme getScheme() {
-      return new HostMetadataStandardScheme();
+  private static class ConnectedServerMetadataStandardSchemeFactory implements SchemeFactory {
+    public ConnectedServerMetadataStandardScheme getScheme() {
+      return new ConnectedServerMetadataStandardScheme();
     }
   }
 
-  private static class HostMetadataStandardScheme extends StandardScheme<HostMetadata> {
+  private static class ConnectedServerMetadataStandardScheme extends StandardScheme<ConnectedServerMetadata> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, HostMetadata struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, ConnectedServerMetadata struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
@@ -603,23 +599,15 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
           break;
         }
         switch (schemeField.id) {
-          case 1: // FLAGS
+          case 1: // HOST
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.flags = iprot.readString();
-              struct.set_flags_isSet(true);
+              struct.host = iprot.readString();
+              struct.set_host_isSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // HOST_NAME
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.host_name = iprot.readString();
-              struct.set_host_name_isSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 3: // PORT_NUMBER
+          case 2: // PORT_NUMBER
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.port_number = iprot.readI32();
               struct.set_port_number_isSet(true);
@@ -627,18 +615,26 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 3: // CONNECTED_AT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.connected_at = iprot.readI64();
+              struct.set_connected_at_isSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           case 4: // ENVIRONMENT_FLAGS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map48 = iprot.readMapBegin();
-                struct.environment_flags = new HashMap<String,String>(2*_map48.size);
-                for (int _i49 = 0; _i49 < _map48.size; ++_i49)
+                org.apache.thrift.protocol.TMap _map68 = iprot.readMapBegin();
+                struct.environment_flags = new HashMap<String,String>(2*_map68.size);
+                for (int _i69 = 0; _i69 < _map68.size; ++_i69)
                 {
-                  String _key50; // required
-                  String _val51; // optional
-                  _key50 = iprot.readString();
-                  _val51 = iprot.readString();
-                  struct.environment_flags.put(_key50, _val51);
+                  String _key70; // required
+                  String _val71; // optional
+                  _key70 = iprot.readString();
+                  _val71 = iprot.readString();
+                  struct.environment_flags.put(_key70, _val71);
                 }
                 iprot.readMapEnd();
               }
@@ -658,40 +654,39 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       if (!struct.is_set_port_number()) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'port_number' was not found in serialized data! Struct: " + toString());
       }
+      if (!struct.is_set_connected_at()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'connected_at' was not found in serialized data! Struct: " + toString());
+      }
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, HostMetadata struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, ConnectedServerMetadata struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.flags != null) {
-        oprot.writeFieldBegin(FLAGS_FIELD_DESC);
-        oprot.writeString(struct.flags);
-        oprot.writeFieldEnd();
-      }
-      if (struct.host_name != null) {
-        oprot.writeFieldBegin(HOST_NAME_FIELD_DESC);
-        oprot.writeString(struct.host_name);
+      if (struct.host != null) {
+        oprot.writeFieldBegin(HOST_FIELD_DESC);
+        oprot.writeString(struct.host);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldBegin(PORT_NUMBER_FIELD_DESC);
       oprot.writeI32(struct.port_number);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(CONNECTED_AT_FIELD_DESC);
+      oprot.writeI64(struct.connected_at);
+      oprot.writeFieldEnd();
       if (struct.environment_flags != null) {
-        if (struct.is_set_environment_flags()) {
-          oprot.writeFieldBegin(ENVIRONMENT_FLAGS_FIELD_DESC);
+        oprot.writeFieldBegin(ENVIRONMENT_FLAGS_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.environment_flags.size()));
+          for (Map.Entry<String, String> _iter72 : struct.environment_flags.entrySet())
           {
-            oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.environment_flags.size()));
-            for (Map.Entry<String, String> _iter52 : struct.environment_flags.entrySet())
-            {
-              oprot.writeString(_iter52.getKey());
-              oprot.writeString(_iter52.getValue());
-            }
-            oprot.writeMapEnd();
+            oprot.writeString(_iter72.getKey());
+            oprot.writeString(_iter72.getValue());
           }
-          oprot.writeFieldEnd();
+          oprot.writeMapEnd();
         }
+        oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -699,62 +694,52 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
 
   }
 
-  private static class HostMetadataTupleSchemeFactory implements SchemeFactory {
-    public HostMetadataTupleScheme getScheme() {
-      return new HostMetadataTupleScheme();
+  private static class ConnectedServerMetadataTupleSchemeFactory implements SchemeFactory {
+    public ConnectedServerMetadataTupleScheme getScheme() {
+      return new ConnectedServerMetadataTupleScheme();
     }
   }
 
-  private static class HostMetadataTupleScheme extends TupleScheme<HostMetadata> {
+  private static class ConnectedServerMetadataTupleScheme extends TupleScheme<ConnectedServerMetadata> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, HostMetadata struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, ConnectedServerMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeString(struct.flags);
-      oprot.writeString(struct.host_name);
+      oprot.writeString(struct.host);
       oprot.writeI32(struct.port_number);
-      BitSet optionals = new BitSet();
-      if (struct.is_set_environment_flags()) {
-        optionals.set(0);
-      }
-      oprot.writeBitSet(optionals, 1);
-      if (struct.is_set_environment_flags()) {
+      oprot.writeI64(struct.connected_at);
+      {
+        oprot.writeI32(struct.environment_flags.size());
+        for (Map.Entry<String, String> _iter73 : struct.environment_flags.entrySet())
         {
-          oprot.writeI32(struct.environment_flags.size());
-          for (Map.Entry<String, String> _iter53 : struct.environment_flags.entrySet())
-          {
-            oprot.writeString(_iter53.getKey());
-            oprot.writeString(_iter53.getValue());
-          }
+          oprot.writeString(_iter73.getKey());
+          oprot.writeString(_iter73.getValue());
         }
       }
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, HostMetadata struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, ConnectedServerMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.flags = iprot.readString();
-      struct.set_flags_isSet(true);
-      struct.host_name = iprot.readString();
-      struct.set_host_name_isSet(true);
+      struct.host = iprot.readString();
+      struct.set_host_isSet(true);
       struct.port_number = iprot.readI32();
       struct.set_port_number_isSet(true);
-      BitSet incoming = iprot.readBitSet(1);
-      if (incoming.get(0)) {
+      struct.connected_at = iprot.readI64();
+      struct.set_connected_at_isSet(true);
+      {
+        org.apache.thrift.protocol.TMap _map74 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+        struct.environment_flags = new HashMap<String,String>(2*_map74.size);
+        for (int _i75 = 0; _i75 < _map74.size; ++_i75)
         {
-          org.apache.thrift.protocol.TMap _map54 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.environment_flags = new HashMap<String,String>(2*_map54.size);
-          for (int _i55 = 0; _i55 < _map54.size; ++_i55)
-          {
-            String _key56; // required
-            String _val57; // optional
-            _key56 = iprot.readString();
-            _val57 = iprot.readString();
-            struct.environment_flags.put(_key56, _val57);
-          }
+          String _key76; // required
+          String _val77; // optional
+          _key76 = iprot.readString();
+          _val77 = iprot.readString();
+          struct.environment_flags.put(_key76, _val77);
         }
-        struct.set_environment_flags_isSet(true);
       }
+      struct.set_environment_flags_isSet(true);
     }
   }
 
