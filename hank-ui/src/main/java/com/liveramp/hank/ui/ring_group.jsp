@@ -24,6 +24,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
 List<ClientMetadata> clients = ringGroup.getClients();
 
+List<ConnectedServerMetadata> servers = ringGroup.getLiveServers();
+
 // Sort clients by host name
 Collections.sort(clients, new ClientMetadataComparator());
 
@@ -513,6 +515,29 @@ Collections.sort(clients, new ClientMetadataComparator());
 
       <% }} %>
     </form>
+
+    <h2 class='HOSTS-TITLE'><%= servers.size() %>
+    live servers</h2>
+
+    <table class='table-blue SERVERS'>
+      <tr>
+        <th>Host</th>
+        <th>Uptime</th>
+        <th>Environment Flags</th>
+      </tr>
+      <% for (ConnectedServerMetadata server : servers) { %>
+      <tr>
+        <td><%= server.get_host() %></td>
+        <td>
+          <%= FormatUtils.formatSecondsDuration((System.currentTimeMillis() - server.get_connected_at()) / 1000) %>
+        </td>
+        <td>
+          <%= DateTimeFormat.forStyle("SS").print(server.get_connected_at()) %>
+        </td>
+        <td><%= server.get_environment_flags() %></td>
+      </tr>
+      <% } %>
+    </table>
 
     <h2 class='CLIENTS-TITLE'><%= clients.size() %>
     clients</h2>

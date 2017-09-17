@@ -1,17 +1,17 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.liveramp.hank.coordinator.zk;
 
@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
@@ -34,6 +36,8 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroupDataLocationChangeListener;
 import com.liveramp.hank.generated.ClientMetadata;
+import com.liveramp.hank.generated.ConnectedServerMetadata;
+import com.liveramp.hank.generated.HostMetadata;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.zookeeper.WatchedEnum;
 import com.liveramp.hank.zookeeper.WatchedMap;
@@ -50,6 +54,11 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   private static final String CLIENTS_PATH = "c";
   private static final String CLIENT_NODE = "c";
   private static final ClientMetadata emptyClientMetadata = new ClientMetadata();
+  private static final ConnectedServerMetadata emptyConnectedServerMetadata = new ConnectedServerMetadata()
+      .set_environment_flags(Maps.newHashMap());
+
+  private static final String SERVER_PATH = "s";
+  private static final String SERVER_NODE = "s";
 
   private DomainGroup domainGroup;
   private final WatchedMap<ZkRing> rings;
@@ -58,6 +67,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
   private WatchedMap<WatchedThriftNode<ClientMetadata>> clients;
+  private WatchedMap<WatchedThriftNode<ConnectedServerMetadata>> servers;
 
   private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
   private final List<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new ArrayList<RingGroupDataLocationChangeListener>();
@@ -223,7 +233,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   @Override
   public List<ClientMetadata> getClients() {
     if (clients == null) {
-      clients = new WatchedMap<WatchedThriftNode<ClientMetadata>>(zk, ZkPath.append(ringGroupPath, CLIENTS_PATH), new ElementLoader<WatchedThriftNode<ClientMetadata>>() {
+      clients = new WatchedMap<>(zk, ZkPath.append(ringGroupPath, CLIENTS_PATH), new ElementLoader<WatchedThriftNode<ClientMetadata>>() {
         @Override
         public WatchedThriftNode<ClientMetadata> load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
           return new WatchedThriftNode<ClientMetadata>(zk, ZkPath.append(basePath, relPath), true, null, null, emptyClientMetadata);
@@ -233,6 +243,25 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
     List<ClientMetadata> result = new ArrayList<ClientMetadata>();
     for (WatchedThriftNode<ClientMetadata> client : clients.values()) {
       result.add(client.get());
+    }
+    return result;
+  }
+
+  @Override
+  public List<ConnectedServerMetadata> getLiveServers(){
+
+    if (servers == null) {
+      servers = new WatchedMap<WatchedThriftNode<ConnectedServerMetadata>>(zk, ZkPath.append(ringGroupPath, SERVER_NODE), new ElementLoader<WatchedThriftNode<ConnectedServerMetadata>>() {
+        @Override
+        public WatchedThriftNode<ConnectedServerMetadata> load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
+          return new WatchedThriftNode<>(zk, ZkPath.append(basePath, relPath), true, null, null, emptyConnectedServerMetadata);
+        }
+      });
+    }
+    ArrayList<ConnectedServerMetadata> result = Lists.newArrayList();
+
+    for (WatchedThriftNode<ConnectedServerMetadata> host : servers.values()) {
+      result.add(host.get());
     }
     return result;
   }
@@ -249,6 +278,23 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
     } catch (KeeperException e) {
       throw new IOException(e);
     } catch (InterruptedException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void registerServer(ConnectedServerMetadata metadata) throws IOException {
+    try {
+      new WatchedThriftNode<ConnectedServerMetadata>(zk,
+          ZkPath.append(ringGroupPath, SERVER_PATH),
+          false,
+          CreateMode.EPHEMERAL_SEQUENTIAL,
+          metadata,
+          emptyConnectedServerMetadata
+      );
+    }catch(KeeperException e){
+      throw new IOException(e);
+    }catch(InterruptedException e){
       throw new IOException(e);
     }
   }

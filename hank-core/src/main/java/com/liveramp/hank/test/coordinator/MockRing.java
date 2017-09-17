@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.NotImplementedException;
+
 public class MockRing extends AbstractRing {
 
   private final Set<Host> hosts;
@@ -44,12 +46,14 @@ public class MockRing extends AbstractRing {
   @Override
   public Host addHost(PartitionServerAddress address,
                       List<String> flags) throws IOException {
-    return null;
+    MockHost host = new MockHost(address);
+    hosts.add(host);
+    return host;
   }
 
   @Override
   public boolean removeHost(PartitionServerAddress address) {
-    return false;
+    return hosts.remove(getHostByAddress(address));
   }
 
   @Override
@@ -62,13 +66,4 @@ public class MockRing extends AbstractRing {
     return null;
   }
 
-  public boolean isAllCommanded(HostCommand command) {
-    for (Host host : getHosts()) {
-      MockHost mockHost = (MockHost) host;
-      if (mockHost.getAndClearLastEnqueuedCommand() != command) {
-        return false;
-      }
-    }
-    return true;
-  }
 }

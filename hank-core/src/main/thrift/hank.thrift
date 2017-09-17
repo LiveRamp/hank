@@ -106,6 +106,13 @@ struct ClientMetadata {
   4: required string version;
 }
 
+struct ConnectedServerMetadata {
+  1: required string host;
+  2: required i32 port_number;
+  3: required i64 connected_at;
+  4: required map<string, string> environment_flags;
+}
+
 struct LatencySampleSummary {
 
   1: required double minimum;

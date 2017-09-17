@@ -17,11 +17,14 @@
 package com.liveramp.hank.coordinator;
 
 import com.liveramp.hank.generated.ClientMetadata;
+import com.liveramp.hank.generated.ConnectedServerMetadata;
+import com.liveramp.hank.generated.HostMetadata;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -63,6 +66,10 @@ public interface RingGroup extends Comparable<RingGroup> {
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
 
   public void registerClient(ClientMetadata client) throws IOException;
+
+  public void registerServer(ConnectedServerMetadata meta) throws IOException;
+
+  public List<ConnectedServerMetadata> getLiveServers() throws IOException;
 
   public List<ClientMetadata> getClients();
 }
