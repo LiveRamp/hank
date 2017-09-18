@@ -42,9 +42,12 @@ import org.slf4j.LoggerFactory;
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
+import com.liveramp.hank.config.InvalidConfigurationException;
+import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.SmartClientDaemonConfigurator;
 import com.liveramp.hank.config.yaml.YamlClientConfigurator;
+import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -60,6 +63,7 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroups;
 import com.liveramp.hank.coordinator.Rings;
+import com.liveramp.hank.fixtures.ConfigFixtures;
 import com.liveramp.hank.fixtures.PartitionServerRunnable;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
@@ -568,18 +572,29 @@ public class IntegrationTest extends ZkTestCase {
 
   private void startDaemons(PartitionServerAddress a) throws Exception {
     LOG.debug("Starting partition servers for " + a);
-    PartitionServerRunnable pr = new PartitionServerRunnable(localTmpDir,
-        a,
-        getZkClientPort(),
-        "rg1",
-        domainsRoot,
-        domainGroupsRoot,
-        ringGroupsRoot
+
+    PartitionServerRunnable pr = new PartitionServerRunnable(
+        createConfigurator(a)
     );
     partitionServerRunnables.put(a, pr);
     Thread pt = new Thread(pr, "partition server thread for " + a);
     partitionServerThreads.put(a, pt);
     pt.start();
+  }
+
+  private PartitionServerConfigurator createConfigurator(PartitionServerAddress a) throws IOException, InvalidConfigurationException {
+
+    String hostDotPort = a.getHostName() + "." + a.getPortNumber();
+    String dataDir = localTmpDir + "/" + hostDotPort;
+    String configPath = localTmpDir + "/" + hostDotPort + ".partition_server.yml";
+
+    String configYaml = ConfigFixtures.partitionServerConfig(dataDir, "rg1", getZkClientPort(), a, domainsRoot, domainGroupsRoot, ringGroupsRoot);
+
+    PrintWriter pw = new PrintWriter(new FileWriter(configPath));
+    pw.write(configYaml);
+    pw.close();
+
+    return new YamlPartitionServerConfigurator(configPath);
   }
 
   private void stopDaemons(PartitionServerAddress a) throws Exception {
