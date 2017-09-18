@@ -287,7 +287,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   public void registerServer(ConnectedServerMetadata metadata) throws IOException {
     try {
       new WatchedThriftNode<ConnectedServerMetadata>(zk,
-          ZkPath.append(ringGroupPath, SERVERS_PATH),
+          ZkPath.append(ringGroupPath, SERVERS_PATH, SERVER_NODE),
           false,
           CreateMode.EPHEMERAL_SEQUENTIAL,
           metadata,
