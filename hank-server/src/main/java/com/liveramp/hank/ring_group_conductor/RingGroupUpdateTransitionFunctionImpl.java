@@ -24,10 +24,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +41,7 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.partition_assigner.PartitionAssigner;
 
-public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
+public class RingGroupUpdateTransitionFunctionImpl implements RingGroupTransitionFunction {
 
   private static Logger LOG = LoggerFactory.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
 

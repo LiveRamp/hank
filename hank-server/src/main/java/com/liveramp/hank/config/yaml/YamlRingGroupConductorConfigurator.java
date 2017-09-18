@@ -32,7 +32,7 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
   public static final String HOST_AVAILABILITY_BUCKET_FLAG_KEY = "host_availability_bucket";
   public static final String MIN_SERVING_REPLICAS = "min_serving_replicas";
   public static final String AVAILABILITY_BUCKET_MIN_SERVING_REPLICAS = "availability_bucket_min_serving_replicas";
-
+  public static final String TARGET_HOSTS_PER_RING_KEY = "target_hosts_per_ring";
 
   public static final Integer DEFAULT_MIN_SERVING_REPLICAS = 2;
 
@@ -96,6 +96,13 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
   @Override
   public RingGroupConductorMode getInitialMode() {
     return RingGroupConductorMode.valueOf(getString(RING_GROUP_CONDUCTOR_SECTION_KEY, INITIAL_MODE_KEY));
+  }
+
+  @Override
+  //  this is optional because it's kinda dangerous.  if there isn't a target explicitly set in the config, refuse to
+  //  balance so we don't mess up manually configured clusters.
+  public Integer getTargetHostsPerRing() {
+    return getOptionalInteger(RING_GROUP_CONDUCTOR_SECTION_KEY, TARGET_HOSTS_PER_RING_KEY);
   }
 
   @Override

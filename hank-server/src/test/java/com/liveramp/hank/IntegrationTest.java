@@ -1,17 +1,17 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.liveramp.hank;
 
@@ -42,11 +42,9 @@ import org.slf4j.LoggerFactory;
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
-import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.SmartClientDaemonConfigurator;
 import com.liveramp.hank.config.yaml.YamlClientConfigurator;
-import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -62,12 +60,12 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroups;
 import com.liveramp.hank.coordinator.Rings;
+import com.liveramp.hank.fixtures.PartitionServerRunnable;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.generated.SmartClient;
 import com.liveramp.hank.hasher.Murmur64Hasher;
-import com.liveramp.hank.partition_server.PartitionServer;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductor;
@@ -81,6 +79,7 @@ import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 
+import static com.liveramp.hank.fixtures.ConfigFixtures.coordinatorConfig;
 import static org.junit.Assert.assertEquals;
 
 public class IntegrationTest extends ZkTestCase {
@@ -98,7 +97,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("  " + YamlSmartClientDaemonConfigurator.SERVICE_PORT_KEY + ": 50004");
       pw.println("  " + YamlSmartClientDaemonConfigurator.NUM_WORKER_THREADS + ": 1");
       pw.println("  " + YamlSmartClientDaemonConfigurator.RING_GROUP_NAME_KEY + ": rg1");
-      coordinatorConfig(pw);
+      pw.println(coordinatorConfig(getZkClientPort(), domainsRoot, domainGroupsRoot, ringGroupsRoot));
       pw.close();
       configurator = new YamlSmartClientDaemonConfigurator(configPath);
     }
@@ -126,7 +125,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("  " + YamlRingGroupConductorConfigurator.RING_GROUP_NAME_KEY + ": rg1");
       pw.println("  " + YamlRingGroupConductorConfigurator.INITIAL_MODE_KEY + ": ACTIVE");
       pw.println("  " + YamlRingGroupConductorConfigurator.MIN_SERVING_REPLICAS + ": 1"); //  only have 2x2 servers
-      coordinatorConfig(pw);
+      pw.println(coordinatorConfig(getZkClientPort(), domainsRoot, domainGroupsRoot, ringGroupsRoot));
       pw.close();
       configurator = new YamlRingGroupConductorConfigurator(configPath);
     }
@@ -145,55 +144,6 @@ public class IntegrationTest extends ZkTestCase {
     }
   }
 
-  private final class PartitionServerRunnable implements Runnable {
-    private final String configPath;
-    @SuppressWarnings("unused")
-    private Throwable throwable;
-    private PartitionServer server;
-    private final PartitionServerConfigurator configurator;
-
-    public PartitionServerRunnable(PartitionServerAddress addy) throws Exception {
-      String hostDotPort = addy.getHostName()
-          + "." + addy.getPortNumber();
-      this.configPath = localTmpDir + "/" + hostDotPort + ".partition_server.yml";
-
-      PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println(YamlPartitionServerConfigurator.PARTITION_SERVER_SECTION_KEY + ":");
-      pw.println("  " + YamlPartitionServerConfigurator.SERVICE_PORT_KEY + ": " + addy.getPortNumber());
-      pw.println("  " + YamlPartitionServerConfigurator.RING_GROUP_NAME_KEY + ": rg1");
-      pw.println("  " + YamlPartitionServerConfigurator.LOCAL_DATA_DIRS_KEY + ":");
-      pw.println("    - " + localTmpDir + "/" + hostDotPort);
-      pw.println("  " + YamlPartitionServerConfigurator.PARTITION_SERVER_DAEMON_SECTION_KEY + ":");
-      pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_QUERIES_KEY + ": 1");
-      pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_GET_BULK_TASKS + ": 1");
-      pw.println("    " + YamlPartitionServerConfigurator.GET_BULK_TASK_SIZE + ": 2");
-      pw.println("    " + YamlPartitionServerConfigurator.GET_TIMER_AGGREGATOR_WINDOW_KEY + ": 1000");
-      pw.println("    " + YamlPartitionServerConfigurator.CACHE_NUM_BYTES_CAPACITY + ": 1000000");
-      pw.println("    " + YamlPartitionServerConfigurator.CACHE_NUM_ITEMS_CAPACITY + ": 1000000");
-      pw.println("    " + YamlPartitionServerConfigurator.BUFFER_REUSE_MAX_SIZE + ": 0");
-      pw.println("  " + YamlPartitionServerConfigurator.UPDATE_DAEMON_SECTION_KEY + ":");
-      pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_UPDATES_KEY + ": 1");
-      pw.println("    " + YamlPartitionServerConfigurator.MAX_CONCURRENT_UPDATES_PER_DATA_DIRECTORY_KEY + ": 1");
-      coordinatorConfig(pw);
-      pw.close();
-      configurator = new YamlPartitionServerConfigurator(configPath);
-    }
-
-    public void run() {
-      try {
-        server = new PartitionServer(configurator, "localhost");
-        server.run();
-      } catch (Throwable t) {
-        LOG.error("crap, some exception...", t);
-        throwable = t;
-      }
-    }
-
-    public void pleaseStop() throws Exception {
-      server.stopSynchronized();
-    }
-  }
-
   private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
   private final String DOMAIN_0_DATAFILES = localTmpDir + "/domain0_datafiles";
   private final String DOMAIN_1_DATAFILES = localTmpDir + "/domain1_datafiles";
@@ -201,6 +151,7 @@ public class IntegrationTest extends ZkTestCase {
   private final String domainsRoot = ZkPath.append(getRoot(), "domains");
   private final String domainGroupsRoot = ZkPath.append(getRoot(), "domain_groups");
   private final String ringGroupsRoot = ZkPath.append(getRoot(), "ring_groups");
+
   private final String clientConfigYml = localTmpDir + "/config.yml";
   private final Map<PartitionServerAddress, Thread> partitionServerThreads = new HashMap<PartitionServerAddress, Thread>();
   private final Map<PartitionServerAddress, PartitionServerRunnable> partitionServerRunnables = new HashMap<PartitionServerAddress, PartitionServerRunnable>();
@@ -617,7 +568,14 @@ public class IntegrationTest extends ZkTestCase {
 
   private void startDaemons(PartitionServerAddress a) throws Exception {
     LOG.debug("Starting partition servers for " + a);
-    PartitionServerRunnable pr = new PartitionServerRunnable(a);
+    PartitionServerRunnable pr = new PartitionServerRunnable(localTmpDir,
+        a,
+        getZkClientPort(),
+        "rg1",
+        domainsRoot,
+        domainGroupsRoot,
+        ringGroupsRoot
+    );
     partitionServerRunnables.put(a, pr);
     Thread pt = new Thread(pr, "partition server thread for " + a);
     partitionServerThreads.put(a, pt);
@@ -679,15 +637,4 @@ public class IntegrationTest extends ZkTestCase {
     return ByteBuffer.wrap(bytes);
   }
 
-  private void coordinatorConfig(PrintWriter pw) {
-    pw.println("coordinator:");
-    pw.println("  factory: com.liveramp.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
-    pw.println("  options:");
-    pw.println("    connect_string: localhost:" + getZkClientPort());
-    pw.println("    session_timeout: 1000000");
-    pw.println("    domains_root: " + domainsRoot);
-    pw.println("    domain_groups_root: " + domainGroupsRoot);
-    pw.println("    ring_groups_root: " + ringGroupsRoot);
-    pw.println("    max_connection_attempts: 5");
-  }
 }

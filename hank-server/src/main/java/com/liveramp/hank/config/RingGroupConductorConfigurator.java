@@ -34,4 +34,6 @@ public interface RingGroupConductorConfigurator extends CoordinatorConfigurator 
 
   public RingGroupConductorMode getInitialMode();
 
+  public Integer getTargetHostsPerRing();
+
 }
