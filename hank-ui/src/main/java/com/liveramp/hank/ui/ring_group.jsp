@@ -523,6 +523,7 @@ Collections.sort(clients, new ClientMetadataComparator());
       <tr>
         <th>Host</th>
         <th>Uptime</th>
+        <th>Connected</th>
         <th>Environment Flags</th>
       </tr>
       <% for (ConnectedServerMetadata server : servers) { %>
