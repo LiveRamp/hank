@@ -37,7 +37,6 @@ import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroupDataLocationChangeListener;
 import com.liveramp.hank.generated.ClientMetadata;
 import com.liveramp.hank.generated.ConnectedServerMetadata;
-import com.liveramp.hank.generated.HostMetadata;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.zookeeper.WatchedEnum;
 import com.liveramp.hank.zookeeper.WatchedMap;
@@ -57,7 +56,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   private static final ConnectedServerMetadata emptyConnectedServerMetadata = new ConnectedServerMetadata()
       .set_environment_flags(Maps.newHashMap());
 
-  private static final String SERVER_PATH = "s";
+  private static final String SERVERS_PATH = "s";
   private static final String SERVER_NODE = "s";
 
   private DomainGroup domainGroup;
@@ -75,7 +74,6 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     zk.create(path, domainGroup.getName().getBytes());
-    zk.create(ZkPath.append(path, CLIENTS_PATH), null);
     zk.create(ZkPath.append(path, DotComplete.NODE_NAME), null);
     return new ZkRingGroup(zk, path, domainGroup, coordinator);
   }
@@ -91,6 +89,9 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
     if (coordinator == null) {
       throw new IllegalArgumentException("Cannot initialize a ZkRingGroup with a null Coordinator.");
     }
+
+    zk.ensureCreated(ZkPath.append(ringGroupPath, CLIENTS_PATH), null);
+    zk.ensureCreated(ZkPath.append(ringGroupPath, SERVERS_PATH), null);
 
     rings = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
       @Override
@@ -286,7 +287,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   public void registerServer(ConnectedServerMetadata metadata) throws IOException {
     try {
       new WatchedThriftNode<ConnectedServerMetadata>(zk,
-          ZkPath.append(ringGroupPath, SERVER_PATH),
+          ZkPath.append(ringGroupPath, SERVERS_PATH),
           false,
           CreateMode.EPHEMERAL_SEQUENTIAL,
           metadata,
