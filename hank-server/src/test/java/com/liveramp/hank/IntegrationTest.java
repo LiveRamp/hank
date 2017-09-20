@@ -65,6 +65,7 @@ import com.liveramp.hank.coordinator.RingGroups;
 import com.liveramp.hank.coordinator.Rings;
 import com.liveramp.hank.fixtures.ConfigFixtures;
 import com.liveramp.hank.fixtures.PartitionServerRunnable;
+import com.liveramp.hank.fixtures.RingGroupConductorRunnable;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
@@ -73,6 +74,7 @@ import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductor;
+import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.storage.Writer;
@@ -116,37 +118,6 @@ public class IntegrationTest extends ZkTestCase {
     }
   }
 
-  private final class RingGroupConductorRunnable implements Runnable {
-    private RingGroupConductorConfigurator configurator;
-    private RingGroupConductor daemon;
-
-    public RingGroupConductorRunnable() throws Exception {
-      String configPath = localTmpDir + "/ring_group_conductor_config.yml";
-      PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println(YamlRingGroupConductorConfigurator.RING_GROUP_CONDUCTOR_SECTION_KEY + ":");
-      pw.println("  " + YamlRingGroupConductorConfigurator.SLEEP_INTERVAL_KEY + ": 1000");
-      pw.println("  " + YamlRingGroupConductorConfigurator.MIN_RING_FULLY_SERVING_OBSERVATIONS_KEY + ": 5");
-      pw.println("  " + YamlRingGroupConductorConfigurator.RING_GROUP_NAME_KEY + ": rg1");
-      pw.println("  " + YamlRingGroupConductorConfigurator.INITIAL_MODE_KEY + ": ACTIVE");
-      pw.println("  " + YamlRingGroupConductorConfigurator.MIN_SERVING_REPLICAS + ": 1"); //  only have 2x2 servers
-      pw.println(coordinatorConfig(getZkClientPort(), domainsRoot, domainGroupsRoot, ringGroupsRoot));
-      pw.close();
-      configurator = new YamlRingGroupConductorConfigurator(configPath);
-    }
-
-    public void run() {
-      try {
-        daemon = new RingGroupConductor(configurator);
-        daemon.run();
-      } catch (Exception e) {
-        LOG.error("crap, some exception", e);
-      }
-    }
-
-    public void pleaseStop() {
-      daemon.stop();
-    }
-  }
 
   private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
   private final String DOMAIN_0_DATAFILES = localTmpDir + "/domain0_datafiles";
@@ -559,7 +530,17 @@ public class IntegrationTest extends ZkTestCase {
 
   private void startRingGroupConductor() throws Exception {
     LOG.debug("starting Ring Group Conductor");
-    ringGroupConductorRunnable = new RingGroupConductorRunnable();
+    ringGroupConductorRunnable = new RingGroupConductorRunnable(ConfigFixtures.createRGCConfigurator(
+        localTmpDir,
+        getZkClientPort(),
+        "rg1",
+        RingGroupConductorMode.ACTIVE,
+        null,
+        null,
+        domainsRoot,
+        domainGroupsRoot,
+        ringGroupsRoot
+    ));
     ringGroupConductorThread = new Thread(ringGroupConductorRunnable, "Ring Group Conductor thread");
     ringGroupConductorThread.start();
   }

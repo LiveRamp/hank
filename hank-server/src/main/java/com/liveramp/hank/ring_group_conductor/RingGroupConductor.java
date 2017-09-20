@@ -24,6 +24,7 @@ import org.apache.log4j.PropertyConfigurator;
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.DomainGroup;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.partition_assigner.RendezVousPartitionAssigner;
 import com.liveramp.hank.util.CommandLineChecker;
@@ -80,8 +81,26 @@ public class RingGroupConductor {
     try {
       ringGroup = coordinator.getRingGroup(ringGroupName);
 
+      RingGroupConductorMode initialMode = configurator.getInitialMode();
+
+      if (initialMode == RingGroupConductorMode.AUTOCONFIGURE) {
+
+        if (ringGroup == null) {
+          LOG.info("Creating ring group: "+ringGroupName);
+
+          DomainGroup domainGroup = coordinator.getDomainGroup(ringGroupName);
+          if (domainGroup == null) {
+            LOG.info("Creating domain group: "+ringGroupName);
+            domainGroup = coordinator.addDomainGroup(ringGroupName);
+          }
+
+          ringGroup = coordinator.addRingGroup(ringGroupName, domainGroup.getName());
+        }
+
+      }
+
       // attempt to claim the ring group conductor title
-      if (ringGroup.claimRingGroupConductor(configurator.getInitialMode())) {
+      if (ringGroup.claimRingGroupConductor(initialMode)) {
         claimedRingGroupConductor = true;
 
         // loop until we're taken down

@@ -25,6 +25,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.coordinator.AbstractRingGroup;
@@ -48,6 +50,7 @@ import com.liveramp.hank.zookeeper.ZkPath;
 import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
+  private static final Logger LOG = LoggerFactory.getLogger(ZkRingGroup.class);
 
   protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH = "ring_group_conductor_online";
   private static final String CLIENTS_PATH = "c";
@@ -74,6 +77,8 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     zk.create(path, domainGroup.getName().getBytes());
+    zk.create(ZkPath.append(path, CLIENTS_PATH), null);
+    zk.create(ZkPath.append(path, SERVERS_PATH), null);
     zk.create(ZkPath.append(path, DotComplete.NODE_NAME), null);
     return new ZkRingGroup(zk, path, domainGroup, coordinator);
   }
@@ -89,9 +94,6 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
     if (coordinator == null) {
       throw new IllegalArgumentException("Cannot initialize a ZkRingGroup with a null Coordinator.");
     }
-
-    zk.ensureCreated(ZkPath.append(ringGroupPath, CLIENTS_PATH), null);
-    zk.ensureCreated(ZkPath.append(ringGroupPath, SERVERS_PATH), null);
 
     rings = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
       @Override
@@ -252,6 +254,15 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   public List<ConnectedServerMetadata> getLiveServers(){
 
     if (servers == null) {
+
+      //  TODO this is a kinda temporary hack.  ring groups in prod haven't created the servers path so we can't rely
+      //  on it being there.  prolly sweep after migrating.
+      try {
+        zk.ensureCreated(ZkPath.append(ringGroupPath, SERVERS_PATH), null);
+      } catch (Exception e) {
+        LOG.error("Error creating server path!", e);
+      }
+
       servers = new WatchedMap<WatchedThriftNode<ConnectedServerMetadata>>(zk, ZkPath.append(ringGroupPath, SERVER_NODE), new ElementLoader<WatchedThriftNode<ConnectedServerMetadata>>() {
         @Override
         public WatchedThriftNode<ConnectedServerMetadata> load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {

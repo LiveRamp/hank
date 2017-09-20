@@ -9,16 +9,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.log4j.Level;
 import org.junit.Test;
 
-import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.config.yaml.YamlClientConfigurator;
+import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Host;
@@ -28,7 +29,6 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.fixtures.ConfigFixtures;
 import com.liveramp.hank.fixtures.PartitionServerRunnable;
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
@@ -64,13 +64,43 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
         ringGroupsRoot
     );
 
-    coordinator.addDomainGroup("dg1");
-    RingGroup ringGroup = coordinator.addRingGroup("rg1", "dg1");
+    RingGroupConductorConfigurator configurator = ConfigFixtures.createRGCConfigurator(
+        localTmpDir,
+        getZkClientPort(),
+        "group1",
+        RingGroupConductorMode.AUTOCONFIGURE,
+        "BUCKET",
+        2,
+        domainsRoot,
+        domainGroupsRoot,
+        ringGroupsRoot
+    );
+
+
+    RingGroupConductor conductor1 = new RingGroupConductor(configurator);
+
+    Thread thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          conductor1.run();
+        } catch (IOException e) {
+          // ok
+        }
+      }
+    });
+
+    thread.start();
+
+    //  verify that we autocreate the domain group and ring group
+    WaitUntil.orDie(() ->
+        coordinator.getDomainGroup("group1") != null &&
+            coordinator.getRingGroup("group1") != null
+    );
+
+    RingGroup ringGroup = coordinator.getRingGroup("group1");
 
     List<Thread> servers = Lists.newArrayList();
-
-    //  0, 1, 0, 1
-
     for (int i = 0; i < 4; i++) {
       PartitionServerRunnable server = createServer(23456 + i, Integer.toString(i % 2));
       Thread serverThead = new Thread(server);
@@ -78,6 +108,7 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
       servers.add(serverThead);
     }
 
+    //  partition servers should register alive
     WaitUntil.orDie(() -> {
       try {
         return ringGroup.getLiveServers().size() == 4;
@@ -86,41 +117,55 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
       }
     });
 
-    RingGroupAutoconfigureTransitionFunction transition = new RingGroupAutoconfigureTransitionFunction(2, "BUCKET");
-    transition.manageTransitions(ringGroup);
-
-    assertEquals(2, ringGroup.getRings().size());
-    assertEquals(2, ringGroup.getRing(0).getHosts().size());
-
-    Set<Set<Integer>> hostSets = Sets.newHashSet();
+    //  RGC should pick that up and create some rings for them
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return ringGroup.getRings().size() == 2 &&
+              ringGroup.getRing(0).getHosts().size() == 2;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
 
     for (Ring ring : ringGroup.getRings()) {
-
-      Set<Integer> hosts = Sets.newHashSet();
       for (Host host : ring.getHosts()) {
-        hosts.add(host.getAddress().getPortNumber());
         WaitUntil.orDie(new Condition() {
           @Override
           public boolean test() {
             try {
-              return host.getState() == HostState.IDLE;
+              return host.getState() == HostState.SERVING;
             } catch (IOException e) {
               throw new RuntimeException(e);
             }
           }
         });
       }
-      hostSets.add(hosts);
     }
 
-    //  respect bucket
-    Set<Set<Integer>> expected = Sets.newHashSet(
-        Sets.newHashSet(23456, 23458),
-        Sets.newHashSet(23457, 23459)
-    );
+    Multimap<Integer, Integer> hostsByRing = HashMultimap.create();
 
-    assertEquals(expected, hostSets);
+    hostsByRing.put(0, 23456);
+    hostsByRing.put(0, 23458);
+    hostsByRing.put(1, 23457);
+    hostsByRing.put(1, 23459);
 
+    assertEquals(hostsByRing, getHostRings(ringGroup));
+
+    conductor1.stop();
+  }
+
+  private Multimap<Integer, Integer> getHostRings(RingGroup ringGroup) {
+    Multimap<Integer, Integer> hostsByRing = HashMultimap.create();
+
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+        hostsByRing.put(ring.getRingNumber(), host.getAddress().getPortNumber());
+      }
+    }
+    return hostsByRing;
   }
 
   private PartitionServerConfigurator getConfigurator(int num, String configYaml, Map<String, String> environmentFlags) throws IOException, InvalidConfigurationException {
@@ -141,11 +186,10 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
 
   public PartitionServerRunnable createServer(int port, String bucket) throws Exception {
 
-    //  TODO get avail bucket in here
     PartitionServerRunnable server = new PartitionServerRunnable(
         getConfigurator(port, ConfigFixtures.partitionServerConfig(
             null,
-            "rg1",
+            "group1",
             getZkClientPort(),
             new PartitionServerAddress("localhost", port),
             domainsRoot,
@@ -158,9 +202,5 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
 
     return server;
   }
-
-  //  TODO no-op if configured correctly
-
-  //  TODO leftover servers
 
 }

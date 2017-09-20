@@ -67,8 +67,7 @@ public interface Coordinator {
 
   public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup);
 
-  public RingGroup getRingGroup(String ringGroupName)
-      throws IOException;
+  public RingGroup getRingGroup(String ringGroupName);
 
   public RingGroup addRingGroup(String ringGroupName, String domainGroupName)
       throws IOException;
