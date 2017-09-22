@@ -24,6 +24,7 @@ import org.apache.log4j.PropertyConfigurator;
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.DomainGroup;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.partition_assigner.RendezVousPartitionAssigner;
 import com.liveramp.hank.util.CommandLineChecker;
@@ -39,7 +40,8 @@ public class RingGroupConductor {
 
   private RingGroup ringGroup;
 
-  private final RingGroupUpdateTransitionFunction transFunc;
+  private final RingGroupTransitionFunction updateTransFunc;
+  private final RingGroupTransitionFunction configureTransFunc;
 
   private boolean stopping = false;
   private boolean claimedRingGroupConductor;
@@ -47,18 +49,27 @@ public class RingGroupConductor {
   private Thread shutdownHook;
 
   public RingGroupConductor(RingGroupConductorConfigurator configurator) throws IOException {
-    this(configurator, new RingGroupUpdateTransitionFunctionImpl(new RendezVousPartitionAssigner(),
-        configurator.getMinRingFullyServingObservations(),
-        configurator.getMinServingReplicas(),
-        configurator.getAvailabilityBucketMinServingReplicas(),
-        configurator.getHostAvailabilityBucketFlag()
-    ));
+    this(configurator,
+        new RingGroupUpdateTransitionFunctionImpl(new RendezVousPartitionAssigner(),
+            configurator.getMinRingFullyServingObservations(),
+            configurator.getMinServingReplicas(),
+            configurator.getAvailabilityBucketMinServingReplicas(),
+            configurator.getHostAvailabilityBucketFlag()
+        ),
+        new RingGroupAutoconfigureTransitionFunction(
+            configurator.getTargetHostsPerRing(),
+            configurator.getHostAvailabilityBucketFlag()
+        )
+    );
   }
 
-  RingGroupConductor(RingGroupConductorConfigurator configurator, RingGroupUpdateTransitionFunction transFunc) throws IOException {
+  RingGroupConductor(RingGroupConductorConfigurator configurator,
+                     RingGroupTransitionFunction updateTransFunc,
+                     RingGroupTransitionFunction configureTransFunc) throws IOException {
     this.configurator = configurator;
-    this.transFunc = transFunc;
-    ringGroupName = configurator.getRingGroupName();
+    this.updateTransFunc = updateTransFunc;
+    this.configureTransFunc = configureTransFunc;
+    this.ringGroupName = configurator.getRingGroupName();
     this.coordinator = configurator.createCoordinator();
   }
 
@@ -70,8 +81,26 @@ public class RingGroupConductor {
     try {
       ringGroup = coordinator.getRingGroup(ringGroupName);
 
+      RingGroupConductorMode initialMode = configurator.getInitialMode();
+
+      if (initialMode == RingGroupConductorMode.AUTOCONFIGURE) {
+
+        if (ringGroup == null) {
+          LOG.info("Creating ring group: "+ringGroupName);
+
+          DomainGroup domainGroup = coordinator.getDomainGroup(ringGroupName);
+          if (domainGroup == null) {
+            LOG.info("Creating domain group: "+ringGroupName);
+            domainGroup = coordinator.addDomainGroup(ringGroupName);
+          }
+
+          ringGroup = coordinator.addRingGroup(ringGroupName, domainGroup.getName());
+        }
+
+      }
+
       // attempt to claim the ring group conductor title
-      if (ringGroup.claimRingGroupConductor(configurator.getInitialMode())) {
+      if (ringGroup.claimRingGroupConductor(initialMode)) {
         claimedRingGroupConductor = true;
 
         // loop until we're taken down
@@ -86,6 +115,9 @@ public class RingGroupConductor {
             }
 
             processUpdates(snapshotRingGroup);
+
+            processConfigure(snapshotRingGroup);
+
             Thread.sleep(configurator.getSleepInterval());
           }
         } catch (InterruptedException e) {
@@ -107,9 +139,18 @@ public class RingGroupConductor {
   void processUpdates(RingGroup ringGroup) throws IOException {
     // Only process updates if ring group conductor is configured to be active/proactive
     if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE ||
-        ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE) {
-      transFunc.manageTransitions(ringGroup);
+        ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE ||
+        ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.AUTOCONFIGURE) {
+      updateTransFunc.manageTransitions(ringGroup);
     }
+  }
+
+  void processConfigure(RingGroup ringGroup) throws IOException {
+
+    if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.AUTOCONFIGURE) {
+      configureTransFunc.manageTransitions(ringGroup);
+    }
+
   }
 
   private void releaseIfClaimed() throws IOException {

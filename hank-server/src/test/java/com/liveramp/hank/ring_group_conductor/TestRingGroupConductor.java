@@ -47,7 +47,7 @@ import com.liveramp.hank.test.coordinator.MockRingGroup;
 import static org.junit.Assert.assertNotNull;
 
 public class TestRingGroupConductor {
-  public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {
+  public class MockRingGroupUpdateTransitionFunction implements RingGroupTransitionFunction {
     public RingGroup calledWithRingGroup;
 
     @Override
@@ -55,6 +55,15 @@ public class TestRingGroupConductor {
       calledWithRingGroup = ringGroup;
     }
   }
+
+  public class NoOpRingGroupTransitionFunction implements RingGroupTransitionFunction {
+
+    @Override
+    public void manageTransitions(RingGroup ringGroup) throws IOException {
+      //  no-op
+    }
+  }
+
 
   @Test
   public void testTriggersUpdates() throws Exception {
@@ -129,6 +138,11 @@ public class TestRingGroupConductor {
       }
 
       @Override
+      public Integer getTargetHostsPerRing() {
+        return null;
+      }
+
+      @Override
       public int getMinRingFullyServingObservations() {
         return 0;
       }
@@ -164,7 +178,7 @@ public class TestRingGroupConductor {
       }
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
-    RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
+    RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc, new NoOpRingGroupTransitionFunction());
     daemon.processUpdates(mockRingGroup);
 
     assertNotNull(mockTransFunc.calledWithRingGroup);

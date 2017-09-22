@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import com.liveramp.hank.coordinator.RingGroup;
 
-public interface RingGroupUpdateTransitionFunction {
+public interface RingGroupTransitionFunction {
 
   public void manageTransitions(RingGroup ringGroup) throws IOException;
 }

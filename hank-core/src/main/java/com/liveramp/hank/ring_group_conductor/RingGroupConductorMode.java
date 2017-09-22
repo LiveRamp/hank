@@ -20,5 +20,6 @@ public enum RingGroupConductorMode {
   OFFLINE,
   INACTIVE,
   ACTIVE,
-  PROACTIVE
+  PROACTIVE,  //  TODO pretty sure we don't want this
+  AUTOCONFIGURE
 }
