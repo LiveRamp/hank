@@ -259,6 +259,8 @@ Collections.sort(clients, new ClientMetadataComparator());
     ACTIVE: conduct updates</option>
     <option value="PROACTIVE">
     PROACTIVE: conduct updates proactively</option>
+    <option value="AUTOCONFIGURE">
+    AUTOCONFIGURE: autoconfigure</option>
     </select>
     <input type="submit" value="Change mode"/>
     </form>

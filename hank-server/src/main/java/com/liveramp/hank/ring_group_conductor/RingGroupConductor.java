@@ -82,6 +82,7 @@ public class RingGroupConductor {
       ringGroup = coordinator.getRingGroup(ringGroupName);
 
       RingGroupConductorMode initialMode = configurator.getInitialMode();
+      LOG.info("Starting with initial mode: "+initialMode);
 
       if (initialMode == RingGroupConductorMode.AUTOCONFIGURE) {
 
@@ -101,6 +102,7 @@ public class RingGroupConductor {
 
       // attempt to claim the ring group conductor title
       if (ringGroup.claimRingGroupConductor(initialMode)) {
+        LOG.info("Claimed initial mode: "+initialMode);
         claimedRingGroupConductor = true;
 
         // loop until we're taken down
