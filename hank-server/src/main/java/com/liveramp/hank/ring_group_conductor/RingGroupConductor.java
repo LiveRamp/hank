@@ -53,7 +53,9 @@ public class RingGroupConductor {
         new RingGroupUpdateTransitionFunctionImpl(new RendezVousPartitionAssigner(),
             configurator.getMinRingFullyServingObservations(),
             configurator.getMinServingReplicas(),
+            configurator.getMinServingFraction(),
             configurator.getAvailabilityBucketMinServingReplicas(),
+            configurator.getMinAvailabilityBucketServingFraction(),
             configurator.getHostAvailabilityBucketFlag()
         ),
         new RingGroupAutoconfigureTransitionFunction(
@@ -104,6 +106,8 @@ public class RingGroupConductor {
       if (ringGroup.claimRingGroupConductor(initialMode)) {
         LOG.info("Claimed initial mode: "+initialMode);
         claimedRingGroupConductor = true;
+
+        ringGroup.setRingGroupConductorMode(initialMode);
 
         // loop until we're taken down
         stopping = false;

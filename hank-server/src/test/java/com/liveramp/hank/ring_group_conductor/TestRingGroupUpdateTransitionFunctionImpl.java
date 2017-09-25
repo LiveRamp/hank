@@ -147,7 +147,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     partitionAssigner = new ModPartitionAssigner();
 
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 2, 0, null);
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 2, 0, 0, 0, null);
 
     // V1
     versionsMap1.put(domain1, 1);
@@ -189,7 +189,15 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
   @Test
   public void testIsFullyServing() throws IOException {
-    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null, 1, 2, 0, null);
+    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(
+        null,
+        1,
+        2,
+        0,
+        0,
+        0,
+        null
+    );
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     assertFalse(transitionFunction.isFullyServing(r0h0, true));
@@ -697,7 +705,14 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r2, v1, v2, HostState.SERVING);
 
     //  require at least 1 replica up per AZ.
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 1, 1, "AZ");
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
+        0,
+        1,
+        0,
+        1,
+        0,
+        "AZ"
+    );
     testTransitionFunction.manageTransitions(rg);
 
     //  r0 can go idle
@@ -733,7 +748,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r2, v1, v2, HostState.SERVING);
 
     //  no minimum number of replicas per zone
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 1, 0, "AZ");
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
+        0, 1, 0, 0, 0, "AZ");
     testTransitionFunction.manageTransitions(rg);
 
     //  r0 can go idle
@@ -749,6 +765,121 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertEquals(null, r2h1.getAndClearLastEnqueuedCommand());
 
   }
+
+  @Test
+  public void testUpdateWithMinPercent() throws IOException {
+
+    domainGroup.setDomainVersions(versionsMap2);
+
+    r0h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r0h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    r1h0.setEnvironmentFlags(Collections.singletonMap("AZ", "b"));
+    r1h1.setEnvironmentFlags(Collections.singletonMap("AZ", "b"));
+
+    r2h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r2h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    //  all rings need to be updated
+    setUpRing(r0, v1, v2, HostState.SERVING);
+    setUpRing(r1, v1, v2, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
+
+
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
+        0,
+        0,
+        .5,
+        0,
+        .5,
+        "AZ");
+    testTransitionFunction.manageTransitions(rg);
+
+    //  r0 can go idle
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getAndClearLastEnqueuedCommand());
+
+    //  r2 can't, limited by .5 min replica.
+    assertEquals(null, r1h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r1h1.getAndClearLastEnqueuedCommand());
+
+    //  r2 can't, limited by .5 min replica.
+    assertEquals(null, r2h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r2h1.getAndClearLastEnqueuedCommand());
+
+
+  }
+
+  @Test
+  public void testUpdateWithHighPercent() throws IOException {
+
+    domainGroup.setDomainVersions(versionsMap2);
+
+    r0h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r0h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    r2h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r2h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    //  all rings need to be updated
+    setUpRing(r0, v1, v2, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
+
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
+        0,
+        0,
+        .6,
+        0,
+        0,
+        "AZ");
+    testTransitionFunction.manageTransitions(rg);
+
+    //  r0 can go idle
+    assertEquals(null, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r0h1.getAndClearLastEnqueuedCommand());
+
+    //  r2 can't, limited by .6 min replica.
+    assertEquals(null, r1h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r1h1.getAndClearLastEnqueuedCommand());
+
+
+  }
+
+  @Test
+  public void testUpdateWithHighBucketPercent() throws IOException {
+
+    domainGroup.setDomainVersions(versionsMap2);
+
+    r0h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r0h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    r2h0.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+    r2h1.setEnvironmentFlags(Collections.singletonMap("AZ", "a"));
+
+    //  all rings need to be updated
+    setUpRing(r0, v1, v2, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
+
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
+        0,
+        0,
+        0,
+        0,
+        .6,
+        "AZ");
+    testTransitionFunction.manageTransitions(rg);
+
+    //  r0 can go idle
+    assertEquals(null, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r0h1.getAndClearLastEnqueuedCommand());
+
+    //  r2 can't, limited by .6 min replica.
+    assertEquals(null, r1h0.getAndClearLastEnqueuedCommand());
+    assertEquals(null, r1h1.getAndClearLastEnqueuedCommand());
+
+
+  }
+
 
 
 }

@@ -24,10 +24,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liveramp.commons.collections.nested_map.ThreeNestedCountingMap;
+import com.liveramp.commons.collections.nested_map.ThreeNestedMap;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
@@ -49,18 +55,24 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupTransitio
   private final int minRingFullyServingObservations;
   private final int minServingReplicas;
   private final int minServingAvailabilityBucketReplicas;
+  private final double minServingFraction;
+  private final double minServingAvailabilityBucketFraction;
   private final String availabilityBucketKey;
   private final Map<String, Integer> hostToFullyServingObservations = new HashMap<String, Integer>();
 
   public RingGroupUpdateTransitionFunctionImpl(PartitionAssigner partitionAssigner,
                                                int minRingFullyServingObservations,
                                                int minServingReplicas,
+                                               double minServingFraction,
                                                int minServingAvailabilityBucketReplicas,
+                                               double minServingAvailabilityBucketFraction,
                                                String availabilityBucketKey) throws IOException {
     this.partitionAssigner = partitionAssigner;
     this.minRingFullyServingObservations = minRingFullyServingObservations;
     this.minServingReplicas = minServingReplicas;
     this.minServingAvailabilityBucketReplicas = minServingAvailabilityBucketReplicas;
+    this.minServingFraction = minServingFraction;
+    this.minServingAvailabilityBucketFraction = minServingAvailabilityBucketFraction;
     this.availabilityBucketKey = availabilityBucketKey;
   }
 
@@ -111,18 +123,40 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupTransitio
     }
 
     Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing = computeDomainToPartitionToHostsFullyServing(ringGroup);
+    ThreeNestedCountingMap<Domain, Integer, String> domainPartitionBucketHostCounts = new ThreeNestedCountingMap<>(0l);
 
-    for (Ring ring : ringGroup.getRingsSorted()) {
+    for (Map.Entry<Domain, Map<Integer, Set<Host>>> entry : domainToPartitionToHostsFullyServing.entrySet()) {
+      Domain domain = entry.getKey();
+      for (Map.Entry<Integer, Set<Host>> partitionEntry : entry.getValue().entrySet()) {
+        Integer partition = partitionEntry.getKey();
+        for (Host host : partitionEntry.getValue()) {
+          domainPartitionBucketHostCounts.incrementAndGet(
+              domain,
+              partition,
+              host.getEnvironmentFlags().get(availabilityBucketKey),
+              1l
+          );
+        }
+      }
+    }
+
+
+    SortedSet<Ring> rings = ringGroup.getRingsSorted();
+    int ringCount = rings.size();
+
+    for (Ring ring : rings) {
       partitionAssigner.prepare(ring, domainGroup.getDomainVersions(), ringGroup.getRingGroupConductorMode());
       for (Host host : ring.getHostsSorted()) {
-        manageTransitions(host, domainGroup, domainToPartitionToHostsFullyServing);
+        manageTransitions(ringCount, host, domainGroup, domainToPartitionToHostsFullyServing, domainPartitionBucketHostCounts);
       }
     }
   }
 
-  private void manageTransitions(Host host,
+  private void manageTransitions(int totalRings,
+                                 Host host,
                                  DomainGroup domainGroup,
-                                 Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing) throws IOException {
+                                 Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
+                                 ThreeNestedMap<Domain, Integer, String, Long> domainPartitionBucketCounts) throws IOException {
     boolean isAssigned = partitionAssigner.isAssigned(host);
     boolean isUpToDate = Hosts.isUpToDate(host, domainGroup);
     boolean isFullyServing = isFullyServing(host, true);
@@ -137,7 +171,9 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupTransitio
 
     LiveReplicaStatus status =
         computeDataReplicationStatus(
+            totalRings,
             domainToPartitionToHostsFullyServing,
+            domainPartitionBucketCounts,
             domainGroup.getDomainVersions(),
             host);
 
@@ -244,7 +280,9 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupTransitio
 
   }
 
-  private LiveReplicaStatus computeDataReplicationStatus(Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
+  private LiveReplicaStatus computeDataReplicationStatus(int totalRings,
+                                                         Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
+                                                         ThreeNestedMap<Domain, Integer, String, Long> domainPartitionBucketCounts,
                                                          Set<DomainAndVersion> domainVersions,
                                                          Host host) throws IOException {
     // Build set of relevant domains
@@ -269,11 +307,16 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupTransitio
           if (partitionToNumFullyServing.containsKey(partition.getPartitionNumber())) {
 
             Set<Host> servingHosts = partitionToNumFullyServing.get(partition.getPartitionNumber());
-            allStatuses.add(statusFor(servingHosts.size(), minServingReplicas));
+            allStatuses.add(statusFor(totalRings, minServingFraction, servingHosts.size(), minServingReplicas));
 
             if (availabilityBucketKey != null) {
 
+              String bucket = host.getEnvironmentFlags().get(availabilityBucketKey);
+              Long count = domainPartitionBucketCounts.get(domain, partition.getPartitionNumber(), bucket);
+
               allStatuses.add(statusFor(
+                  count.intValue(),
+                  minServingAvailabilityBucketFraction,
                   servingHosts.stream().filter(input -> sameBucket(host, input)).count(),
                   minServingAvailabilityBucketReplicas
               ));
@@ -287,14 +330,28 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupTransitio
     return Collections.min(allStatuses);
   }
 
-  private LiveReplicaStatus statusFor(long numServing, long numRequired) {
+  private LiveReplicaStatus statusFor(int totalRings, double minServingPercent, long numServing, long numRequired) {
+
     if (numServing < numRequired) {
       return LiveReplicaStatus.UNDER_REPLICATED;
-    } else if (numServing == numRequired) {
-      return LiveReplicaStatus.REPLICATED;
-    } else{
-      return LiveReplicaStatus.OVER_REPLICATED;
     }
+
+    double fractionServing = (double)numServing / (double)totalRings;
+    if (fractionServing < minServingPercent) {
+      return LiveReplicaStatus.UNDER_REPLICATED;
+    }
+
+    if (numServing == numRequired) {
+      return LiveReplicaStatus.REPLICATED;
+    }
+
+    //  we can't remove a server without becoming under-replicated.
+    double fractionMinusReplica = (double)(numServing - 1) / (double)totalRings;
+    if (fractionMinusReplica < minServingPercent) {
+      return LiveReplicaStatus.REPLICATED;
+    }
+
+    return LiveReplicaStatus.OVER_REPLICATED;
   }
 
   private boolean sameBucket(Host host1, Host host2) {
