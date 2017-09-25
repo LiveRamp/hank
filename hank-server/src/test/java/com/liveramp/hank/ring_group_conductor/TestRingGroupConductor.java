@@ -163,6 +163,16 @@ public class TestRingGroupConductor {
       }
 
       @Override
+      public double getMinServingFraction() {
+        return 0;
+      }
+
+      @Override
+      public double getMinAvailabilityBucketServingFraction() {
+        return 0;
+      }
+
+      @Override
       public String getRingGroupName() {
         return "myRingGroup";
       }

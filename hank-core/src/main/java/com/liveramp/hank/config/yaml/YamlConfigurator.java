@@ -144,6 +144,14 @@ public abstract class YamlConfigurator implements Serializable {
     }
   }
 
+  protected Double getRequiredDouble(String... optionPath) throws InvalidConfigurationException {
+    Object option = getRequiredOption(optionPath);
+    if (option != null && !(option instanceof Double)) {
+      throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type Double in configuration '" + contentSource + "'");
+    }
+    return (Double)option;
+  }
+
   protected Integer getRequiredInteger(String... optionPath) throws InvalidConfigurationException {
     Object option = getRequiredOption(optionPath);
     if (option != null && !(option instanceof Integer)) {
@@ -163,6 +171,14 @@ public abstract class YamlConfigurator implements Serializable {
   protected Integer getOptionalInteger(String... optionPath) {
     try {
       return getRequiredInteger(optionPath);
+    } catch (InvalidConfigurationException e) {
+      return null;
+    }
+  }
+
+  protected Double getOptionalDouble(String... optionPath) {
+    try {
+      return getRequiredDouble(optionPath);
     } catch (InvalidConfigurationException e) {
       return null;
     }

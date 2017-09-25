@@ -28,9 +28,18 @@ public interface RingGroupConductorConfigurator extends CoordinatorConfigurator 
 
   public String getHostAvailabilityBucketFlag();
 
+  //  hard lower limit on the number of replicas which can be serving
   public int getMinServingReplicas();
 
+  //  same, per bucekt
   public int getAvailabilityBucketMinServingReplicas();
+
+  //  if the number of rings is dynamic, it's easier to configure this and say "min 80% of servers should be serving"
+  //  to throttle updates.
+  public double getMinServingFraction();
+
+  //  same, per bucket
+  public double getMinAvailabilityBucketServingFraction();
 
   public RingGroupConductorMode getInitialMode();
 

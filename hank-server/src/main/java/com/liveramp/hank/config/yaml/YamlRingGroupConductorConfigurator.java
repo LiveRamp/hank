@@ -33,8 +33,12 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
   public static final String MIN_SERVING_REPLICAS = "min_serving_replicas";
   public static final String AVAILABILITY_BUCKET_MIN_SERVING_REPLICAS = "availability_bucket_min_serving_replicas";
   public static final String TARGET_HOSTS_PER_RING_KEY = "target_hosts_per_ring";
+  public static final String MIN_SERVING_FRACTION = "min_serving_fraction";
+  public static final String AVAILABILITY_BUCKET_MIN_SERVING_FRACTION = "availability_bucket_min_serving_fraction";
 
   public static final Integer DEFAULT_MIN_SERVING_REPLICAS = 2;
+  public static final double DEFAULT_MIN_SERVING_PERCENT = 0;
+  public static final double DEFAULT_MIN_SERVING_AVAILABILITY_BUCKET_PERCENT = 0;
 
   public YamlRingGroupConductorConfigurator(String configPath) throws IOException, InvalidConfigurationException {
     super(configPath);
@@ -91,6 +95,36 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
     }
 
     return minServingReplicas;
+  }
+
+  @Override
+  public double getMinServingFraction() {
+
+    Double minServingPercent = getOptionalDouble(
+        RING_GROUP_CONDUCTOR_SECTION_KEY,
+        MIN_SERVING_FRACTION
+    );
+
+    if(minServingPercent == null){
+      return DEFAULT_MIN_SERVING_PERCENT;
+    }
+
+    return minServingPercent;
+  }
+
+  @Override
+  public double getMinAvailabilityBucketServingFraction() {
+
+    Double minABServingPercent = getOptionalDouble(
+        RING_GROUP_CONDUCTOR_SECTION_KEY,
+        AVAILABILITY_BUCKET_MIN_SERVING_FRACTION
+    );
+
+    if(minABServingPercent == null){
+      return DEFAULT_MIN_SERVING_AVAILABILITY_BUCKET_PERCENT;
+    }
+
+    return minABServingPercent;
   }
 
   @Override
