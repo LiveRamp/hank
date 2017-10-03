@@ -55,6 +55,7 @@ public class TestYamlRingGroupConductorConfigurator {
     pw.println("     required_host_flags:");
     pw.println("      - flag1");
     pw.println("     storage_engine_factory: mock");
+    pw.println("     partitioner_name: partitioner");
     pw.println("     storage_engine_factory_options:");
     pw.println("       option1: value1");
     pw.println("       option2: value2");
@@ -62,6 +63,7 @@ public class TestYamlRingGroupConductorConfigurator {
     pw.println("     partitions: 2");
     pw.println("     required_host_flags:");
     pw.println("     storage_engine_factory: mock");
+    pw.println("     partitioner_name: partitioner");
     pw.println("     storage_engine_factory_options:");
     pw.println("       option1: value1");
     pw.println("       option2: value2");
