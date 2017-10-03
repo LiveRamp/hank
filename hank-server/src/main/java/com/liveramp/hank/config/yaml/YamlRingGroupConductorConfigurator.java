@@ -176,8 +176,6 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
           parsedHostFlags.addAll((List<String>) requiredHostFlags);
         }
 
-        System.out.println(domainConfig);
-
         String partitionerName = (String) domainConfig.get(DOMAIN_PARTITIONER_NAME);
         String storageEngineFactory = (String)domainConfig.get(DOMAIN_STORAGE_ENGINE_FACTORY);
         Map<String, Object> engineOptions = (Map<String, Object>)domainConfig.get(DOMAIN_STORAGE_ENGINE_FACTORY_OPTIONS);
