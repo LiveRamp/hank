@@ -52,7 +52,7 @@ import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   private static final Logger LOG = LoggerFactory.getLogger(ZkRingGroup.class);
 
-  protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH = "ring_group_conductor_online";
+  public static final String RING_GROUP_CONDUCTOR_ONLINE_PATH = "ring_group_conductor_online";
   private static final String CLIENTS_PATH = "c";
   private static final String CLIENT_NODE = "c";
   private static final ClientMetadata emptyClientMetadata = new ClientMetadata();

@@ -60,6 +60,7 @@ public class RingGroupConductor {
         ),
         new RingGroupAutoconfigureTransitionFunction(
             configurator.getTargetHostsPerRing(),
+            configurator.getConfiguredDomains(),
             configurator.getHostAvailabilityBucketFlag()
         )
     );
@@ -147,14 +148,14 @@ public class RingGroupConductor {
     if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE ||
         ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE ||
         ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.AUTOCONFIGURE) {
-      updateTransFunc.manageTransitions(ringGroup);
+      updateTransFunc.manageTransitions(coordinator, ringGroup);
     }
   }
 
   void processConfigure(RingGroup ringGroup) throws IOException {
 
     if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.AUTOCONFIGURE) {
-      configureTransFunc.manageTransitions(ringGroup);
+      configureTransFunc.manageTransitions(coordinator, ringGroup);
     }
 
   }

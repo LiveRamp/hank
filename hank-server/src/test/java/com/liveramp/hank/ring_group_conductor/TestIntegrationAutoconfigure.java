@@ -15,13 +15,20 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.log4j.Level;
+import org.apache.zookeeper.KeeperException;
 import org.junit.Test;
 
+import com.liveramp.commons.collections.map.MapBuilder;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
+import com.liveramp.hank.config.RingGroupConfiguredDomain;
 import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainAndVersion;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
@@ -29,11 +36,13 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.fixtures.ConfigFixtures;
 import com.liveramp.hank.fixtures.PartitionServerRunnable;
+import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 
+import static com.liveramp.hank.coordinator.zk.ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH;
 import static org.junit.Assert.*;
 
 public class TestIntegrationAutoconfigure extends ZkTestCase {
@@ -41,9 +50,6 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
   private final String domainsRoot = ZkPath.append(getRoot(), "domains");
   private final String domainGroupsRoot = ZkPath.append(getRoot(), "domain_groups");
   private final String ringGroupsRoot = ZkPath.append(getRoot(), "ring_groups");
-
-  private final Map<PartitionServerAddress, Thread> partitionServerThreads = new HashMap<PartitionServerAddress, Thread>();
-  private final Map<PartitionServerAddress, PartitionServerRunnable> partitionServerRunnables = new HashMap<PartitionServerAddress, PartitionServerRunnable>();
 
   @Test
   public void testAll() throws Exception {
@@ -64,7 +70,7 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
         ringGroupsRoot
     );
 
-    RingGroupConductorConfigurator configurator = ConfigFixtures.createRGCConfigurator(
+    RingGroupConductor conductor1 = new RingGroupConductor(ConfigFixtures.createRGCConfigurator(
         localTmpDir,
         getZkClientPort(),
         "group1",
@@ -73,20 +79,22 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
         2,
         domainsRoot,
         domainGroupsRoot,
-        ringGroupsRoot
-    );
+        ringGroupsRoot,
+        Lists.newArrayList(new RingGroupConfiguredDomain(
+            "domain1",
+            2,
+            Lists.newArrayList(),
+            "storage_engine",
+            "partitioner",
+            MapBuilder.<String, Object>of("key1","val1").get()
+        ))
+    ));
 
-
-    RingGroupConductor conductor1 = new RingGroupConductor(configurator);
-
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          conductor1.run();
-        } catch (IOException e) {
-          // ok
-        }
+    Thread thread = new Thread(() -> {
+      try {
+        conductor1.run();
+      } catch (IOException e) {
+        // ok
       }
     });
 
@@ -98,6 +106,13 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
             coordinator.getRingGroup("group1") != null
     );
 
+    //  verify we autocreated the domain
+    WaitUntil.orDie(() -> {
+      Domain domain = coordinator.getDomain("domain1");
+      return domain != null && domain.getNumParts() == 2;
+    });
+
+    DomainGroup domainGroup = coordinator.getDomainGroup("group1");
     RingGroup ringGroup = coordinator.getRingGroup("group1");
 
     List<Thread> servers = Lists.newArrayList();
@@ -154,7 +169,79 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
 
     assertEquals(hostsByRing, getHostRings(ringGroup));
 
+
+    //  confirm that completing a version for the domain causes it to be added to the ring group
+
+    Domain domain = coordinator.getDomain("domain1");
+    DomainVersion version = domain.openNewVersion(new IncrementalDomainVersionProperties.Base());
+    version.close();
+
+    WaitUntil.orDie(() -> {
+      try {
+        DomainAndVersion version1 = domainGroup.getDomainVersion(domain);
+        return version1 != null && version1.getVersionNumber() == 0;
+      } catch (IOException e) {
+        //  whatev
+      }
+      return false;
+    });
+
     conductor1.stop();
+
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return getZk().exists(ringGroupsRoot+"/group1/"+RING_GROUP_CONDUCTOR_ONLINE_PATH, false) == null;
+        } catch (KeeperException e) {
+          // eh
+        } catch (InterruptedException e) {
+          // eh
+        }
+        return true;
+      }
+    });
+
+    //  restart conductor with new domain config
+
+    RingGroupConductor conductor2 = new RingGroupConductor(ConfigFixtures.createRGCConfigurator(
+        localTmpDir,
+        getZkClientPort(),
+        "group1",
+        RingGroupConductorMode.AUTOCONFIGURE,
+        "BUCKET",
+        2,
+        domainsRoot,
+        domainGroupsRoot,
+        ringGroupsRoot,
+        Lists.newArrayList(new RingGroupConfiguredDomain(
+            "domain1",
+            2,
+            Lists.newArrayList(),
+            "storage_engine2",
+            "partitioner",
+            MapBuilder.<String, Object>of("key1","val1").get()
+        ))
+    ));
+
+    thread = new Thread(() -> {
+      try {
+        conductor2.run();
+      } catch (IOException e) {
+        // ok
+      }
+    });
+
+    thread.start();
+
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return domain.getStorageEngineFactoryClassName().equals("storage_engine2");
+      }
+    });
+
+
   }
 
   private Multimap<Integer, Integer> getHostRings(RingGroup ringGroup) {

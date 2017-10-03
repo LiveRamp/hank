@@ -17,9 +17,15 @@ package com.liveramp.hank.config.yaml;
 
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
+import com.liveramp.hank.config.RingGroupConfiguredDomain;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 
 
 public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigurator implements RingGroupConductorConfigurator {
@@ -35,6 +41,14 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
   public static final String TARGET_HOSTS_PER_RING_KEY = "target_hosts_per_ring";
   public static final String MIN_SERVING_FRACTION = "min_serving_fraction";
   public static final String AVAILABILITY_BUCKET_MIN_SERVING_FRACTION = "availability_bucket_min_serving_fraction";
+  public static final String CONFIGURED_DOMAINS_KEY = "domains";
+
+  private static final String DOMAIN_NAME = "name";
+  private static final String DOMAIN_PARTITIONS = "partitions";
+  private static final String DOMAIN_REQUIRED_HOST_FLAGS = "required_host_flags";
+  private static final String DOMAIN_PARTITIONER_NAME = "partitioner_name";
+  private static final String DOMAIN_STORAGE_ENGINE_FACTORY = "storage_engine_factory";
+  private static final String DOMAIN_STORAGE_ENGINE_FACTORY_OPTIONS = "storage_engine_factory_options";
 
   public static final Integer DEFAULT_MIN_SERVING_REPLICAS = 2;
   public static final double DEFAULT_MIN_SERVING_PERCENT = 0;
@@ -75,7 +89,7 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
         MIN_SERVING_REPLICAS
     );
 
-    if(minServingReplicas == null){
+    if (minServingReplicas == null) {
       return DEFAULT_MIN_SERVING_REPLICAS;
     }
 
@@ -90,7 +104,7 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
         AVAILABILITY_BUCKET_MIN_SERVING_REPLICAS
     );
 
-    if(minServingReplicas == null){
+    if (minServingReplicas == null) {
       return DEFAULT_MIN_SERVING_REPLICAS;
     }
 
@@ -105,7 +119,7 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
         MIN_SERVING_FRACTION
     );
 
-    if(minServingPercent == null){
+    if (minServingPercent == null) {
       return DEFAULT_MIN_SERVING_PERCENT;
     }
 
@@ -120,7 +134,7 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
         AVAILABILITY_BUCKET_MIN_SERVING_FRACTION
     );
 
-    if(minABServingPercent == null){
+    if (minABServingPercent == null) {
       return DEFAULT_MIN_SERVING_AVAILABILITY_BUCKET_PERCENT;
     }
 
@@ -137,6 +151,50 @@ public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigura
   //  balance so we don't mess up manually configured clusters.
   public Integer getTargetHostsPerRing() {
     return getOptionalInteger(RING_GROUP_CONDUCTOR_SECTION_KEY, TARGET_HOSTS_PER_RING_KEY);
+  }
+
+  @Override
+  public List<RingGroupConfiguredDomain> getConfiguredDomains() {
+    Object configuredDomainsObj = getOptionalObject(RING_GROUP_CONDUCTOR_SECTION_KEY, CONFIGURED_DOMAINS_KEY);
+
+    List<RingGroupConfiguredDomain> configuredDomains = Lists.newArrayList();
+
+    //  TODO this parsing is all a mess.
+    if (configuredDomainsObj != null) {
+      List<Object> domains = (List<Object>)configuredDomainsObj;
+
+      for (Object domain : domains) {
+        Map<String, Object> domainConfig = (Map<String, Object>)domain;
+
+        String name = (String)domainConfig.get(DOMAIN_NAME);
+        Integer partitions = (Integer)domainConfig.get(DOMAIN_PARTITIONS);
+
+        Object requiredHostFlags = domainConfig.get(DOMAIN_REQUIRED_HOST_FLAGS);
+
+        List<String> parsedHostFlags = Lists.newArrayList();
+        if(requiredHostFlags != null){
+          parsedHostFlags.addAll((List<String>) requiredHostFlags);
+        }
+
+        System.out.println(domainConfig);
+
+        String partitionerName = (String) domainConfig.get(DOMAIN_PARTITIONER_NAME);
+        String storageEngineFactory = (String)domainConfig.get(DOMAIN_STORAGE_ENGINE_FACTORY);
+        Map<String, Object> engineOptions = (Map<String, Object>)domainConfig.get(DOMAIN_STORAGE_ENGINE_FACTORY_OPTIONS);
+
+        configuredDomains.add(new RingGroupConfiguredDomain(
+            name,
+            partitions,
+            parsedHostFlags,
+            storageEngineFactory,
+            partitionerName,
+            engineOptions
+        ));
+
+      }
+    }
+
+    return configuredDomains;
   }
 
   @Override

@@ -3,11 +3,14 @@ package com.liveramp.hank.fixtures;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
+import com.liveramp.hank.config.RingGroupConfiguredDomain;
 import com.liveramp.hank.config.yaml.YamlClientConfigurator;
 import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
@@ -46,24 +49,49 @@ public class ConfigFixtures {
                                                 String availabilityBucketFlagKey,
                                                 String domainsRoot,
                                                 String domainGroupsRoot,
-                                                String ringGroupsRoot) {
+                                                String ringGroupsRoot,
+                                                List<RingGroupConfiguredDomain> domains) {
 
     StringBuilder builder = new StringBuilder();
 
     builder.append(YamlRingGroupConductorConfigurator.RING_GROUP_CONDUCTOR_SECTION_KEY + ":\n");
     builder.append("  " + YamlRingGroupConductorConfigurator.SLEEP_INTERVAL_KEY + ": 1000\n");
     builder.append("  " + YamlRingGroupConductorConfigurator.MIN_RING_FULLY_SERVING_OBSERVATIONS_KEY + ": 5\n");
-    builder.append("  " + YamlRingGroupConductorConfigurator.RING_GROUP_NAME_KEY + ": "+ringGroupName+"\n");
-    builder.append("  " + YamlRingGroupConductorConfigurator.INITIAL_MODE_KEY + ": "+initialMode.name()+"\n");
-    builder.append("  "+YamlRingGroupConductorConfigurator.HOST_AVAILABILITY_BUCKET_FLAG_KEY+": "+availabilityBucketFlagKey+"\n");
+    builder.append("  " + YamlRingGroupConductorConfigurator.RING_GROUP_NAME_KEY + ": " + ringGroupName + "\n");
+    builder.append("  " + YamlRingGroupConductorConfigurator.INITIAL_MODE_KEY + ": " + initialMode.name() + "\n");
+    builder.append("  " + YamlRingGroupConductorConfigurator.HOST_AVAILABILITY_BUCKET_FLAG_KEY + ": " + availabilityBucketFlagKey + "\n");
     builder.append("  " + YamlRingGroupConductorConfigurator.MIN_SERVING_REPLICAS + ": 1\n"); //  only have 2x2 servers
 
-    if(targetHostsPerRing != null){
-      builder.append("  "+YamlRingGroupConductorConfigurator.TARGET_HOSTS_PER_RING_KEY+": "+targetHostsPerRing+"\n");
+    if (targetHostsPerRing != null) {
+      builder.append("  " + YamlRingGroupConductorConfigurator.TARGET_HOSTS_PER_RING_KEY + ": " + targetHostsPerRing + "\n");
     }
 
+    builder.append("  domains:\n");
+    for (RingGroupConfiguredDomain domain : domains) {
+
+
+      builder.append("   - name: "+domain.getName()+"\n");
+      builder.append("     partitions: "+domain.getNumPartitions()+"\n");
+      builder.append("     required host flags:\n");
+      for (String flag : domain.getRequiredHostFlags()) {
+        builder.append("      - "+flag+"\n");
+      }
+
+      builder.append("     storage_engine_factory: "+domain.getStorageEngineFactory()+"\n");
+      builder.append("     partitioner_name: "+domain.getPartitionerName()+"\n");
+
+      builder.append("     storage_engine_factory_options:\n");
+      for (Map.Entry<String, Object> entry : domain.getStorageEngineFactoryOptions().entrySet()) {
+        builder.append("       "+entry.getKey()+": "+entry.getValue()+"\n");
+      }
+
+    }
+    
+    
     builder.append(coordinatorConfig(zkPort, domainsRoot, domainGroupsRoot, ringGroupsRoot));
 
+    
+    
     return builder.toString();
 
   }
@@ -118,19 +146,20 @@ public class ConfigFixtures {
   }
 
   public static RingGroupConductorConfigurator createRGCConfigurator(String tmpDir,
-                                                               int zkPort,
-                                                               String ringGroupName,
-                                                               RingGroupConductorMode initialMode,
-                                                               String availabilityBucketFlagKey,
-                                                               Integer targetHostsPerRing,
-                                                               String domainsRoot,
-                                                               String domainGroupsRoot,
-                                                               String ringGroupsRoot) throws IOException, InvalidConfigurationException {
+                                                                     int zkPort,
+                                                                     String ringGroupName,
+                                                                     RingGroupConductorMode initialMode,
+                                                                     String availabilityBucketFlagKey,
+                                                                     Integer targetHostsPerRing,
+                                                                     String domainsRoot,
+                                                                     String domainGroupsRoot,
+                                                                     String ringGroupsRoot,
+                                                                     List<RingGroupConfiguredDomain> domains) throws IOException, InvalidConfigurationException {
 
     String configPath = tmpDir + "/ring_group_conductor_config.yml";
 
     FileWriter writer = new FileWriter(configPath);
-    writer.append(ringGroupConductorConfig(zkPort, ringGroupName, initialMode, targetHostsPerRing, availabilityBucketFlagKey, domainsRoot, domainGroupsRoot, ringGroupsRoot));
+    writer.append(ringGroupConductorConfig(zkPort, ringGroupName, initialMode, targetHostsPerRing, availabilityBucketFlagKey, domainsRoot, domainGroupsRoot, ringGroupsRoot, domains));
     writer.close();
 
     return new YamlRingGroupConductorConfigurator(configPath);

@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.google.common.collect.Lists;
 import org.apache.log4j.Level;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.transport.TFramedTransport;
@@ -539,7 +540,8 @@ public class IntegrationTest extends ZkTestCase {
         null,
         domainsRoot,
         domainGroupsRoot,
-        ringGroupsRoot
+        ringGroupsRoot,
+        Lists.newArrayList()
     ));
     ringGroupConductorThread = new Thread(ringGroupConductorRunnable, "Ring Group Conductor thread");
     ringGroupConductorThread.start();

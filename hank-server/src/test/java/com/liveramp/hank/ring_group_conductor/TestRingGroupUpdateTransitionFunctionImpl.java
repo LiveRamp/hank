@@ -229,7 +229,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // No commands should have been issued
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -256,7 +256,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertFalse(isAssigned(r2, r2h0, v1));
     assertFalse(isAssigned(r2, r2h1, v1));
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // All rings should have been assigned
     assertTrue(isAssigned(r0, r0h0, v1));
@@ -274,7 +274,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h0.getAndClearLastEnqueuedCommand());
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // All hosts should have received execute update
     assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getAndClearLastEnqueuedCommand());
@@ -293,7 +293,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v2, v2, HostState.SERVING);
     setUpRing(r2, v2, v2, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // All serving hosts in r0 should have received go to idle
     assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
@@ -319,7 +319,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     r0h0.setState(HostState.IDLE);
     r0h1.setState(HostState.IDLE);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // Ring one should have been assigned
     assertTrue(isAssigned(r0, r0h0, v3));
@@ -338,7 +338,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v2, HostState.SERVING);
     setUpRing(r2, v1, v2, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // All serving hosts in r0 should have received go to idle
     assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
@@ -356,7 +356,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     r0h0.setState(HostState.IDLE);
     r0h1.setState(HostState.IDLE);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // All idle hosts in r0 should have received execute update
     assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getAndClearLastEnqueuedCommand());
@@ -378,7 +378,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // v2 should have been assigned to r0h0 but not r0h1
     assertTrue(isAssigned(r0, r0h0, v3));
@@ -396,7 +396,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     r0h1.nextCommand();
     r0h1.setState(HostState.IDLE);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // v2 should have been assigned to r0h1
     assertTrue(isAssigned(r0, r0h0, v3));
@@ -420,7 +420,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // v2 should have been assigned to r0h0 but not r0h1
     assertTrue(isAssigned(r0, r0h0, v3));
@@ -443,7 +443,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     assertTrue(isAssigned(r0, r0h0, v3));
     assertTrue(isAssigned(r0, r0h1, v3));
@@ -469,7 +469,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // Hosts of r0 should have received go to idle
     assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
@@ -490,7 +490,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // v1 should have been assigned to r0
     assertTrue(isAssigned(r0, r0h0, v1));
@@ -527,7 +527,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertFalse(isAssigned(r0, r0h0, v1));
     assertFalse(isAssigned(r0, r0h1, v1));
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // r0h1 should be going idle for assignment
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -535,12 +535,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     r0h1.setState(HostState.IDLE);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     assertFalse(isAssigned(r0, r0h0, v1));
     assertTrue(isAssigned(r0, r0h1, v1));
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // r0h1 should be executing update
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -555,7 +555,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // Hosts of r0 should have received execute update
     assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getAndClearLastEnqueuedCommand());
@@ -579,7 +579,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     r0h0.setCurrentVersion(v2);
     r0h0.setState(HostState.IDLE);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // r0h0 should have received serve data
     assertEquals(HostCommand.SERVE_DATA, r0h0.getAndClearLastEnqueuedCommand());
@@ -600,7 +600,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // Hosts of r0 should have received serve data
     assertEquals(HostCommand.SERVE_DATA, r0h0.getAndClearLastEnqueuedCommand());
@@ -621,7 +621,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v2, HostState.SERVING);
     setUpRing(r2, v1, v2, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // Hosts of r1 should have received go to idle
     assertEquals(HostCommand.GO_TO_IDLE, r1h0.getAndClearLastEnqueuedCommand());
@@ -642,7 +642,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.IDLE);
     setUpRing(r2, v1, v2, HostState.IDLE);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // No commands should have been issued to r0
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -673,7 +673,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v2, HostState.SERVING);
 
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     // No commands should have been issued to offline hosts and up to date hosts
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -713,7 +713,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
         0,
         "AZ"
     );
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
     assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
@@ -750,7 +750,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     //  no minimum number of replicas per zone
     testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
         0, 1, 0, 0, 0, "AZ");
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
     assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
@@ -793,7 +793,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
         0,
         .5,
         "AZ");
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
     assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
@@ -832,7 +832,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
         0,
         0,
         "AZ");
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
     assertEquals(null, r0h0.getAndClearLastEnqueuedCommand());
@@ -867,7 +867,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
         0,
         .6,
         "AZ");
-    testTransitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
     assertEquals(null, r0h0.getAndClearLastEnqueuedCommand());
