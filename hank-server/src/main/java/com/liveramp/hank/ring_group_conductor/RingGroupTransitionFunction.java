@@ -17,9 +17,10 @@ package com.liveramp.hank.ring_group_conductor;
 
 import java.io.IOException;
 
+import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.RingGroup;
 
 public interface RingGroupTransitionFunction {
 
-  public void manageTransitions(RingGroup ringGroup) throws IOException;
+  public void manageTransitions(Coordinator coordinator, RingGroup ringGroup) throws IOException;
 }

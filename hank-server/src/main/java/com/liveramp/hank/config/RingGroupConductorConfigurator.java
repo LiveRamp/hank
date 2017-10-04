@@ -16,6 +16,8 @@
 package com.liveramp.hank.config;
 
 
+import java.util.List;
+
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 
 public interface RingGroupConductorConfigurator extends CoordinatorConfigurator {
@@ -45,4 +47,5 @@ public interface RingGroupConductorConfigurator extends CoordinatorConfigurator 
 
   public Integer getTargetHostsPerRing();
 
+  public List<RingGroupConfiguredDomain> getConfiguredDomains();
 }

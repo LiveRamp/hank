@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import com.liveramp.commons.collections.nested_map.ThreeNestedCountingMap;
 import com.liveramp.commons.collections.nested_map.ThreeNestedMap;
+import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
@@ -114,7 +115,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupTransitio
   }
 
   @Override
-  public void manageTransitions(RingGroup ringGroup) throws IOException {
+  public void manageTransitions(Coordinator coordinator, RingGroup ringGroup) throws IOException {
     DomainGroup domainGroup = ringGroup.getDomainGroup();
     if (domainGroup == null) {
       // Nothing to do

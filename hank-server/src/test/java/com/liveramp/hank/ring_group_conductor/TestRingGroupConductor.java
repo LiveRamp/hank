@@ -17,13 +17,16 @@ package com.liveramp.hank.ring_group_conductor;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
+import com.liveramp.hank.config.RingGroupConfiguredDomain;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.DomainAndVersion;
 import com.liveramp.hank.coordinator.DomainGroup;
@@ -51,7 +54,7 @@ public class TestRingGroupConductor {
     public RingGroup calledWithRingGroup;
 
     @Override
-    public void manageTransitions(RingGroup ringGroup) {
+    public void manageTransitions(Coordinator coordinator, RingGroup ringGroup) {
       calledWithRingGroup = ringGroup;
     }
   }
@@ -59,7 +62,7 @@ public class TestRingGroupConductor {
   public class NoOpRingGroupTransitionFunction implements RingGroupTransitionFunction {
 
     @Override
-    public void manageTransitions(RingGroup ringGroup) throws IOException {
+    public void manageTransitions(Coordinator coordinator, RingGroup ringGroup) throws IOException {
       //  no-op
     }
   }
@@ -140,6 +143,11 @@ public class TestRingGroupConductor {
       @Override
       public Integer getTargetHostsPerRing() {
         return null;
+      }
+
+      @Override
+      public List<RingGroupConfiguredDomain> getConfiguredDomains() {
+        return Lists.newArrayList();
       }
 
       @Override

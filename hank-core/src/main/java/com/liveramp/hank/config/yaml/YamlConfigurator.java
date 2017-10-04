@@ -144,6 +144,15 @@ public abstract class YamlConfigurator implements Serializable {
     }
   }
 
+  protected Object getOptionalObject(String... optionPath){
+    try {
+      return getRequiredOption(optionPath);
+    } catch (InvalidConfigurationException e) {
+      return null;
+    }
+  }
+
+
   protected Double getRequiredDouble(String... optionPath) throws InvalidConfigurationException {
     Object option = getRequiredOption(optionPath);
     if (option != null && !(option instanceof Double)) {
