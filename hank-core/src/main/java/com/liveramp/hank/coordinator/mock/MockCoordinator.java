@@ -168,6 +168,11 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
+  public String getDataState() throws IOException {
+    return "";
+  }
+
+  @Override
   public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup) {
     return null;
   }

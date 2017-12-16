@@ -75,4 +75,8 @@ public interface Coordinator {
   public boolean deleteRingGroup(String ringGroupName) throws IOException;
 
   public void close() throws IOException;
+
+  //  this kinda breaks the interface, but I want a way to let the UI know that zookeeper isn't connected
+  public String getDataState() throws IOException;
+
 }
