@@ -10,7 +10,7 @@ body {
 }
 
 body {
-  font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Arial, Helvetica, sans-serif;\
+  font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Arial, Helvetica, sans-serif;
 }
 
 a {
@@ -265,4 +265,35 @@ table.table-blue td,
   background: #8cdbf3;
   margin-left: 10px;
   margin-right: 10px;
+}
+
+.coordinator-status {
+  display: inline-block;
+  float: right;
+  color: #d4d4d4;
+  text-decoration: none;
+}
+
+.data-CONNECTED {
+  color: #00a50c
+}
+
+.data-ASSOCIATING {
+  color: #ff4141
+}
+
+.data-CONNECTEDREADONLY {
+  color: #ff4141
+}
+
+.data-CLOSED {
+  color: #ff4141
+}
+
+.data-AUTH_FAILED {
+  color: #ff4141
+}
+
+.coordinator.NOT_CONNECTED {
+  color: #ff4141
 }

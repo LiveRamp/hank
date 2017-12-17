@@ -413,6 +413,11 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
+  public String getDataState() throws IOException {
+    return zk.getState().name();
+  }
+
+  @Override
   public String toString() {
     return "ZooKeeperCoordinator [quorum=" + getConnectString()
         + ", domainsRoot=" + domainsRoot + ", domainGroupsRoot="
