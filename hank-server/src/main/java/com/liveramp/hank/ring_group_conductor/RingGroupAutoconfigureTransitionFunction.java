@@ -146,6 +146,7 @@ public class RingGroupAutoconfigureTransitionFunction implements RingGroupTransi
 
         if(!storageEngineOptions.equals(configuredStorageEngineOptions)){
           LOG.info("Configured options "+configuredStorageEngineOptions+" does not match existing: "+storageEngineOptions);
+          matchesConfiguration = false;
         }
 
         if(!matchesConfiguration) {
