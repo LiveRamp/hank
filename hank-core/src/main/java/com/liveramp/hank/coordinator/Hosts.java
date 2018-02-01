@@ -110,19 +110,9 @@ public final class Hosts {
     }
 
     Set<DomainAndVersion> domainAndVersion = new HashSet<>();
-    for (DomainAndVersion d : domainGroup.getDomainVersions()) {
-      if (d.getDomain().equals(domain)) domainAndVersion.add(d);
-    }
+    domainAndVersion.add(domainGroup.getDomainVersion(domain));
 
-    if (!allPartitionsUpToDate(host, domainAndVersion, false)) {
-      return false;
-    }
-
-    if (isAssignedDeletablePartition(host)) {
-      return false;
-    }
-
-    return true;
+    return isUpToDateOrMoreRecent(host, domainAndVersion);
   }
 
   public static boolean isUpToDateOrMoreRecent(Host host, Collection<DomainAndVersion> domainVersions) throws IOException {
