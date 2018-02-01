@@ -56,9 +56,6 @@ public class TestWebUiServer extends ZkTestCase {
     ZooKeeperCoordinator zkCoord = (ZooKeeperCoordinator) coordinator;
     expireSession(zkCoord.getSessionId());
 
-    //  startup zk server
-    setupZkServer();
-
     //  verify that the ui dies because the sessions expired
     WaitUntil.orDie(() -> !hankUIRunning());
 

@@ -83,7 +83,7 @@ import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 
-import static com.liveramp.hank.test.ConfigFixtures.coordinatorConfig;
+import static com.liveramp.hank.test.CoreConfigFixtures.coordinatorConfig;
 import static org.junit.Assert.assertEquals;
 
 public class IntegrationTest extends ZkTestCase {
@@ -101,7 +101,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("  " + YamlSmartClientDaemonConfigurator.SERVICE_PORT_KEY + ": 50004");
       pw.println("  " + YamlSmartClientDaemonConfigurator.NUM_WORKER_THREADS + ": 1");
       pw.println("  " + YamlSmartClientDaemonConfigurator.RING_GROUP_NAME_KEY + ": rg1");
-      pw.println(coordinatorConfig(getZkClientPort(), domainsRoot, domainGroupsRoot, ringGroupsRoot));
+      pw.println(coordinatorConfig(getZkClientPort(), 100000, domainsRoot, domainGroupsRoot, ringGroupsRoot));
       pw.close();
       configurator = new YamlSmartClientDaemonConfigurator(configPath);
     }
