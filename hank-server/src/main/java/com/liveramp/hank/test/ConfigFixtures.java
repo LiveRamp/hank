@@ -1,4 +1,4 @@
-package com.liveramp.hank.fixtures;
+package com.liveramp.hank.test;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,31 +16,11 @@ import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
-import com.liveramp.hank.ring_group_conductor.RingGroupConductor;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 
+import static com.liveramp.hank.test.CoreConfigFixtures.coordinatorConfig;
+
 public class ConfigFixtures {
-
-  public static String coordinatorConfig(int zkPort,
-                                         String domainsRoot,
-                                         String domainGroupsRoot,
-                                         String ringGroupsRoot) {
-
-    StringBuilder builder = new StringBuilder();
-
-    builder.append(
-        "coordinator:\n" +
-            "  factory: com.liveramp.hank.coordinator.zk.ZooKeeperCoordinator$Factory\n" +
-            "  options:\n" +
-            "    connect_string: localhost:").append(zkPort).append("\n")
-        .append("    session_timeout: 1000000\n");
-    builder.append("    domains_root: ").append(domainsRoot).append("\n");
-    builder.append("    domain_groups_root: ").append(domainGroupsRoot).append("\n");
-    builder.append("    ring_groups_root: ").append(ringGroupsRoot).append("\n");
-    builder.append("    max_connection_attempts: 5\n");
-
-    return builder.toString();
-  }
 
   public static String ringGroupConductorConfig(int zkPort,
                                                 String ringGroupName,
@@ -88,7 +68,7 @@ public class ConfigFixtures {
     }
     
     
-    builder.append(coordinatorConfig(zkPort, domainsRoot, domainGroupsRoot, ringGroupsRoot));
+    builder.append(coordinatorConfig(zkPort, 1000000, domainsRoot, domainGroupsRoot, ringGroupsRoot));
 
     
     
@@ -122,27 +102,9 @@ public class ConfigFixtures {
     builder.append("  " + YamlPartitionServerConfigurator.UPDATE_DAEMON_SECTION_KEY + ":\n");
     builder.append("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_UPDATES_KEY + ": 1\n");
     builder.append("    " + YamlPartitionServerConfigurator.MAX_CONCURRENT_UPDATES_PER_DATA_DIRECTORY_KEY + ": 1\n");
-    builder.append(coordinatorConfig(zkPort, domainsRoot, domainGroupsRoot, ringGroupsRoot));
+    builder.append(coordinatorConfig(zkPort, 1000000, domainsRoot, domainGroupsRoot, ringGroupsRoot));
 
     return builder.toString();
-  }
-
-  public static Coordinator createCoordinator(String tmpDir,
-                                              int zkPort,
-                                              String domainsRoot,
-                                              String domainGroupsRoot,
-                                              String ringGroupsRoot) throws IOException, InvalidConfigurationException {
-
-    String tmpFile = tmpDir + "/" + UUID.randomUUID().toString();
-
-    FileWriter fileWriter = new FileWriter(tmpFile);
-    fileWriter.append(coordinatorConfig(zkPort, domainsRoot, domainGroupsRoot, ringGroupsRoot));
-    fileWriter.close();
-
-    CoordinatorConfigurator config = new YamlClientConfigurator(tmpFile);
-
-    return config.createCoordinator();
-
   }
 
   public static RingGroupConductorConfigurator createRGCConfigurator(String tmpDir,

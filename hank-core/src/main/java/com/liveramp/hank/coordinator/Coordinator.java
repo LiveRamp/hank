@@ -79,4 +79,10 @@ public interface Coordinator {
   //  this kinda breaks the interface, but I want a way to let the UI know that zookeeper isn't connected
   public String getDataState() throws IOException;
 
+  public interface StateChangeListener {
+    public void process(String newState);
+  }
+
+  public void addDataStateChangeListener(StateChangeListener listener);
+
 }

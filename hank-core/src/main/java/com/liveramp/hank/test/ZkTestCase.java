@@ -1,17 +1,17 @@
 /**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Copyright 2011 LiveRamp
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.liveramp.hank.test;
 
@@ -70,12 +70,33 @@ public abstract class ZkTestCase extends BaseTestCase {
     zkRoot = "/" + getClass().getSimpleName();
   }
 
+
+  public static void shutdownZkServer() throws Exception {
+    if (server != null) {
+      server.shutdown();
+
+      standaloneServerFactory.shutdown();
+      standaloneServerFactory = null;
+
+      server = null;
+    }
+  }
+
+  public static void expireSession(long sessionId){
+    server.closeSession(sessionId);
+  }
+
+  @Before
+  public void clearZkDir() throws IOException {
+    LOG.debug("deleting zk data dir (" + zkDir + ")");
+    File zkDirFile = new File(zkDir);
+    FileUtils.deleteDirectory(zkDirFile);
+    zkDirFile.mkdirs();
+  }
+
   public static void setupZkServer() throws Exception {
     if (server == null) {
-      LOG.debug("deleting zk data dir (" + zkDir + ")");
       File zkDirFile = new File(zkDir);
-      FileUtils.deleteDirectory(zkDirFile);
-      zkDirFile.mkdirs();
 
       server = new ZooKeeperServer(zkDirFile, zkDirFile, TICK_TIME);
 
@@ -127,7 +148,6 @@ public abstract class ZkTestCase extends BaseTestCase {
         LOG.debug(event.toString());
       }
     });
-    zk.reconnect();
 
     synchronized (lock) {
       lock.wait(2000);
@@ -260,7 +280,7 @@ public abstract class ZkTestCase extends BaseTestCase {
   }
 
   protected void create(String path) throws Exception {
-    create(path, (byte[]) null);
+    create(path, (byte[])null);
   }
 
   protected void create(String path, String data) throws Exception {

@@ -1,18 +1,10 @@
 package com.liveramp.hank.fixtures;
 
-import java.io.FileWriter;
-import java.io.PrintWriter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.liveramp.hank.IntegrationTest;
 import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
-import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.partition_server.PartitionServer;
-
-import static com.liveramp.hank.fixtures.ConfigFixtures.coordinatorConfig;
 
 public class PartitionServerRunnable implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(PartitionServerRunnable.class);

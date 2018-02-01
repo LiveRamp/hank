@@ -173,6 +173,11 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
+  public void addDataStateChangeListener(StateChangeListener listener) {
+    //  no-op
+  }
+
+  @Override
   public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup) {
     return null;
   }
