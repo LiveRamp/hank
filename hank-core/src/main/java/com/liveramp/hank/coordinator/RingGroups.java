@@ -51,6 +51,15 @@ public final class RingGroups {
     return true;
   }
 
+  public static boolean isUpToDate(RingGroup ringGroup, DomainGroup domainGroup, Domain domain) throws IOException {
+    for (Ring ring : ringGroup.getRings()) {
+      if (!Rings.isUpToDate(ring, domainGroup, domain)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // Return true iff each host is either up to date or not serving any data
   public static boolean isServingOnlyUpToDate(RingGroup ringGroup) throws IOException {
     DomainGroup domainGroup = ringGroup.getDomainGroup();
