@@ -21,8 +21,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
@@ -97,6 +99,20 @@ public final class Hosts {
     }
 
     return true;
+  }
+
+  // Return true if all partitions assigned to that host for the given domain are at the correct version, and
+  // there are no deletable partitions.
+  public static boolean isUpToDate(Host host, DomainGroup domainGroup, Domain domain) throws IOException {
+
+    if (domain == null || domain.getVersions() == null) {
+      return false;
+    }
+
+    Set<DomainAndVersion> domainAndVersion = new HashSet<>();
+    domainAndVersion.add(domainGroup.getDomainVersion(domain));
+
+    return isUpToDateOrMoreRecent(host, domainAndVersion);
   }
 
   public static boolean isUpToDateOrMoreRecent(Host host, Collection<DomainAndVersion> domainVersions) throws IOException {

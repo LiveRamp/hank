@@ -65,6 +65,15 @@ public class Rings {
     return true;
   }
 
+  public static boolean isUpToDate(Ring ring, DomainGroup domainGroup, Domain domain) throws IOException {
+    for (Host host : ring.getHosts()) {
+      if (!Hosts.isUpToDate(host, domainGroup, domain)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static UpdateProgressAggregator computeUpdateProgress(Ring ring,
                                                                DomainGroup domainGroup) throws IOException {
     UpdateProgressAggregator result = new UpdateProgressAggregator();
