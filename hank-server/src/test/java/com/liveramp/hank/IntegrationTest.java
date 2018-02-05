@@ -45,11 +45,9 @@ import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.SmartClientDaemonConfigurator;
 import com.liveramp.hank.config.yaml.YamlClientConfigurator;
 import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
-import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
@@ -64,7 +62,7 @@ import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.RingGroups;
 import com.liveramp.hank.coordinator.Rings;
-import com.liveramp.hank.fixtures.ConfigFixtures;
+import com.liveramp.hank.test.ConfigFixtures;
 import com.liveramp.hank.fixtures.PartitionServerRunnable;
 import com.liveramp.hank.fixtures.RingGroupConductorRunnable;
 import com.liveramp.hank.generated.HankBulkResponse;
@@ -74,7 +72,6 @@ import com.liveramp.hank.generated.SmartClient;
 import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.partitioner.Partitioner;
-import com.liveramp.hank.ring_group_conductor.RingGroupConductor;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.StorageEngine;
@@ -86,7 +83,7 @@ import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 
-import static com.liveramp.hank.fixtures.ConfigFixtures.coordinatorConfig;
+import static com.liveramp.hank.test.CoreConfigFixtures.coordinatorConfig;
 import static org.junit.Assert.assertEquals;
 
 public class IntegrationTest extends ZkTestCase {
@@ -104,7 +101,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("  " + YamlSmartClientDaemonConfigurator.SERVICE_PORT_KEY + ": 50004");
       pw.println("  " + YamlSmartClientDaemonConfigurator.NUM_WORKER_THREADS + ": 1");
       pw.println("  " + YamlSmartClientDaemonConfigurator.RING_GROUP_NAME_KEY + ": rg1");
-      pw.println(coordinatorConfig(getZkClientPort(), domainsRoot, domainGroupsRoot, ringGroupsRoot));
+      pw.println(coordinatorConfig(getZkClientPort(), 100000, domainsRoot, domainGroupsRoot, ringGroupsRoot));
       pw.close();
       configurator = new YamlSmartClientDaemonConfigurator(configPath);
     }

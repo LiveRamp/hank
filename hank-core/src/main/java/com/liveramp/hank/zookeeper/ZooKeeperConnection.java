@@ -16,12 +16,16 @@
 package com.liveramp.hank.zookeeper;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
+
+import com.liveramp.hank.coordinator.Coordinator;
 
 /**
  * Base class that should be used by any class intending to connect to the
@@ -46,7 +50,10 @@ public class ZooKeeperConnection implements Watcher {
   private CountDownLatch connectedSignal = new CountDownLatch(1);
 
   private String connectString;
+  private int sessionTimeout;
   private int maxConnectAttempts;
+
+  private final List<Coordinator.StateChangeListener> listeners = Lists.newArrayList();
 
   /**
    * Creates a new connection to the ZooKeeper service. Blocks until we are
@@ -86,13 +93,12 @@ public class ZooKeeperConnection implements Watcher {
    */
   public ZooKeeperConnection(String connectString, int sessionTimeout, int maxConnectAttempts) throws InterruptedException {
     this.connectString = connectString;
+    this.sessionTimeout = sessionTimeout;
     this.maxConnectAttempts = maxConnectAttempts;
 
     LOG.info("ZooKeeperConnection.connectString = "+connectString);
     LOG.info("ZooKeeperConnection.sessionTimeout = "+sessionTimeout);
     LOG.info("ZooKeeperConnection.maxConnectionAttempts = "+maxConnectAttempts);
-
-    this.zk = new ZooKeeperPlus(connectString, sessionTimeout, this);
 
     try {
       //  TODO not sure what the right way to do this is.  by using a finite limit here, we avoid hanging for eternity on startup,
@@ -121,7 +127,8 @@ public class ZooKeeperConnection implements Watcher {
     while (true) {
       try {
         LOG.info("Attempting ZooKeeperReconnect");
-        zk.reconnect();
+        zk = new ZooKeeperPlus(connectString, sessionTimeout, this);
+
         // We return as soon as the assignment has succeeded.
         return;
       } catch (IOException e) {
@@ -147,13 +154,13 @@ public class ZooKeeperConnection implements Watcher {
   /**
    * Listens for notifications from the ZooKeeper service telling that we have
    * been connected, disconnected, or our session has expired.
-   *
+   * <p/>
    * Upon connection, we first make a call to {@link #onConnect()}, and then we
    * release all threads that are blocking on {@link #waitForConnection()}.
-   *
+   * <p/>
    * Upon disconnection, we call {@link #onDisconnect()}, and then we reset the
    * latch to block any threads that call {@link #waitForConnection()}.
-   *
+   * <p/>
    * On session expiry, we call {@link #onSessionExpire()}, reset the latch, and
    * then manually try to reconnect to the ZooKeeper service.
    *
@@ -164,6 +171,11 @@ public class ZooKeeperConnection implements Watcher {
     if (event.getType() == Event.EventType.None) {
       KeeperState state = event.getState();
       LOG.info("Getting event: "+state);
+
+      for (Coordinator.StateChangeListener listener : listeners) {
+        listener.process(state.name());
+      }
+
       switch (state) {
         case SyncConnected:
           onConnect();
@@ -226,4 +238,13 @@ public class ZooKeeperConnection implements Watcher {
   public String getConnectString() {
     return connectString;
   }
+
+  public void addDataStateChangeListener(Coordinator.StateChangeListener listener) {
+    listeners.add(listener);
+  }
+
+  public long getSessionId(){
+    return zk.getSessionId();
+  }
+
 }

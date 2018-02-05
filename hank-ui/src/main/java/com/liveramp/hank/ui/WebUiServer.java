@@ -1,11 +1,14 @@
 package com.liveramp.hank.ui;
 
 import javax.servlet.DispatcherType;
+import java.io.IOException;
 import java.net.URL;
 import java.util.EnumSet;
+import java.util.function.Function;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -16,6 +19,8 @@ import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import com.liveramp.hank.config.CoordinatorConfigurator;
+import com.liveramp.hank.config.InvalidConfigurationException;
+import com.liveramp.hank.config.MonitorConfigurator;
 import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
 import com.liveramp.hank.config.yaml.YamlMonitorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -36,13 +41,15 @@ public class WebUiServer {
 
   private final IClientCache clientCache;
 
-  public WebUiServer(Coordinator coordinator, IClientCache clientCache, int port) {
+  public WebUiServer(Coordinator coordinator,
+                     IClientCache clientCache,
+                     int port) {
     this.coordinator = coordinator;
     this.clientCache = clientCache;
     this.port = port;
   }
 
-  void run() throws Exception {
+  void run(Runnable onShutdown) throws Exception {
     // get the server
     Server server = new Server(port);
 
@@ -80,6 +87,17 @@ public class WebUiServer {
     contexts.setHandlers(new Handler[]{servletHandler, webAppContext});
     server.setHandler(contexts);
 
+    coordinator.addDataStateChangeListener(newState -> {
+      if(newState.equals(Watcher.Event.KeeperState.Expired.name())) {
+        try {
+          server.stop();
+          onShutdown.run();
+        } catch (Exception e) {
+          LOG.error("Error shutting down server", e);
+        }
+      }
+    });
+
     server.start();
     server.join();
   }
@@ -95,7 +113,27 @@ public class WebUiServer {
 
     CoordinatorConfigurator webUiConfigurator = new YamlCoordinatorConfigurator(clientConfigPath);
     Coordinator coordinator = webUiConfigurator.createCoordinator();
-    new Monitor(coordinator, new YamlMonitorConfigurator(monitorConfigPath));
-    new WebUiServer(coordinator, new ClientCache(coordinator), port).run();
+    MonitorConfigurator monitorConfigurator = new YamlMonitorConfigurator(monitorConfigPath);
+
+    start(monitorConfigurator, coordinator, port);
+
+  }
+
+  public static void start(MonitorConfigurator monitorConfigurator,
+                         Coordinator coordinator,
+                         int port) throws Exception {
+
+    Monitor monitor = new Monitor(coordinator, monitorConfigurator);
+    WebUiServer server = new WebUiServer(coordinator, new ClientCache(coordinator), port);
+
+    server.run(() -> {
+      try {
+        monitor.stop();
+        coordinator.close();
+      } catch (IOException e) {
+        LOG.error("Error shutting down", e);
+      }
+    });
+
   }
 }

@@ -4,16 +4,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.apache.log4j.Level;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Test;
@@ -21,7 +17,6 @@ import org.junit.Test;
 import com.liveramp.commons.collections.map.MapBuilder;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.config.RingGroupConductorConfigurator;
 import com.liveramp.hank.config.RingGroupConfiguredDomain;
 import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -34,9 +29,10 @@ import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
-import com.liveramp.hank.fixtures.ConfigFixtures;
+import com.liveramp.hank.test.ConfigFixtures;
 import com.liveramp.hank.fixtures.PartitionServerRunnable;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.liveramp.hank.test.CoreConfigFixtures;
 import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
@@ -64,7 +60,8 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
     create(domainGroupsRoot);
     create(ringGroupsRoot);
 
-    Coordinator coordinator = ConfigFixtures.createCoordinator(localTmpDir, getZkClientPort(),
+    Coordinator coordinator = CoreConfigFixtures.createCoordinator(localTmpDir, getZkClientPort(),
+        1000000,
         domainsRoot,
         domainGroupsRoot,
         ringGroupsRoot

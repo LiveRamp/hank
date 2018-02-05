@@ -100,7 +100,12 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
       }
     };
     WebUiServer uiServer = new WebUiServer(getWebUiMockCoordinator(), clientCache, 12345);
-    uiServer.run();
+    uiServer.run(new Runnable() {
+      @Override
+      public void run() {
+
+      }
+    });
   }
 
   private Coordinator getWebUiMockCoordinator() throws Exception {
