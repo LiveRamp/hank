@@ -443,7 +443,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
         // Signal that update thread is done.
         updateThread = null;
-        
+
         // Move on to next command
         try {
           nextCommandSynchronized(); // In case of exception, server will stop and state will be coherent.

@@ -136,7 +136,7 @@
     <td><%= DomainVersions.getTotalNumBytes(version)/1000000 %> MB</td>
     <td><%= String.format("%,d", DomainVersions.getTotalNumRecords(version)) %></td>
     <td>
-      <% if (DomainVersions.isClosed(version) && !version.isDefunct()) { %>
+      <% if (DomainVersions.isClosed(version) && !version.isDefunct()  && !DomainVersions.isCurrentlyServed(domain, version, coord)) { %>
       <form action="/domain/defunctify" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
@@ -145,7 +145,7 @@
       </form>
       <% } %>
 
-      <% if (DomainVersions.isClosed(version) && version.isDefunct()) { %>
+      <% if (DomainVersions.isClosed(version) && version.isDefunct() && !DomainVersions.isCurrentlyServed(domain, version, coord)) { %>
       <form action="/domain/undefunctify" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
