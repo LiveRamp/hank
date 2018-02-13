@@ -440,14 +440,17 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         } catch (IOException e) {
           LOG.error("Failed to record state change.", e);
         }
+
+        // Signal that update thread is done.
+        updateThread = null;
+        
         // Move on to next command
         try {
           nextCommandSynchronized(); // In case of exception, server will stop and state will be coherent.
         } catch (IOException e) {
           LOG.error("Failed to move on to next command.", e);
         }
-        // Signal that update thread is done.
-        updateThread = null;
+
       }
     };
     updateThread = new Thread(updateRunnable, "Update manager thread");
