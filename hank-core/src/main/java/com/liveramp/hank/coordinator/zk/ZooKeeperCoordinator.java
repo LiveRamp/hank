@@ -25,10 +25,10 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import com.google.common.collect.Lists;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.CoordinatorFactory;
@@ -175,9 +175,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     this.domainGroupsRoot = domainGroupsRoot;
     this.ringGroupsRoot = ringGroupsRoot;
 
-    LOG.info("ZooKeeperCoordinator.domainsRoot: ",domainsRoot);
-    LOG.info("ZooKeeperCoordinator.domainGroupsRoot: ",domainGroupsRoot);
-    LOG.info("ZooKeeperCoordinator.ringGroupsRoot: ",ringGroupsRoot);
+    LOG.info("ZooKeeperCoordinator.domainsRoot: {}",domainsRoot);
+    LOG.info("ZooKeeperCoordinator.domainGroupsRoot: {}",domainGroupsRoot);
+    LOG.info("ZooKeeperCoordinator.ringGroupsRoot: {}",ringGroupsRoot);
 
     // Domains
     zk.ensureCreated(domainsRoot, null);
