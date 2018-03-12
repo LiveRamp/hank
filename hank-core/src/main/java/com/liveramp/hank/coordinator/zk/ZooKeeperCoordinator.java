@@ -164,13 +164,12 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    * @throws KeeperException
    * @throws IOException
    */
-  ZooKeeperCoordinator(String zkConnectString,
-                       int sessionTimeoutMs,
-                       String domainsRoot,
-                       String domainGroupsRoot,
-                       String ringGroupsRoot,
-                       int maxConnectAttempts)
-      throws InterruptedException, KeeperException, IOException {
+  public ZooKeeperCoordinator(String zkConnectString,
+                              int sessionTimeoutMs,
+                              String domainsRoot,
+                              String domainGroupsRoot,
+                              String ringGroupsRoot,
+                              int maxConnectAttempts) throws InterruptedException, KeeperException, IOException {
     super(zkConnectString, sessionTimeoutMs, maxConnectAttempts);
     this.domainsRoot = domainsRoot;
     this.domainGroupsRoot = domainGroupsRoot;
