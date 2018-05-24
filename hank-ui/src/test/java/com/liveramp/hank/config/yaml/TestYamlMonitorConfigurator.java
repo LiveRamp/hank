@@ -4,6 +4,8 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
 import com.liveramp.hank.monitor.notifier.Notifier;
 import com.liveramp.hank.monitor.notifier.mock.MockNotifier;
+
+import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import java.io.FileWriter;
@@ -54,7 +56,7 @@ public class TestYamlMonitorConfigurator extends BaseTestCase {
     assertTrue(globalNotifier instanceof MockNotifier);
     assertEquals("b", ((MockNotifier) globalNotifier).getConfiguration().get("b"));
 
-    List<Notifier> ringNotifiers1 = configurator.getRingGroupNotifiers(new MockRingGroup(null, "rg1", null));
+    List<Notifier> ringNotifiers1 = configurator.getRingGroupNotifiers(new MockRingGroup(null, "rg1", Sets.newHashSet()));
     Notifier ringNotifier11 = ringNotifiers1.get(0);
     Notifier ringNotifier12 = ringNotifiers1.get(1);
     assertTrue(ringNotifier11 instanceof MockNotifier);
@@ -62,7 +64,7 @@ public class TestYamlMonitorConfigurator extends BaseTestCase {
     assertEquals("b", ((MockNotifier) ringNotifier11).getConfiguration().get("b"));
     assertEquals("c", ((MockNotifier) ringNotifier12).getConfiguration().get("c"));
 
-    List<Notifier> ringNotifiers2 = configurator.getRingGroupNotifiers(new MockRingGroup(null, "rg2", null));
+    List<Notifier> ringNotifiers2 = configurator.getRingGroupNotifiers(new MockRingGroup(null, "rg2", Sets.newHashSet()));
     Notifier ringNotifier22 = ringNotifiers2.get(0);
     assertTrue(ringNotifier22 instanceof MockNotifier);
     assertEquals("c", ((MockNotifier) ringNotifier22).getConfiguration().get("c"));

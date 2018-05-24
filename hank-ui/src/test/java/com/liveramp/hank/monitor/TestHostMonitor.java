@@ -28,6 +28,8 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
+
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 
 public class TestHostMonitor extends BaseTestCase {
 
-  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", null);
+  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", Sets.newHashSet());
   private Ring mockRing = new MockRing(null, mockRingGroup, 0);
   private Host mockHost;
   private MockNotifier mockNotifier;

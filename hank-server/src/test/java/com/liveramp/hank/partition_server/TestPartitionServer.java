@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.Before;
@@ -106,7 +107,7 @@ public class TestPartitionServer extends BaseTestCase {
       }
     };
 
-    final RingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", null) {
+    final RingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", Sets.newHashSet()) {
       @Override
       public Ring getRingForHost(PartitionServerAddress hostAddress) {
         return mockRing;
@@ -244,7 +245,7 @@ public class TestPartitionServer extends BaseTestCase {
 
     final Map<PartitionServerAddress, Ring> hostToRing = Maps.newHashMap();
 
-    final RingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", null) {
+    final RingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", Sets.newHashSet()) {
       @Override
       public Ring getRingForHost(PartitionServerAddress hostAddress) {
         return hostToRing.get(hostAddress);

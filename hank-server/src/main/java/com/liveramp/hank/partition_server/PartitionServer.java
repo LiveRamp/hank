@@ -143,7 +143,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       Thread.sleep(HOST_RING_CONNECT_SLEEP_TIME_MS_DEFAULT);
     }
     if (Hosts.isOnline(host)) {
-      throw new RuntimeException("Could not start a partition server for host " + host
+      throw new RuntimeException("Could not start a partition server for host " +   host
           + " since it is already online.");
     }
     host.setCommandQueueChangeListener(this);
@@ -210,7 +210,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       @Override
       public void run() {
         //TODO make these configurable
-        long units = 10l;
+        long units = 10L;
         TimeUnit unit = TimeUnit.MINUTES;
         try {
           while (true) {

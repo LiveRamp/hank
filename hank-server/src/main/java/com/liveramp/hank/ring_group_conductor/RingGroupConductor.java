@@ -51,18 +51,24 @@ public class RingGroupConductor {
   public RingGroupConductor(RingGroupConductorConfigurator configurator) throws IOException {
     this(configurator,
         new RingGroupUpdateTransitionFunctionImpl(new RendezVousPartitionAssigner(),
-            configurator.getMinRingFullyServingObservations(),
-            configurator.getMinServingReplicas(),
-            configurator.getMinServingFraction(),
-            configurator.getAvailabilityBucketMinServingReplicas(),
-            configurator.getMinAvailabilityBucketServingFraction(),
-            configurator.getHostAvailabilityBucketFlag()
+            statusFor(configurator)
         ),
         new RingGroupAutoconfigureTransitionFunction(
             configurator.getTargetHostsPerRing(),
             configurator.getConfiguredDomains(),
-            configurator.getHostAvailabilityBucketFlag()
+            statusFor(configurator)
         )
+    );
+  }
+
+  private static HostReplicaStatus statusFor(RingGroupConductorConfigurator configurator) {
+    return new HostReplicaStatus(
+        configurator.getMinRingFullyServingObservations(),
+        configurator.getMinServingReplicas(),
+        configurator.getAvailabilityBucketMinServingReplicas(),
+        configurator.getMinServingFraction(),
+        configurator.getMinAvailabilityBucketServingFraction(),
+        configurator.getHostAvailabilityBucketFlag()
     );
   }
 
@@ -85,16 +91,16 @@ public class RingGroupConductor {
       ringGroup = coordinator.getRingGroup(ringGroupName);
 
       RingGroupConductorMode initialMode = configurator.getInitialMode();
-      LOG.info("Starting with initial mode: "+initialMode);
+      LOG.info("Starting with initial mode: " + initialMode);
 
       if (initialMode == RingGroupConductorMode.AUTOCONFIGURE) {
 
         if (ringGroup == null) {
-          LOG.info("Creating ring group: "+ringGroupName);
+          LOG.info("Creating ring group: " + ringGroupName);
 
           DomainGroup domainGroup = coordinator.getDomainGroup(ringGroupName);
           if (domainGroup == null) {
-            LOG.info("Creating domain group: "+ringGroupName);
+            LOG.info("Creating domain group: " + ringGroupName);
             domainGroup = coordinator.addDomainGroup(ringGroupName);
           }
 
@@ -105,7 +111,7 @@ public class RingGroupConductor {
 
       // attempt to claim the ring group conductor title
       if (ringGroup.claimRingGroupConductor(initialMode)) {
-        LOG.info("Claimed initial mode: "+initialMode);
+        LOG.info("Claimed initial mode: " + initialMode);
         claimedRingGroupConductor = true;
 
         ringGroup.setRingGroupConductorMode(initialMode);

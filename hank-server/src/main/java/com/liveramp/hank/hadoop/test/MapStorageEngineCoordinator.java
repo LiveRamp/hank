@@ -29,6 +29,7 @@ import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.coordinator.mock.StaticMockDomain;
 import com.liveramp.hank.hadoop.DomainBuilderProperties;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
@@ -68,7 +69,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
           globalOptions.get(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION) + "/"
               + domainName);
     }
-    return new MockDomain(domainName, 0,
+    return new StaticMockDomain(domainName, 0,
         this.numPartitions,
         new ModPartitioner(),
         new MapStorageEngine(domainName),

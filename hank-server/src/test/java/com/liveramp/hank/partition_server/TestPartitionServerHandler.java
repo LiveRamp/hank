@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.thrift.TException;
 import org.junit.Test;
 
@@ -164,7 +165,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
         return result;
       }
     };
-    final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", null);
+    final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", Sets.newHashSet());
 
     final MockRing mockRing = new MockRing(null, rg, 1) {
       @Override
@@ -177,7 +178,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
       @Override
       public RingGroup getRingGroup(String ringGroupName) {
         assertEquals("myRingGroupName", ringGroupName);
-        return new MockRingGroup(dg, "myRingGroupName", null) {
+        return new MockRingGroup(dg, "myRingGroupName", Sets.newHashSet()) {
           @Override
           public Ring getRingForHost(PartitionServerAddress hostAddress) {
             return mockRing;

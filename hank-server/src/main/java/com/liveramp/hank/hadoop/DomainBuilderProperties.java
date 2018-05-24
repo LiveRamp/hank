@@ -389,6 +389,9 @@ public class DomainBuilderProperties {
     Domain domain = getDomain(coordinator, domainName);
     DomainVersion domainVersion = domain.getVersionShallow(domainVersionNumber);
     if (domainVersion == null) {
+
+      System.out.println(domain.getVersions());
+
       throw new IOException("Could not get version " + domainVersionNumber + " of domain " + domainName
           + " with coordinator: " + coordinator);
     } else {

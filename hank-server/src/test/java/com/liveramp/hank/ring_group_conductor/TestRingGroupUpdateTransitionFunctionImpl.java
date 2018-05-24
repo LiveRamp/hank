@@ -147,7 +147,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     partitionAssigner = new ModPartitionAssigner();
 
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0, 2, 0, 0, 0, null);
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
+        new HostReplicaStatus(0, 2, 0, 0, 0, null));
 
     // V1
     versionsMap1.put(domain1, 1);
@@ -189,14 +190,10 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
   @Test
   public void testIsFullyServing() throws IOException {
+
     RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(
         null,
-        1,
-        2,
-        0,
-        0,
-        0,
-        null
+        new HostReplicaStatus(1, 2, 0, 0, 0, null)
     );
 
     setUpRing(r0, v1, v1, HostState.IDLE);
@@ -705,14 +702,10 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r2, v1, v2, HostState.SERVING);
 
     //  require at least 1 replica up per AZ.
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
-        0,
-        1,
-        0,
-        1,
-        0,
-        "AZ"
-    );
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, new HostReplicaStatus(
+        0, 1, 1, 0, 0, "AZ"
+    ));
+
     testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
@@ -748,8 +741,17 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r2, v1, v2, HostState.SERVING);
 
     //  no minimum number of replicas per zone
+
     testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
-        0, 1, 0, 0, 0, "AZ");
+        new HostReplicaStatus(
+            0,
+            1,
+            0,
+            0,
+            0,
+            "AZ")
+    );
+
     testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
@@ -785,14 +787,15 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, v1, v2, HostState.SERVING);
     setUpRing(r2, v1, v2, HostState.SERVING);
 
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, new HostReplicaStatus(
+        0,
+        0,
+        0,
+        .5,
+        .5,
+        "AZ"
+    ));
 
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
-        0,
-        0,
-        .5,
-        0,
-        .5,
-        "AZ");
     testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
@@ -825,13 +828,26 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r0, v1, v2, HostState.SERVING);
     setUpRing(r2, v1, v2, HostState.SERVING);
 
+    /*
+     int minRingFullyServingObservations,
+     int minServingReplicas,
+     double minServingFraction,
+     int minServingAvailabilityBucketReplicas,
+     double minServingAvailabilityBucketFraction,
+     String availabilityBucketKey
+     */
+
     testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
-        0,
-        0,
-        .6,
-        0,
-        0,
-        "AZ");
+        new HostReplicaStatus(
+            0,
+            0,
+            0,
+            .6,
+            0,
+            "AZ"
+        )
+    );
+
     testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
@@ -861,12 +877,9 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r2, v1, v2, HostState.SERVING);
 
     testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner,
-        0,
-        0,
-        0,
-        0,
-        .6,
-        "AZ");
+        new HostReplicaStatus(0, 0, 0, 0, .6, "AZ")
+    );
+
     testTransitionFunction.manageTransitions(null, rg);
 
     //  r0 can go idle
@@ -877,9 +890,6 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertEquals(null, r1h0.getAndClearLastEnqueuedCommand());
     assertEquals(null, r1h1.getAndClearLastEnqueuedCommand());
 
-
   }
-
-
 
 }
