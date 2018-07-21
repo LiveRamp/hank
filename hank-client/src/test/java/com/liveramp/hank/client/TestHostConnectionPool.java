@@ -31,6 +31,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liveramp.commons.test.Condition;
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostState;
@@ -42,8 +44,6 @@ import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.partition_server.IfaceWithShutdown;
 import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -568,15 +568,10 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return iface1.numGets == 5
-            && iface1.numCompletedGets == 5
-            && iface2.numGets == 5
-            && iface2.numCompletedGets == 5;
-      }
-    });
+    WaitUntil.orDie(() -> iface1.numGets == 5
+        && iface1.numCompletedGets == 5
+        && iface2.numGets == 5
+        && iface2.numCompletedGets == 5);
 
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numGets);
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numCompletedGets);
@@ -603,15 +598,10 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return iface1.numGets == 5
-            && iface1.numCompletedGets == 5
-            && iface2.numGets == 10
-            && iface2.numCompletedGets == 10;
-      }
-    });
+    WaitUntil.orDie(() -> iface1.numGets == 5
+        && iface1.numCompletedGets == 5
+        && iface2.numGets == 10
+        && iface2.numCompletedGets == 10);
 
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numGets);
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numCompletedGets);
@@ -629,7 +619,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     startMockPartitionServerThread1(iface1, 1);
     startMockPartitionServerThread2(iface2, 1);
 
-    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<>();
 
     int tryLockTimeoutMs = 0;
     int establishConnectionTimeoutMs = 0;
@@ -702,13 +692,8 @@ public class TestHostConnectionPool extends BaseTestCase {
         partitionServerAddress2);
     mockPartitionServerThread2 = new Thread(mockPartitionServer2);
     mockPartitionServerThread2.start();
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return mockPartitionServer2.dataServer != null
-            && mockPartitionServer2.dataServer.isServing();
-      }
-    });
+    WaitUntil.orDie(() -> mockPartitionServer2.dataServer != null
+        && mockPartitionServer2.dataServer.isServing());
   }
 
   private void startMockPartitionServerThread3(IfaceWithShutdown handler, int numWorkerThreads)
@@ -717,13 +702,8 @@ public class TestHostConnectionPool extends BaseTestCase {
         partitionServerAddress3);
     mockPartitionServerThread3 = new Thread(mockPartitionServer3);
     mockPartitionServerThread3.start();
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return mockPartitionServer3.dataServer != null
-            && mockPartitionServer3.dataServer.isServing();
-      }
-    });
+    WaitUntil.orDie(() -> mockPartitionServer3.dataServer != null
+        && mockPartitionServer3.dataServer.isServing());
   }
 
 }

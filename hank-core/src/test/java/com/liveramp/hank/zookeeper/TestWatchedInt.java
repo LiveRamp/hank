@@ -16,9 +16,8 @@
 
 package com.liveramp.hank.zookeeper;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -38,40 +37,24 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(1), wi.get());
 
     zk.setData(nodePath, "55".getBytes(), -1);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        Integer v = wi.get();
-        return v != null && v == 55;
-      }
+    WaitUntil.orDie(() -> {
+      Integer v = wi.get();
+      return v != null && v == 55;
     });
     assertEquals(Integer.valueOf(55), wi.get());
 
     zk.setData(nodePath, null, -1);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return wi.get() == null;
-      }
-    });
+    WaitUntil.orDie(() -> wi.get() == null);
     assertNull(wi.get());
 
     final WatchedInt wi2 = new WatchedInt(zk, nodePath, true);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return wi2.get() == null;
-      }
-    });
+    WaitUntil.orDie(() -> wi2.get() == null);
     assertNull(wi2.get());
     wi2.set(22);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        Integer v = wi.get();
-        Integer v2 = wi2.get();
-        return v2 != null && v2 == 22 && v != null && v == 22;
-      }
+    WaitUntil.orDie(() -> {
+      Integer v = wi.get();
+      Integer v2 = wi2.get();
+      return v2 != null && v2 == 22 && v != null && v == 22;
     });
     assertEquals(Integer.valueOf(22), wi2.get());
     assertEquals(Integer.valueOf(22), wi.get());
@@ -85,26 +68,18 @@ public class TestWatchedInt extends ZkTestCase {
     final WatchedInt wi = new WatchedInt(zk, nodePath, true);
     assertEquals(Integer.valueOf(0), wi.get());
 
-    WatchedNodeUpdater<Integer> incrementer = new WatchedNodeUpdater<Integer>() {
-      @Override
-      public Integer update(Integer current) {
-        if (current == null) {
-          return 0;
-        } else {
-          return current + 1;
-        }
+    WatchedNodeUpdater<Integer> incrementer = current -> {
+      if (current == null) {
+        return 0;
+      } else {
+        return current + 1;
       }
     };
     final int finalValue = 64;
     for (int i = 0; i < finalValue; ++i) {
       wi.update(incrementer);
     }
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return Integer.valueOf(finalValue).equals(wi.get());
-      }
-    });
+    WaitUntil.orDie(() -> Integer.valueOf(finalValue).equals(wi.get()));
     assertEquals(Integer.valueOf(finalValue), wi.get());
   }
 
@@ -116,22 +91,17 @@ public class TestWatchedInt extends ZkTestCase {
 
     assertNull(wi.get());
 
-    Thread t = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          // Wait before creating it
-          Thread.sleep(2000);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-        try {
-          zk.create(nodePath, "42".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        } catch (KeeperException e) {
-          throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
+    Thread t = new Thread(() -> {
+      try {
+        // Wait before creating it
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      try {
+        zk.create(nodePath, "42".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      } catch (KeeperException | InterruptedException e) {
+        throw new RuntimeException(e);
       }
     });
 

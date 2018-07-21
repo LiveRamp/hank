@@ -15,6 +15,7 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.HostCommand;
@@ -25,8 +26,6 @@ import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,7 +63,7 @@ public class TestZkHost extends ZkTestCase {
 
   @Test
   public void testCreateAndLoad() throws Exception {
-    final ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
+    final ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.emptyList());
     assertEquals(ADDRESS, host.getAddress());
     assertEquals(0, host.getCommandQueue().size());
     assertNull(host.getCurrentCommand());
@@ -73,15 +72,12 @@ public class TestZkHost extends ZkTestCase {
 
     host.setEphemeralStatistic("a", "A");
     host.setEphemeralStatistic("b", "B");
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return "A".equals(host.getStatistic("a"))
-              && "B".equals(host.getStatistic("b"));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return "A".equals(host.getStatistic("a"))
+            && "B".equals(host.getStatistic("b"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
     assertEquals("A", host.getStatistic("a"));
@@ -89,18 +85,13 @@ public class TestZkHost extends ZkTestCase {
     assertNull(host.getStatistic("c"));
 
     host.setAddress(OTHER_ADDRESS);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return host.getAddress().equals(OTHER_ADDRESS);
-      }
-    });
+    WaitUntil.orDie(() -> host.getAddress().equals(OTHER_ADDRESS));
     assertEquals(OTHER_ADDRESS, host.getAddress());
   }
 
   @Test
   public void testStateChangeListener() throws Exception {
-    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
+    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.emptyList());
     MockHostStateChangeListener mockListener = new MockHostStateChangeListener();
     host.setStateChangeListener(mockListener);
 
@@ -122,7 +113,7 @@ public class TestZkHost extends ZkTestCase {
 
   @Test
   public void testSetState() throws Exception {
-    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
+    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.emptyList());
     assertEquals(HostState.OFFLINE, host.getState());
     assertFalse(Hosts.isOnline(host));
 
@@ -140,7 +131,7 @@ public class TestZkHost extends ZkTestCase {
 
   @Test
   public void testCommandQueue() throws Exception {
-    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
+    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.emptyList());
     assertEquals(Collections.EMPTY_LIST, host.getCommandQueue());
     assertNull(host.getCurrentCommand());
 
@@ -167,7 +158,7 @@ public class TestZkHost extends ZkTestCase {
 
   @Test
   public void testCommandQueueListener() throws Exception {
-    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
+    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.emptyList());
     MockHostCommandQueueChangeListener l2 = new MockHostCommandQueueChangeListener();
     host.setCommandQueueChangeListener(l2);
     MockHostStateChangeListener l1 = new MockHostStateChangeListener();
@@ -220,18 +211,15 @@ public class TestZkHost extends ZkTestCase {
 
   @Test
   public void testDomains() throws Exception {
-    final ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
+    final ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.emptyList());
     assertEquals(0, host.getAssignedDomains().size());
 
     host.addDomain(d0);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return !host.getAssignedDomains().isEmpty();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return !host.getAssignedDomains().isEmpty();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
     HostDomain hostDomain = (HostDomain) host.getAssignedDomains().toArray()[0];
@@ -241,7 +229,7 @@ public class TestZkHost extends ZkTestCase {
 
   @Test
   public void testUptime() throws Exception {
-    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
+    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.emptyList());
     assertNull(host.getUpSince());
     final long currentTimeMillis = System.currentTimeMillis();
     host.setState(HostState.IDLE);

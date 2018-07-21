@@ -15,6 +15,8 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.Test;
 
 import com.liveramp.commons.collections.map.MapBuilder;
+import com.liveramp.commons.test.Condition;
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.config.RingGroupConfiguredDomain;
@@ -34,8 +36,6 @@ import com.liveramp.hank.fixtures.PartitionServerRunnable;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.CoreConfigFixtures;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 
 import static com.liveramp.hank.coordinator.zk.ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH;
@@ -130,28 +130,22 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
     });
 
     //  RGC should pick that up and create some rings for them
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return ringGroup.getRings().size() == 2 &&
-              ringGroup.getRing(0).getHosts().size() == 2;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return ringGroup.getRings().size() == 2 &&
+            ringGroup.getRing(0).getHosts().size() == 2;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
 
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
-        WaitUntil.orDie(new Condition() {
-          @Override
-          public boolean test() {
-            try {
-              return host.getState() == HostState.SERVING;
-            } catch (IOException e) {
-              throw new RuntimeException(e);
-            }
+        WaitUntil.orDie(() -> {
+          try {
+            return host.getState() == HostState.SERVING;
+          } catch (IOException e) {
+            throw new RuntimeException(e);
           }
         });
       }
@@ -185,18 +179,15 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
 
     conductor1.stop();
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return getZk().exists(ringGroupsRoot+"/group1/"+RING_GROUP_CONDUCTOR_ONLINE_PATH, false) == null;
-        } catch (KeeperException e) {
-          // eh
-        } catch (InterruptedException e) {
-          // eh
-        }
-        return true;
+    WaitUntil.orDie(() -> {
+      try {
+        return getZk().exists(ringGroupsRoot+"/group1/"+RING_GROUP_CONDUCTOR_ONLINE_PATH, false) == null;
+      } catch (KeeperException e) {
+        // eh
+      } catch (InterruptedException e) {
+        // eh
       }
+      return true;
     });
 
     //  restart conductor with new domain config
@@ -231,12 +222,7 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
 
     thread.start();
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return domain.getStorageEngineFactoryClassName().equals("storage_engine2");
-      }
-    });
+    WaitUntil.orDie(() -> domain.getStorageEngineFactoryClassName().equals("storage_engine2"));
 
 
   }

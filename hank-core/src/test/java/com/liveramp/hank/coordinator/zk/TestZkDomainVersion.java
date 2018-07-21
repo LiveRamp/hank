@@ -1,11 +1,10 @@
 package com.liveramp.hank.coordinator.zk;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersions;
 import com.liveramp.hank.generated.PartitionMetadata;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -60,14 +59,11 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertFalse(DomainVersions.isClosed(dv));
 
     dv.close();
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return dv.getClosedAt() != null;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return dv.getClosedAt() != null;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
     assertNotNull(dv.getClosedAt());
@@ -84,15 +80,12 @@ public class TestZkDomainVersion extends ZkTestCase {
 
     dv.addPartitionProperties(1, 2, 3);
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return dv.getPartitionsMetadata().size() == 1 &&
-              dv2.getPartitionsMetadata().size() == 1;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return dv.getPartitionsMetadata().size() == 1 &&
+            dv2.getPartitionsMetadata().size() == 1;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
 
@@ -112,28 +105,22 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertFalse(otherDv.isDefunct());
 
     dv.setDefunct(true);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return dv.isDefunct() && otherDv.isDefunct();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return dv.isDefunct() && otherDv.isDefunct();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
     assertTrue(dv.isDefunct());
     assertTrue(otherDv.isDefunct());
 
     dv.setDefunct(false);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return !dv.isDefunct() && !otherDv.isDefunct();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return !dv.isDefunct() && !otherDv.isDefunct();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
     assertFalse(dv.isDefunct());
