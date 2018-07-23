@@ -19,6 +19,12 @@
   <dependencies>
 
     <dependency>
+      <groupId>com.liveramp</groupId>
+      <artifactId>commons</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>hank-core</artifactId>
       <version>${project.version}</version>
