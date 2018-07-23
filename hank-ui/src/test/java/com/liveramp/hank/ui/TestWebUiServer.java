@@ -6,12 +6,12 @@ import java.util.Scanner;
 
 import org.junit.Test;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.config.MockMonitorConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.zk.ZooKeeperCoordinator;
 import com.liveramp.hank.test.CoreConfigFixtures;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 
 public class TestWebUiServer extends ZkTestCase {
