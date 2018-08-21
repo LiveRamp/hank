@@ -177,18 +177,7 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
       return false;
     });
 
-    conductor1.stop();
-
-    WaitUntil.orDie(() -> {
-      try {
-        return getZk().exists(ringGroupsRoot+"/group1/"+RING_GROUP_CONDUCTOR_ONLINE_PATH, false) == null;
-      } catch (KeeperException e) {
-        // eh
-      } catch (InterruptedException e) {
-        // eh
-      }
-      return true;
-    });
+    stopConductor(conductor1);
 
     //  restart conductor with new domain config
 
@@ -224,8 +213,78 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
 
     WaitUntil.orDie(() -> domain.getStorageEngineFactoryClassName().equals("storage_engine2"));
 
+    stopConductor(conductor2);
+
+    //  new target of 1 host per ring
+    RingGroupConductor conductor3 = new RingGroupConductor(ConfigFixtures.createRGCConfigurator(
+        localTmpDir,
+        getZkClientPort(),
+        "group1",
+        RingGroupConductorMode.AUTOCONFIGURE,
+        "BUCKET",
+        1,
+        domainsRoot,
+        domainGroupsRoot,
+        ringGroupsRoot,
+        Lists.newArrayList(new RingGroupConfiguredDomain(
+            "domain1",
+            2,
+            Lists.newArrayList(),
+            "storage_engine",
+            "partitioner",
+            MapBuilder.<String, Object>of("key1","val1").get()
+        ))
+    ));
+
+    assertEquals(2, ringGroup.getRings().size());
+
+    thread = new Thread(() -> {
+      try {
+        conductor3.run();
+      } catch (IOException e) {
+        // ok
+      }
+    });
+    thread.start();
+
+
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return ringGroup.getRings().size() == 3;
+      }
+    });
+
+
+    //  ideally we would wait for hosts to update so we would get 4 rings,
+    //  but that would require setting up a lot of root directories and stuff
+
+    conductor3.stop();
+
 
   }
+
+  private void stopConductor(RingGroupConductor conductor1) throws InterruptedException {
+    conductor1.stop();
+
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return getZk().exists(ringGroupsRoot+"/group1/"+RING_GROUP_CONDUCTOR_ONLINE_PATH, false) == null;
+        } catch (KeeperException e) {
+          // eh
+        } catch (InterruptedException e) {
+          // eh
+        }
+        return true;
+      }
+    });
+  }
+
+  //  TODO integration test autoconfigure.
+  //    -- when removing excess hosts, make sure remaining hosts are reassigned new partitions.
+
 
   private Multimap<Integer, Integer> getHostRings(RingGroup ringGroup) {
     Multimap<Integer, Integer> hostsByRing = HashMultimap.create();

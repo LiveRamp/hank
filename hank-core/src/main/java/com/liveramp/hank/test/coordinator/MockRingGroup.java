@@ -18,7 +18,11 @@ package com.liveramp.hank.test.coordinator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import com.liveramp.hank.coordinator.AbstractRingGroup;
 import com.liveramp.hank.coordinator.DomainGroup;
@@ -35,7 +39,7 @@ import com.liveramp.hank.zookeeper.WatchedNodeListener;
 public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
   private final DomainGroup dcg;
-  private final Set<Ring> ringConfigs;
+  private final Map<Integer, Ring> ringConfigs;
   private RingGroupConductorMode ringGroupConductorMode = null;
   private List<WatchedNodeListener<RingGroupConductorMode>> ringGroupConductorModeListeners
       = new ArrayList<WatchedNodeListener<RingGroupConductorMode>>();
@@ -49,7 +53,13 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
                        Set<Ring> ringConfigs) {
     super(name);
     this.dcg = dcg;
-    this.ringConfigs = ringConfigs;
+
+    this.ringConfigs = Maps.newHashMap();
+
+    for (Ring ringConfig : ringConfigs) {
+      this.ringConfigs.put(ringConfig.getRingNumber(), ringConfig);
+    }
+
   }
 
   @Override
@@ -59,7 +69,7 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
   @Override
   public Ring getRing(int ringNumber) {
-    return null;
+    return ringConfigs.get(ringNumber);
   }
 
   @Override
@@ -69,7 +79,7 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
   @Override
   public Set<Ring> getRings() {
-    return ringConfigs;
+    return Sets.newHashSet(ringConfigs.values());
   }
 
   @Override
@@ -115,11 +125,14 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
   @Override
   public Ring addRing(int ringNum) throws IOException {
-    return null;
+    MockRing newRing = new MockRing(Sets.newHashSet(), this, ringNum);
+    ringConfigs.put(ringNum, newRing);
+    return newRing;
   }
 
   @Override
   public boolean removeRing(int ringNum) throws IOException {
+    ringConfigs.remove(ringNum);
     return false;
   }
 

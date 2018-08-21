@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.THsHaServer.Args;
@@ -217,7 +218,7 @@ public class TestHankSmartClient extends BaseTestCase {
     };
 
     final MockRingGroup mockRingGroup = new MockRingGroup(
-        mockDomainGroup, "myRingGroup", null) {
+        mockDomainGroup, "myRingGroup", Sets.newHashSet()) {
       @Override
       public Set<Ring> getRings() {
         return Collections.singleton((Ring) mockRing);

@@ -1,20 +1,13 @@
-/**
- *  Copyright 2011 LiveRamp
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 package com.liveramp.hank.coordinator.mock;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import com.liveramp.commons.Accessors;
 import com.liveramp.hank.coordinator.AbstractDomain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionProperties;
@@ -22,12 +15,7 @@ import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.storage.StorageEngineFactory;
 
-import java.io.IOException;
-import java.util.*;
-
-import com.google.common.collect.Lists;
-
-public class MockDomain extends AbstractDomain {
+public class StaticMockDomain extends AbstractDomain {
 
   private final String name;
   private final int numParts;
@@ -37,7 +25,7 @@ public class MockDomain extends AbstractDomain {
   private final Map<String, Object> storageEngineOptions;
   private final int id;
 
-  public MockDomain(String name,
+  public StaticMockDomain(String name,
                     int id,
                     int numParts,
                     Partitioner part,
@@ -57,7 +45,7 @@ public class MockDomain extends AbstractDomain {
     this.storageEngineOptions = storageEngineOptions;
   }
 
-  public MockDomain(String domainName) {
+  public StaticMockDomain(String domainName) {
     this(domainName, 0, 1, null, null, null, null);
   }
 
@@ -120,17 +108,7 @@ public class MockDomain extends AbstractDomain {
 
   @Override
   public DomainVersion openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException {
-
-
-    MockDomainVersion version = new MockDomainVersion(
-        getNextVersionNumber(),
-        null,
-        domainVersionProperties
-    );
-
-    this.versions.add(version);
-
-    return version;
+    return Accessors.only(versions);
   }
 
   private int getNextVersionNumber() {

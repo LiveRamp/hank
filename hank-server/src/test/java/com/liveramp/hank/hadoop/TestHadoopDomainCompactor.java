@@ -29,6 +29,7 @@ import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.coordinator.mock.StaticMockDomain;
 import com.liveramp.hank.partition_server.DiskPartitionAssignment;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Writer;
@@ -78,7 +79,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
       return new MockCoordinator() {
         @Override
         public Domain getDomain(String domainName) {
-          return new MockDomain(domainName, 0, 2, null,
+          return new StaticMockDomain(domainName, 0, 2, null,
               new MockStorageEngine() {
                 @Override
                 public Compactor getCompactor(DiskPartitionAssignment configurator,

@@ -15,7 +15,12 @@
  */
 package com.liveramp.hank.hadoop;
 
+import com.liveramp.hank.config.CoordinatorConfigurator;
+import com.liveramp.hank.coordinator.mock.MockDomain;
+import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.storage.HdfsPartitionRemoteFileOps;
+import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
+
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
