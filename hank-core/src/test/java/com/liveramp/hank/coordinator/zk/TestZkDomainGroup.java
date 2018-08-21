@@ -16,14 +16,13 @@
 package com.liveramp.hank.coordinator.zk;
 
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.storage.echo.Echo;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,9 +52,9 @@ public class TestZkDomainGroup extends ZkTestCase {
   public void testLoad() throws Exception {
 
     final Domain d0 = ZkDomain.create(getZk(), domainsRoot, "domain0", 1024, Echo.Factory.class.getName(), "---",
-        Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
+        Murmur64Partitioner.class.getName(), 0, Collections.emptyList());
     final Domain d1 = ZkDomain.create(getZk(), domainsRoot, "domain1", 1024, Echo.Factory.class.getName(), "---",
-        Murmur64Partitioner.class.getName(), 1, Collections.<String>emptyList());
+        Murmur64Partitioner.class.getName(), 1, Collections.emptyList());
 
     Coordinator coord = new MockCoordinator() {
       @Override
@@ -74,19 +73,16 @@ public class TestZkDomainGroup extends ZkTestCase {
 
     assertEquals(0, dg.getDomainVersions().size());
 
-    Map<Domain, Integer> map1 = new HashMap<Domain, Integer>();
+    Map<Domain, Integer> map1 = new HashMap<>();
     map1.put(d0, 0);
     map1.put(d1, 0);
     dg.setDomainVersions(map1);
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return dg.getDomainVersions().size() != 0;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return dg.getDomainVersions().size() != 0;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
 
@@ -95,19 +91,16 @@ public class TestZkDomainGroup extends ZkTestCase {
     assertEquals(0, dg.getDomainVersion(d0).getVersionNumber());
     assertEquals(0, dg.getDomainVersion(d1).getVersionNumber());
 
-    Map<Domain, Integer> map2 = new HashMap<Domain, Integer>();
+    Map<Domain, Integer> map2 = new HashMap<>();
     map2.put(d0, 1);
     map2.put(d1, 1);
     dg.setDomainVersions(map2);
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return dg.getDomainVersion(d0).getVersionNumber() != 0;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return dg.getDomainVersion(d0).getVersionNumber() != 0;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
 

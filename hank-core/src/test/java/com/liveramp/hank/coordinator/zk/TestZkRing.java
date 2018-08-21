@@ -15,6 +15,7 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostCommand;
@@ -22,8 +23,6 @@ import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,15 +76,10 @@ public class TestZkRing extends ZkTestCase {
     final ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, null);
     assertEquals(0, ring.getHosts().size());
 
-    Host host = ring.addHost(LOCALHOST, Collections.<String>emptyList());
+    Host host = ring.addHost(LOCALHOST, Collections.emptyList());
     assertEquals(LOCALHOST, host.getAddress());
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return !ring.getHosts().isEmpty();
-      }
-    });
+    WaitUntil.orDie(() -> !ring.getHosts().isEmpty());
     assertEquals(Collections.singleton(host), ring.getHosts());
 
     assertEquals(LOCALHOST, ring.getHostByAddress(LOCALHOST).getAddress());
@@ -102,13 +96,8 @@ public class TestZkRing extends ZkTestCase {
     // Rename that host
     sameRing.getHostByAddress(LOCALHOST).setAddress(LOCALHOST2);
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return sameRing.getHostByAddress(LOCALHOST2) != null &&
-            LOCALHOST2.equals(sameRing.getHostByAddress(LOCALHOST2).getAddress());
-      }
-    });
+    WaitUntil.orDie(() -> sameRing.getHostByAddress(LOCALHOST2) != null &&
+        LOCALHOST2.equals(sameRing.getHostByAddress(LOCALHOST2).getAddress()));
 
     assertEquals(LOCALHOST2, sameRing.getHostByAddress(LOCALHOST2).getAddress());
 
@@ -124,21 +113,16 @@ public class TestZkRing extends ZkTestCase {
   @Test
   public void testListenersPreservedWhenHostAdded() throws Exception {
     ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null, null);
-    Host h1 = ring.addHost(new PartitionServerAddress("localhost", 1), Collections.<String>emptyList());
+    Host h1 = ring.addHost(new PartitionServerAddress("localhost", 1), Collections.emptyList());
     MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
     h1.setCommandQueueChangeListener(l1);
     final MockHostStateChangeListener l2 = new MockHostStateChangeListener();
     h1.setStateChangeListener(l2);
 
-    ring.addHost(new PartitionServerAddress("localhost", 2), Collections.<String>emptyList());
+    ring.addHost(new PartitionServerAddress("localhost", 2), Collections.emptyList());
 
     h1.setState(HostState.UPDATING);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return HostState.UPDATING == l2.calledWith;
-      }
-    });
+    WaitUntil.orDie(() -> HostState.UPDATING == l2.calledWith);
 
     assertEquals(HostState.UPDATING, l2.calledWith);
 

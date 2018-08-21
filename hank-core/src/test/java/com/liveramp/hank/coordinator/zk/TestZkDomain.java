@@ -15,13 +15,13 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
+import com.liveramp.commons.test.Condition;
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.partitioner.ConstantPartitioner;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.storage.constant.ConstantStorageEngine;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Test;
@@ -94,16 +94,13 @@ public class TestZkDomain extends ZkTestCase {
     ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
     assertNotNull(getZk().exists(ZkPath.append(getRoot(), "domain0"), false));
     assertTrue(dc.delete());
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return getZk().exists(ZkPath.append(getRoot(), "domain0"), false) == null;
-        } catch (KeeperException e) {
-          throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return getZk().exists(ZkPath.append(getRoot(), "domain0"), false) == null;
+      } catch (KeeperException e) {
+        throw new RuntimeException(e);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
       }
     });
     assertNull(getZk().exists(ZkPath.append(getRoot(), "domain0"), false));

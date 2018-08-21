@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainGroup;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
@@ -32,8 +33,6 @@ import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.partitioner.ConstantPartitioner;
 import com.liveramp.hank.storage.constant.ConstantStorageEngine;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 
 import static org.junit.Assert.assertNotNull;
@@ -64,7 +63,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   @Test
   public void testAddDomain() throws Exception {
-    coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), Collections.<String>emptyList());
+    coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), Collections.emptyList());
     Domain domain = coord.getDomain("myDomain");
     assertEquals(1, domain.getId());
     assertNotNull(domain);
@@ -73,7 +72,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertTrue(domain.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(domain.getPartitioner() instanceof ConstantPartitioner);
 
-    coord.addDomain("myDomain2", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), Collections.<String>emptyList());
+    coord.addDomain("myDomain2", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), Collections.emptyList());
     domain = coord.getDomain("myDomain2");
     assertEquals(2, domain.getId());
     assertNotNull(domain);
@@ -97,12 +96,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     // repeat the assertions with the other coord instance to ensure changes are
     // visible
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return coord2.getDomainGroup("myDomainGroup2") != null;
-      }
-    });
+    WaitUntil.orDie(() -> coord2.getDomainGroup("myDomainGroup2") != null);
 
     assertNotNull("myDomainGroup2 should be found", c);
     assertEquals("myDomainGroup2", c.getName());
@@ -114,7 +108,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   @Test
   public void testAddRingGroup() throws Exception {
     DomainGroup dg = coord.addDomainGroup("myDomainGroup2");
-    Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
+    Map<Domain, Integer> domainIdToVersion = new HashMap<>();
     dg.setDomainVersions(domainIdToVersion);
     RingGroup rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");
     assertEquals("superDuperRingGroup", rg.getName());
@@ -142,15 +136,15 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     create(domain_groups_root);
     create(ring_groups_root);
 
-    ZkDomain.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 0, Collections.<String>emptyList());
+    ZkDomain.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 0, Collections.emptyList());
 
     ZkDomainGroup domainGroup = ZkDomainGroup.create(getZk(), null, domain_groups_root, "myDomainGroup");
-    Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
+    Map<Domain, Integer> domainIdToVersion = new HashMap<>();
     domainGroup.setDomainVersions(domainIdToVersion);
 
     ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", domainGroup, new MockCoordinator());
     Ring rc = rg.addRing(1);
-    rc.addHost(new PartitionServerAddress("localhost", 1), Collections.<String>emptyList());
+    rc.addHost(new PartitionServerAddress("localhost", 1), Collections.emptyList());
 
     coord = getCoord();
   }

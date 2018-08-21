@@ -33,8 +33,6 @@ import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.generated.ConnectedServerMetadata;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 
 public class RingGroupAutoconfigureTransitionFunction implements RingGroupTransitionFunction {
   private static final Logger LOG = LoggerFactory.getLogger(RingGroupAutoconfigureTransitionFunction.class);

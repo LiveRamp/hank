@@ -30,6 +30,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostCommand;
@@ -44,8 +45,6 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -214,16 +213,13 @@ public class TestPartitionServer extends BaseTestCase {
     waitUntilHost(HostState.UPDATING, fixtures.host);
     assertEquals(HostState.UPDATING, fixtures.host.getState());
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return updateManager.updateCalled
-              && fixtures.host.getCurrentCommand() == null
-              && HostState.IDLE.equals(fixtures.host.getState());
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return updateManager.updateCalled
+            && fixtures.host.getCurrentCommand() == null
+            && HostState.IDLE.equals(fixtures.host.getState());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
 

@@ -43,8 +43,7 @@ import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 
@@ -158,16 +157,11 @@ public abstract class ZkTestCase extends BaseTestCase {
     LOG.debug("session timeout: " + zk.getSessionTimeout());
 
     zk.deleteNodeRecursively(zkRoot);
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return zk.exists(zkRoot, false) == null;
-        } catch (KeeperException e) {
-          throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return zk.exists(zkRoot, false) == null;
+      } catch (KeeperException | InterruptedException e) {
+        throw new RuntimeException(e);
       }
     });
     createNodeRecursively(zkRoot);

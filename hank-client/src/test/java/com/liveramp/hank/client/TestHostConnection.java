@@ -32,6 +32,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.liveramp.commons.test.Condition;
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
@@ -40,9 +42,7 @@ import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.partition_server.IfaceWithShutdown;
 import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
-import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.HankTimer;
-import com.liveramp.hank.util.WaitUntil;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -195,7 +195,7 @@ public class TestHostConnection extends BaseTestCase {
       getBulk(1000, 1000, 1000, 100);
       fail("Should fail");
     } catch (IOException e) {
-      duration = timer.getDuration() / 1000000l;
+      duration = timer.getDuration() / 1000000L;
       // Check that correct exception was raised
       assertTrue(e.getCause().getCause() instanceof SocketTimeoutException);
     }
@@ -212,18 +212,15 @@ public class TestHostConnection extends BaseTestCase {
 
     final HostConnection connection = new HostConnection(mockHost, 100, 1000, 1000, 1000);
 
-    Thread lockingThread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        connection.lock.lock();
-        while (true) {
-          try {
-            // Keep lock until interrupted
-            LOG.info("Holding lock until interrupted...");
-            Thread.sleep(100);
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
+    Thread lockingThread = new Thread(() -> {
+      connection.lock.lock();
+      while (true) {
+        try {
+          // Keep lock until interrupted
+          LOG.info("Holding lock until interrupted...");
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
         }
       }
     });
@@ -232,13 +229,8 @@ public class TestHostConnection extends BaseTestCase {
     lockingThread.start();
 
     // Wait for the connection to be locked
-    WaitUntil.condition(new Condition() {
-      @Override
-      public boolean test() {
-        return connection.lock.isLocked() &&
-            !connection.lock.isHeldByCurrentThread();
-      }
-    });
+    WaitUntil.condition(() -> connection.lock.isLocked() &&
+        !connection.lock.isHeldByCurrentThread());
 
     // Try to perform a get
     try {
@@ -302,13 +294,8 @@ public class TestHostConnection extends BaseTestCase {
     mockPartitionServer = new MockPartitionServer(handler, numWorkerThreads, partitionServerAddress);
     mockPartitionServerThread = new Thread(mockPartitionServer);
     mockPartitionServerThread.start();
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return mockPartitionServer.dataServer != null &&
-            mockPartitionServer.dataServer.isServing();
-      }
-    });
+    WaitUntil.orDie(() -> mockPartitionServer.dataServer != null &&
+        mockPartitionServer.dataServer.isServing());
   }
 
   private HankResponse get(int tryLockTimeoutMs,

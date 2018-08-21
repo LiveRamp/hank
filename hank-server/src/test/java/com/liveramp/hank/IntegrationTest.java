@@ -23,7 +23,6 @@ import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +39,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liveramp.commons.test.Condition;
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.commons.util.BytesUtils;
 import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
@@ -79,8 +80,6 @@ import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.curly.Curly;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
 
 import static com.liveramp.hank.test.CoreConfigFixtures.coordinatorConfig;
@@ -353,21 +352,18 @@ public class IntegrationTest extends ZkTestCase {
 
     writeOut(coordinator.getDomain("domain1"), domain1Delta, 1, DOMAIN_1_DATAFILES);
 
-    versionMap = new HashMap<Domain, Integer>();
+    versionMap = new HashMap<>();
     versionMap.put(coordinator.getDomain("domain0"), 0);
     versionMap.put(coordinator.getDomain("domain1"), 1);
     LOG.info("----- stamping new dg1 version -----");
     domainGroup.setDomainVersions(versionMap);
 
     // wait until domain group change propagates
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return domainGroup.getDomainVersion(coordinator.getDomain("domain1")).getVersionNumber() == 1;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return domainGroup.getDomainVersion(coordinator.getDomain("domain1")).getVersionNumber() == 1;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
 
@@ -429,15 +425,12 @@ public class IntegrationTest extends ZkTestCase {
     stopDaemons(new PartitionServerAddress("localhost", 50002));
     stopDaemons(new PartitionServerAddress("localhost", 50003));
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return HostState.OFFLINE.equals(r2h1.getState())
-              && HostState.OFFLINE.equals(r2h2.getState());
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return HostState.OFFLINE.equals(r2h1.getState())
+            && HostState.OFFLINE.equals(r2h2.getState());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
 
@@ -590,22 +583,16 @@ public class IntegrationTest extends ZkTestCase {
     LOG.debug("Writing out new version " + versionNumber + " of domain " + domain.getName() + " to root " + domainRoot);
     assertEquals(versionNumber, Domains.getLatestVersionNotOpenNotDefunct(domain).getVersionNumber());
     // partition keys and values
-    Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<Integer, SortedMap<ByteBuffer, ByteBuffer>>();
+    Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<>();
     Partitioner p = domain.getPartitioner();
     for (Map.Entry<ByteBuffer, ByteBuffer> pair : dataItems.entrySet()) {
       int partNum = p.partition(pair.getKey(), domain.getNumParts());
-      SortedMap<ByteBuffer, ByteBuffer> part = sortedAndPartitioned.get(partNum);
-      if (part == null) {
-        part = new TreeMap<ByteBuffer, ByteBuffer>(new Comparator<ByteBuffer>() {
-          public int compare(ByteBuffer arg0, ByteBuffer arg1) {
-            final StorageEngine storageEngine = domain.getStorageEngine();
-            final ByteBuffer keyL = BytesUtils.byteBufferDeepCopy(storageEngine.getComparableKey(arg0));
-            final ByteBuffer keyR = storageEngine.getComparableKey(arg1);
-            return BytesUtils.compareBytesUnsigned(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.remaining());
-          }
-        });
-        sortedAndPartitioned.put(partNum, part);
-      }
+      SortedMap<ByteBuffer, ByteBuffer> part = sortedAndPartitioned.computeIfAbsent(partNum, k -> new TreeMap<>((arg0, arg1) -> {
+        final StorageEngine storageEngine = domain.getStorageEngine();
+        final ByteBuffer keyL = BytesUtils.byteBufferDeepCopy(storageEngine.getComparableKey(arg0));
+        final ByteBuffer keyR = storageEngine.getComparableKey(arg1);
+        return BytesUtils.compareBytesUnsigned(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.remaining());
+      }));
       LOG.trace(String.format("putting %s -> %s into partition %d", BytesUtils.bytesToHexString(pair.getKey()), BytesUtils.bytesToHexString(pair.getValue()), partNum));
       part.put(pair.getKey(), pair.getValue());
     }

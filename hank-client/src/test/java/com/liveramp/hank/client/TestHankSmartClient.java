@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainAndVersion;
@@ -60,8 +61,6 @@ import com.liveramp.hank.test.coordinator.MockHostDomainPartition;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
 import com.liveramp.hank.test.partitioner.MapPartitioner;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -244,12 +243,7 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        return server1.isServing() && server2.isServing() && server3.isServing();
-      }
-    });
+    WaitUntil.orDie(() -> server1.isServing() && server2.isServing() && server3.isServing());
 
     try {
       final HankSmartClient client = new HankSmartClient(mockCoord, "myRingGroup",
@@ -272,10 +266,10 @@ public class TestHankSmartClient extends BaseTestCase {
       assertEquals(HankBulkResponse.xception(HankException.no_such_domain(true)), client.getBulk("nonexistent_domain", null));
 
       // Test getBulk
-      HankBulkResponse bulkResponse1 = HankBulkResponse.responses(new ArrayList<HankResponse>());
+      HankBulkResponse bulkResponse1 = HankBulkResponse.responses(new ArrayList<>());
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_1));
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_2));
-      List<ByteBuffer> bulkRequest1 = new ArrayList<ByteBuffer>();
+      List<ByteBuffer> bulkRequest1 = new ArrayList<>();
       bulkRequest1.add(KEY_1);
       bulkRequest1.add(KEY_2);
       assertEquals(bulkResponse1, client.getBulk("existent_domain", bulkRequest1));
@@ -320,12 +314,7 @@ public class TestHankSmartClient extends BaseTestCase {
       client.onDataLocationChange(mockCoord.getRingGroup("myRingGroup"));
 
       // Should be able to query new domain when the client has done updating its cache
-      WaitUntil.orDie(new Condition() {
-        @Override
-        public boolean test() {
-          return HankResponse.value(VALUE_3).equals(client.get("new_domain", KEY_3));
-        }
-      });
+      WaitUntil.orDie(() -> HankResponse.value(VALUE_3).equals(client.get("new_domain", KEY_3)));
       assertEquals(HankResponse.value(VALUE_3), client.get("new_domain", KEY_3));
 
       // TODO: Test not querying deletable partitions
@@ -417,7 +406,7 @@ public class TestHankSmartClient extends BaseTestCase {
   private TServer createPartitionServer(TNonblockingServerTransport transport,
                                         PartitionServer.Iface iface) {
     Args args = new Args(transport);
-    args.processor(new PartitionServer.Processor(iface));
+    args.processor(new PartitionServer.Processor<>(iface));
     args.protocolFactory(new TCompactProtocol.Factory());
     return new THsHaServer(args);
   }
@@ -427,7 +416,7 @@ public class TestHankSmartClient extends BaseTestCase {
     MockHost hc = new MockHost(address) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomain) new MockHostDomain(domain) {
+        return Collections.singleton(new MockHostDomain(domain) {
           @Override
           public HostDomainPartition addPartition(int partitionNumber) {
             return null;
@@ -436,7 +425,7 @@ public class TestHankSmartClient extends BaseTestCase {
           @Override
           public Set<HostDomainPartition> getPartitions() {
             return Collections
-                .singleton((HostDomainPartition) new MockHostDomainPartition(
+                .singleton(new MockHostDomainPartition(
                     partNum, 1));
           }
         });

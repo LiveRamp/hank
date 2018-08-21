@@ -23,12 +23,11 @@ import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.junit.Before;
 
+import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostCommand;
 import com.liveramp.hank.coordinator.HostState;
-import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.FsUtils;
-import com.liveramp.hank.util.WaitUntil;
 
 public abstract class BaseTestCase {
 
@@ -66,27 +65,21 @@ public abstract class BaseTestCase {
   }
 
   protected void waitUntilHost(final HostState state, final Host host) throws InterruptedException {
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return state.equals(host.getState());
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return state.equals(host.getState());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
   }
 
   protected void waitUntilCommand(final HostCommand command, final Host host) throws InterruptedException {
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return command.equals(host.getCurrentCommand());
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    WaitUntil.orDie(() -> {
+      try {
+        return command.equals(host.getCurrentCommand());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     });
   }
