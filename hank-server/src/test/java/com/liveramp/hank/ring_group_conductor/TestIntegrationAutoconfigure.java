@@ -247,6 +247,7 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
     });
     thread.start();
 
+    Thread.sleep(5000);
 
     WaitUntil.orDie(new Condition() {
       @Override
@@ -255,12 +256,10 @@ public class TestIntegrationAutoconfigure extends ZkTestCase {
       }
     });
 
+    stopConductor(conductor3);
 
     //  ideally we would wait for hosts to update so we would get 4 rings,
     //  but that would require setting up a lot of root directories and stuff
-
-    conductor3.stop();
-
 
   }
 
