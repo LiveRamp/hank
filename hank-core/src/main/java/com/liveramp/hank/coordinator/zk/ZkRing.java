@@ -114,6 +114,16 @@ public class ZkRing extends AbstractRing {
   public Host addHost(PartitionServerAddress address,
                       List<String> flags) throws IOException {
     try {
+
+      //  throws an exception if we can't parse the address
+      PartitionServerAddress.parse(address.toString());
+
+      Host host = getHostByAddress(address);
+
+      if(host != null){
+        throw new IllegalArgumentException("Host "+address+" already exists in ring "+getRingNumber()+"!");
+      }
+
       return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address, dataLocationChangeListener, flags);
     } catch (Exception e) {
       throw new IOException(e);
