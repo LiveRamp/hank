@@ -48,7 +48,7 @@ public class RingController extends Controller {
   private void doAddHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String rgName = req.getParameter("rgName");
     int ringNum = Integer.parseInt(req.getParameter("ringNum"));
-    String hostname = req.getParameter("hostname");
+    String hostname = req.getParameter("hostname").trim();
     int portNum = Integer.parseInt(req.getParameter("port"));
     String flagsStr = req.getParameter("hostFlags");
     coordinator.getRingGroup(rgName).getRing(ringNum).addHost(

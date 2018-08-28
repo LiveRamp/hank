@@ -15,6 +15,7 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
+import com.liveramp.commons.test.Condition;
 import com.liveramp.commons.test.WaitUntil;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Host;
@@ -24,15 +25,20 @@ import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.zookeeper.ZkPath;
+
+import com.google.common.collect.Lists;
+import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Collections;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestZkRing extends ZkTestCase {
 
@@ -69,6 +75,33 @@ public class TestZkRing extends ZkTestCase {
     assertEquals("ring number", 1, ring.getRingNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
     ring.close();
+  }
+
+  @Test
+  public void testValidation() throws KeeperException, InterruptedException, IOException {
+    final ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, null);
+
+    //  reject an invalid address
+    try {
+      ring.addHost(new PartitionServerAddress("localhost:123", 123), Lists.newArrayList());
+      fail();
+    }catch(Exception e){
+      //  this is expected since it's a duplicate ring
+    }
+
+    ring.addHost(LOCALHOST, Lists.newArrayList());
+    WaitUntil.orDie(() -> ring.getHosts().size() == 1);
+
+    //  verify that we can't have duplicate hosts with the same name in a ring.
+    try {
+      ring.addHost(LOCALHOST, Lists.newArrayList());
+      fail();
+    }catch(Exception e){
+      //  this is expected since it's a duplicate host
+    }
+
+    ring.close();
+
   }
 
   @Test
