@@ -32,17 +32,24 @@ The authors of Hank are [Thomas Kielbus](https://github.com/thomas-kielbus) and 
 
 Some tips helpful when configuring domains can be found [here](https://docs.google.com/spreadsheet/ccc?key=0AvnnKDkRGJGodHM5TVk5eXdHMFIzcEJ4cDJWZTJadEE).
 
-You can either build Hank from source as described below, or pull the latest jar from the LiveRamp Maven repository:
+You can either build Hank from source as described below, or pull the latest snapshot from Sonatype Snapshots. Add the repo:
 
 ```xml
 <repository>
-  <id>repository.liveramp.com</id>
-  <name>liveramp-repositories</name>
-  <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
+  <id>sonatype-snapshots</id>
+  <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+  <layout>default</layout>
+  <releases>
+    <enabled>false</enabled>
+  </releases>
+  <snapshots>
+    <enabled>true</enabled>
+    <updatePolicy>always</updatePolicy>
+  </snapshots>
 </repository>
 ```
 
-The 1.0-SNAPSHOT build can be retrieved there:
+Then, add the dependency:
 
 ```xml
 <dependency>
@@ -51,6 +58,8 @@ The 1.0-SNAPSHOT build can be retrieved there:
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
+
+*NOTE*: Delivery of releases to Maven Central is coming soon!
 
 To build hank from source and generate the jar in target/:
 

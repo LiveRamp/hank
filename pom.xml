@@ -7,6 +7,7 @@
     <version>1.1-SNAPSHOT</version>
   </parent>
 
+  <groupId>com.liveramp</groupId>
   <artifactId>hank</artifactId>
   <version>1.1-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -17,6 +18,30 @@
     <module>hank-client</module>
     <module>hank-ui</module>
   </modules>
+
+  <name>Hank</name>
+  <description>high performance distributed key-value NoSQL database</description>
+  <developers>
+    <developer>
+      <name>LiveRamp Engineering</name>
+      <email>info@liveramp.com</email>
+    </developer>
+  </developers>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/LiveRamp/hank/issues</url>
+  </issueManagement>
+
+  <url>https://liveramp.com</url>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <scm>
     <connection>scm:git:git@github.com:LiveRamp/hank.git</connection>
@@ -118,6 +143,95 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>publish</id>
+      <build>
+        <plugins>
+          <!-- Used to build a JAR containing the source code from this project -->
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-source-plugin</artifactId>
+              <version>2.4</version>
+              <executions>
+                  <execution>
+                      <id>attach-sources</id>
+                      <goals>
+                          <goal>jar-no-fork</goal>
+                      </goals>
+                  </execution>
+              </executions>
+          </plugin>
+
+          <!-- Used to generate javadocs for this project -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+              <execution>
+              <!-- Disable javadoc linting until CD is setup, then you
+                        can enable it if you'd like -->
+                <configuration>
+                  <doclint>none</doclint>
+                </configuration>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Sign generated artifacts before publishing. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <!-- The "sign" goal is one of the GPG plugin's
+                  goals. It produces signature files for the
+                   artifacts in this build. -->
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!--
+            Used to publish artifacts produced by this project to the Sonatype
+            Nexus repository.
+          -->
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.8</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+
+      <!-- Specifies where to publish snapshots/releases on Sonatype -->
+      <distributionManagement>
+        <snapshotRepository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      </distributionManagement>
     </profile>
   </profiles>
 
