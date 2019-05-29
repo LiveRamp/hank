@@ -56,9 +56,9 @@
       <url>http://conjars.org/repo</url>
     </repository>
     <repository>
-      <id>liveramp-repositories</id>
-      <name>Liveramp Repositories</name>
-      <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
+      <id>sonatype-snapshots</id>
+      <name>Sonatype Snapshots</name>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
       <!--pull in latest cascading_ext-->
       <snapshots>
         <enabled>true</enabled>
@@ -92,8 +92,6 @@
           <failIfNoTests>false</failIfNoTests>
         </configuration>
       </plugin>
-
-
 
       <!-- Use mvn antrun:run -pl hank-core to generate Thrift sources -->
       <plugin>
